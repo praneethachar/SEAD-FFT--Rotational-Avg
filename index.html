@@ -225,6 +225,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <h2>Phases from CIF</h2>
       <label class="btn primary" for="cifIn">Add CIF files…<input id="cifIn" type="file" accept=".cif,.CIF" multiple></label>
       <label class="btn" for="cifDir" title="Pick a folder; every sub-folder with CIFs gets its own box">Add folder…<input id="cifDir" type="file" webkitdirectory directory multiple></label>
+      <span class="row2" style="gap:4px"><button id="cBest" disabled title="Rank the phases in the chosen folder against the current peak list and highlight the best one">★ Best fit</button><button id="cBestPrev" disabled title="Previous (better) fit" aria-label="Previous fit">◀</button><button id="cBestNext" disabled title="Next (worse) fit" aria-label="Next fit">▶</button><label for="cBestIn">in</label><select id="cBestIn" style="width:auto;min-width:8rem;max-width:14rem" disabled title="Which folder box to search"><option value="">all folders</option></select></span>
       <div class="row2"><label for="cs">calibration factor s</label><input id="cs" type="range" min="0.95" max="1.05" step="0.0005" value="1" style="width:9rem"><input id="csN" type="number" step="0.0005" value="1" style="width:5.6rem"></div>
       <div class="row2"><label for="cmin">lines ≥</label><input id="cmin" type="number" min="0" max="100" step="1" value="5" style="width:4rem"><label>% I</label></div>
       <div class="row2"><label><input id="cRings" type="checkbox" checked> rings on SAED</label><label><input id="cSticks" type="checkbox" checked> sticks on profile</label><label><input id="cLab" type="checkbox" checked> hkl labels</label><label title="d × s, where the ring and stick are drawn"><input id="cLabD" type="checkbox" checked> d labels</label><label for="cLabSize">size</label><input id="cLabSize" type="number" min="6" max="30" step="1" value="10" style="width:3.6rem"></div>
@@ -785,14 +786,16 @@ function drawChart(target,tdpr){
   for(const p of S.peaks){const xv=mode==="d"?p.d:mode==="tt"?p.tt:mode==="q"?p.q:p.r;if(xv<lo||xv>hi)continue;
     let k=0,bd=Infinity;for(let i=0;i<X.length;i++){const dd=Math.abs(X[i]-xv);if(dd<bd){bd=dd;k=i;}}
     const hit=cifD.some(d=>Math.abs(d-p.d)/p.d<=0.01),col=hit?MATCH:warn;
-    if(pkLines){ctx.save();ctx.strokeStyle=col;ctx.globalAlpha=hit?0.9:0.55;ctx.lineWidth=(hit?1.8:1.1)*dpr;ctx.setLineDash(hit?[]:[4*dpr,4*dpr]);
-      ctx.beginPath();ctx.moveTo(sx(xv),T);ctx.lineTo(sx(xv),T+ph);ctx.stroke();ctx.restore();}
-    ctx.fillStyle=col;
-    const x=sx(xv),y=sy(Y[k])-6*dpr;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-4*dpr,y-7*dpr);ctx.lineTo(x+4*dpr,y-7*dpr);ctx.closePath();ctx.fill();
+    const x=sx(xv),y=sy(Y[k])-6*dpr;
+    /* thin dashed line from the top of the plot down to the peak marker only, so CIF sticks below stay visible */
+    if(pkLines){ctx.save();ctx.strokeStyle=col;ctx.globalAlpha=0.6;ctx.lineWidth=1*dpr;ctx.setLineDash([4*dpr,4*dpr]);
+      ctx.beginPath();ctx.moveTo(x,T);ctx.lineTo(x,y-7*dpr);ctx.stroke();ctx.restore();}
+    ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-4*dpr,y-7*dpr);ctx.lineTo(x+4*dpr,y-7*dpr);ctx.closePath();ctx.fill();
     {const t=p.d.toFixed(3),tw=ctx.measureText(t).width,fh=11*dpr;   // label sits beside the peak line, on its own background
       ctx.save();ctx.translate(x+fh*0.75,y-4*dpr);ctx.rotate(-Math.PI/2);
-      ctx.fillStyle=css.getPropertyValue("--panel").trim();ctx.globalAlpha=.85;ctx.fillRect(-2*dpr,-fh*0.65,tw+4*dpr,fh*1.3);ctx.globalAlpha=1;
-      ctx.fillStyle=col;ctx.fillText(t,0,0);ctx.restore();}}
+      if(hit){ctx.fillStyle=MATCH;ctx.fillRect(-3*dpr,-fh*0.7,tw+6*dpr,fh*1.4);ctx.fillStyle="#0b1a12";}   /* matched: highlighted d label */
+      else{ctx.fillStyle=css.getPropertyValue("--panel").trim();ctx.globalAlpha=.85;ctx.fillRect(-2*dpr,-fh*0.65,tw+4*dpr,fh*1.3);ctx.globalAlpha=1;ctx.fillStyle=col;}
+      ctx.fillText(t,0,0);ctx.restore();}}
   if(chartDrag&&chartDrag.moved){const a=Math.max(L,Math.min(chartDrag.x0,chartDrag.x1)),b2=Math.min(L+pw,Math.max(chartDrag.x0,chartDrag.x1));
     ctx.fillStyle=acc;ctx.globalAlpha=.15;ctx.fillRect(a,T,b2-a,ph);ctx.globalAlpha=1;ctx.strokeStyle=acc;ctx.lineWidth=1*dpr;ctx.strokeRect(a,T,b2-a,ph);}
   if(hoverX!==null&&hoverX>=L&&hoverX<=L+pw){const xv=lo+(hoverX-L)/pw*(hi-lo);let k=0,bd=Infinity;for(let i=0;i<X.length;i++){const dd=Math.abs(X[i]-xv);if(dd<bd){bd=dd;k=i;}}
@@ -1017,17 +1020,35 @@ function matchStats(ph){
   const n=obs.filter(d=>L.some(x=>Math.abs(x.d-d)/d<=0.01)).length;
   const strong=L.filter(x=>x.I>=30&&x.d>=dlo&&x.d<=dhi),miss=strong.filter(x=>!obs.some(d=>Math.abs(x.d-d)/d<=0.01)).length;
   return {n,N:obs.length,miss,strong:strong.length};}
+/* fit score of a phase against the current peaks, at the current s and lines ≥ cutoff:
+   intensity-weighted fraction of observed peaks with a line within ±1 %, corrected for the fraction a random
+   line list of the same density would hit, minus half the fraction of strong (≥30 %) lines with no observed peak */
+function fitScore(ph){
+  if(!S.profile||!S.peaks.length)return null;const s=phaseScale(),mn=+$("cmin").value||0,obs=S.peaks;
+  const dlo=Math.min(...obs.map(p=>p.d))*0.97,dhi=Math.max(...obs.map(p=>p.d))*1.03;
+  const L=ph.lines.filter(x=>x.I>=mn).map(x=>({d:x.d*s,I:x.I})).filter(x=>x.d>=dlo&&x.d<=dhi);
+  const w=obs.map(p=>Math.sqrt(Math.max(p.rel,1))),W=w.reduce((a,b)=>a+b,0);
+  const hitW=obs.reduce((a,p,i)=>a+(L.some(x=>Math.abs(x.d-p.d)/p.d<=0.01)?w[i]:0),0)/W;
+  const iv=L.map(x=>[Math.log(x.d)-0.01,Math.log(x.d)+0.01]).sort((a,b)=>a[0]-b[0]);let cov=0,e=-Infinity;
+  for(const [a,b] of iv){const a2=Math.max(a,e);if(b>a2)cov+=b-a2;e=Math.max(e,b);}
+  const chance=Math.min(0.95,cov/Math.log(dhi/dlo));
+  const strong=L.filter(x=>x.I>=30),miss=strong.filter(x=>!obs.some(p=>Math.abs(x.d-p.d)/p.d<=0.01)).length;
+  const missF=strong.length?miss/strong.length:1;
+  return {score:(hitW-chance)/(1-chance)-0.5*missF,hitW,chance,missF};}
 const groupsOf=()=>{const order=[],m=new Map();for(const ph of S.phases){const g=ph.group||"Files";if(!m.has(g)){m.set(g,[]);order.push(g);}m.get(g).push(ph);}return order.map(g=>[g,m.get(g)]);};
 const displayOrder=()=>groupsOf().flatMap(([g,L])=>S.collapsed&&S.collapsed.has(g)?[]:L);
 function renderPhases(){
-  const box=$("phaseGroups");box.textContent="";$("cClear").disabled=!S.phases.length;S.collapsed=S.collapsed||new Set();
+  const box=$("phaseGroups");box.textContent="";$("cClear").disabled=!S.phases.length;for(const b of ["cBest","cBestPrev","cBestNext","cBestIn"])$(b).disabled=!S.phases.length;
+  {const sel=$("cBestIn"),keep=sel.value,gs=groupsOf().map(x=>x[0]);sel.textContent="";const o0=document.createElement("option");o0.value="";o0.textContent="all folders";sel.appendChild(o0);
+   for(const g of gs){const o=document.createElement("option");o.value=g;o.textContent=g;sel.appendChild(o);}sel.value=gs.includes(keep)?keep:"";}S.collapsed=S.collapsed||new Set();
   if(!S.phases.length){box.innerHTML='<div class="keys" style="padding:12px;text-align:center">no CIF loaded</div>';renderLines();renderPhaseCaption();return;}
   for(const [g,list] of groupsOf()){
     const grp=document.createElement("div");grp.className="pgroup";const closed=S.collapsed.has(g);
     const head=document.createElement("div");head.className="pghead";
-    head.innerHTML=`<button class="tog" title="Show / hide this folder" aria-label="toggle">${closed?"▸":"▾"}</button><b></b><span class="keys"></span><button class="all">tick all</button><button class="none">untick all</button><button class="rm" title="Remove this folder's phases">remove</button>`;
+    head.innerHTML=`<button class="tog" title="Show / hide this folder" aria-label="toggle">${closed?"▸":"▾"}</button><b></b><span class="keys"></span><button class="bf" title="Best fit within this folder">★ best fit</button><button class="all">tick all</button><button class="none">untick all</button><button class="rm" title="Remove this folder's phases">remove</button>`;
     head.querySelector("b").textContent="📁 "+g;head.querySelector(".keys").textContent=`${list.length} phase${list.length>1?"s":""}, ${list.filter(p=>p.show).length} ticked`;
     head.querySelector(".tog").addEventListener("click",()=>{closed?S.collapsed.delete(g):S.collapsed.add(g);renderPhases();});
+    head.querySelector(".bf").addEventListener("click",()=>{$("cBestIn").value=g;bestGo(0);});
     head.querySelector(".all").addEventListener("click",()=>{list.forEach(p=>p.show=true);phaseRefresh();});
     head.querySelector(".none").addEventListener("click",()=>{list.forEach(p=>p.show=false);phaseRefresh();});
     head.querySelector(".rm").addEventListener("click",()=>{S.phases=S.phases.filter(p=>!list.includes(p));if(list.some(p=>p.id===S.focus))S.focus=null;phaseRefresh();});
@@ -1093,6 +1114,23 @@ $("cifDir").addEventListener("change",e=>{const fs=[...e.target.files].filter(f=
 async function entriesToFiles(entry,parent,out){
   if(entry.isFile){await new Promise(res=>entry.file(f=>{if(/\.cif$/i.test(f.name))out.push({f,group:parent||"Files"});else if(!parent)out.push({f,group:null});res();},()=>res()));return;}
   if(entry.isDirectory){const rd=entry.createReader();let batch;do{batch=await new Promise(res=>rd.readEntries(res,()=>res([])));for(const en of batch)await entriesToFiles(en,entry.name,out);}while(batch.length);}}
+/* best-fit navigation: rank the phases in the chosen folder (or all), then go to #1, or step with ◀ ▶ */
+function bestRank(){const g=$("cBestIn").value;return S.phases.filter(ph=>!g||(ph.group||"Files")===g).map(ph=>({ph,f:fitScore(ph)})).filter(o=>o.f).sort((a,b)=>b.f.score-a.f.score);}
+function bestGo(step){   // step 0: best; +1 / -1: next / previous relative to the highlighted phase
+  if(!S.phases.length)return;if(!S.profile||!S.peaks.length){setStatus("Compute the profile first, then use Best fit.",true);return;}
+  const rank=bestRank();if(!rank.length){$("cifStatus").textContent="No phases in that folder.";return;}
+  const cur=rank.findIndex(o=>o.ph.id===S.focus);
+  const i=step===0||cur<0?(step<0?rank.length-1:0):((cur+step)%rank.length+rank.length)%rank.length;
+  const o=rank[i],g=o.ph.group||"Files";if(S.collapsed&&S.collapsed.has(g))S.collapsed.delete(g);
+  focusPhase(o.ph.id);$("phaseBox").focus({preventScroll:true});
+  const tr=[...document.querySelectorAll("#phaseGroups tr")].find(t=>t.dataset.id==o.ph.id);
+  if(tr){const pb=tr.closest(".pgroup").getBoundingClientRect();if(pb.top<0||pb.top>window.innerHeight-80)tr.closest(".pgroup").scrollIntoView({block:"nearest"});}
+  const f=o.f,where=$("cBestIn").value?` in “${$("cBestIn").value}”`:"";
+  $("cifStatus").textContent=`Best fit #${i+1} of ${rank.length}${where}: ${o.ph.legend} · score ${f.score.toFixed(2)} (peaks hit ${(100*f.hitW).toFixed(0)} %, chance ${(100*f.chance).toFixed(0)} %, strong lines missing ${(100*f.missF).toFixed(0)} %). ◀ ▶ to step.`;}
+$("cBest").addEventListener("click",()=>bestGo(0));
+$("cBestNext").addEventListener("click",()=>bestGo(1));
+$("cBestPrev").addEventListener("click",()=>bestGo(-1));
+$("cBestIn").addEventListener("change",()=>bestGo(0));
 $("cClear").addEventListener("click",()=>{S.phases=[];S.focus=null;renderPhases();redrawAll();drawChart();});
 const phaseRefresh=()=>{renderPhases();redrawAll();drawChart();};
 $("cs").addEventListener("input",()=>{$("csN").value=$("cs").value;phaseRefresh();});
