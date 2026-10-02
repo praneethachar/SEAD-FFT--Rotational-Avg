@@ -199,7 +199,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <div class="row2"><label for="xmode">x axis</label>
         <select id="xmode" style="width:auto"><option value="d">d (Å)</option><option value="tt">2θ (°)</option><option value="q">q (nm⁻¹)</option><option value="r">r (px)</option></select></div>
       <div class="row2"><label for="xlo">from</label><input id="xlo" type="number" step="any"><label for="xhi">to</label><input id="xhi" type="number" step="any"><button id="zreset" title="Back to the full range (or double-click the plot)">Reset zoom</button></div>
-      <div class="row2"><label title="Vertical line at each detected peak; it turns green when a shown CIF line is within ±1 % in d"><input id="pkLines" type="checkbox" checked> peak lines</label><label><input id="logy" type="checkbox"> log I</label><label><input id="bgsub" type="checkbox"> subtract background</label></div>
+      <div class="row2"><label title="Vertical line at each detected peak; it turns green when a shown CIF line is within ±1 % in d"><input id="pkLines" type="checkbox" checked> peak lines</label><label title="On: the peak line runs down to the baseline. Off: it stops at the peak marker, so CIF sticks underneath stay clear"><input id="pkFull" type="checkbox" checked> full height</label><label><input id="logy" type="checkbox"> log I</label><label><input id="bgsub" type="checkbox"> subtract background</label></div>
       <div class="row2"><label for="sens">peak sensitivity</label><input id="sens" type="range" min="2" max="20" step="0.5" value="6" style="width:7rem"></div>
       <span class="spacer"></span>
       <span class="status" id="status"></span>
@@ -737,7 +737,7 @@ function setDefaultRange(){const P=S.profile,mode=$("xmode").value;if(!P)return;
   $("xlo").value=+lo.toPrecision(4);$("xhi").value=+hi.toPrecision(4);}
 $("xmode").addEventListener("change",()=>{setDefaultRange();drawChart();});
 for(const id of ["xlo","xhi"])$(id).addEventListener("change",drawChart);
-$("logy").addEventListener("change",drawChart);$("pkLines").addEventListener("change",drawChart);$("bgsub").addEventListener("change",()=>{drawChart();updSaveLabels();});
+$("logy").addEventListener("change",drawChart);$("pkLines").addEventListener("change",drawChart);$("pkFull").addEventListener("change",drawChart);$("bgsub").addEventListener("change",()=>{drawChart();updSaveLabels();});
 function niceTicks(a,b,n){if(!(b>a))return[];const span=b-a,step0=span/n,mag=Math.pow(10,Math.floor(Math.log10(step0)));const f=step0/mag;const step=(f<1.5?1:f<3?2:f<7?5:10)*mag;
   const out=[];for(let v=Math.ceil(a/step)*step;v<=b+1e-9;v+=step)out.push(+v.toPrecision(10));return out;}
 let hoverX=null, chartGeom=null;
@@ -787,7 +787,7 @@ function drawChart(target,tdpr){
   // peaks
   ctx.fillStyle=warn;ctx.font=`600 ${11*dpr}px "IBM Plex Mono",monospace`;ctx.textAlign="left";ctx.textBaseline="middle";
   // experimental peaks: vertical line; green when a shown CIF line (ticked or previewed, ≥ lines %) lies within ±1 % in d
-  const pkLines=$("pkLines").checked,MATCH="#2fbf71",cmV=+$("cmin").value||0,sV=phaseScale();
+  const pkLines=$("pkLines").checked,pkFull=$("pkFull").checked,MATCH="#2fbf71",cmV=+$("cmin").value||0,sV=phaseScale();
   const cifD=S.phases.filter(phVisible).flatMap(ph=>ph.lines.filter(x=>x.I>=cmV).map(x=>x.d*sV));
   for(const p of S.peaks){const xv=mode==="d"?p.d:mode==="tt"?p.tt:mode==="q"?p.q:p.r;if(xv<lo||xv>hi)continue;
     let k=0,bd=Infinity;for(let i=0;i<X.length;i++){const dd=Math.abs(X[i]-xv);if(dd<bd){bd=dd;k=i;}}
@@ -795,7 +795,7 @@ function drawChart(target,tdpr){
     const x=sx(xv),y=sy(Y[k])-6*dpr;
     /* thin dashed line from the top of the plot down to the peak marker only, so CIF sticks below stay visible */
     if(pkLines){ctx.save();ctx.strokeStyle=col;ctx.globalAlpha=0.6;ctx.lineWidth=1*dpr;ctx.setLineDash([4*dpr,4*dpr]);
-      ctx.beginPath();ctx.moveTo(x,T);ctx.lineTo(x,y-7*dpr);ctx.stroke();ctx.restore();}
+      ctx.beginPath();ctx.moveTo(x,T);ctx.lineTo(x,y-7*dpr);if(pkFull){ctx.moveTo(x,y+1*dpr);ctx.lineTo(x,T+ph);}ctx.stroke();ctx.restore();}
     ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-4*dpr,y-7*dpr);ctx.lineTo(x+4*dpr,y-7*dpr);ctx.closePath();ctx.fill();
     {const t=p.d.toFixed(3),tw=ctx.measureText(t).width,fh=11*dpr;   // label sits beside the peak line, on its own background
       ctx.save();ctx.translate(x+fh*0.75,y-4*dpr);ctx.rotate(-Math.PI/2);
