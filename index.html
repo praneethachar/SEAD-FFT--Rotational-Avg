@@ -184,9 +184,27 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
     <div id="rsWrap" style="position:relative;height:clamp(300px,42vh,520px);min-height:200px;resize:vertical;overflow:hidden;border:1px solid var(--line);border-radius:var(--r)">
       <canvas id="rsCv" aria-label="Real-space image; drag to place the FFT region" style="display:block;width:100%;height:100%;cursor:crosshair;touch-action:none"></canvas></div>
     <div class="row2" style="justify-content:flex-end;gap:12px"><label title="Also draw the yellow FFT region square on the saved image"><input id="rsSaveRoi" type="checkbox"> with FFT region</label>
-<span class="row2 infoSel" style="gap:6px" title="What the information box on the images shows"><span class="keys">on image:</span><label><input type="checkbox" data-k="name" checked> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date" checked> date</label><label><input type="checkbox" data-k="time" checked> time</label><label><input type="checkbox" data-k="Ts" checked> T set</label><label><input type="checkbox" data-k="T" checked> T meas</label><label><input type="checkbox" data-k="P" checked> pressure</label><label><input type="checkbox" data-k="log" checked> log times</label></span><span class="spacer"></span>
+<span class="row2 infoSel" style="gap:6px" title="What the information box on the images shows"><span class="keys">on image:</span><label><input type="checkbox" data-k="name" checked> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date" checked> date</label><label><input type="checkbox" data-k="time" checked> time</label><label><input type="checkbox" data-k="Ts" checked> T set</label><label><input type="checkbox" data-k="T" checked> T meas</label><label><input type="checkbox" data-k="P" checked> pressure</label><label title="Gas flow"><input type="checkbox" data-k="gas"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><label><input type="checkbox" data-k="log" checked> log times</label></span><span class="spacer"></span>
       <button id="rsSave" title="Saves the real-space image (up to 2048 px) with scale bar, acquisition time and temperature">Save image (.png)</button></div>
     <div class="keys"><kbd>click</kbd> or <kbd>drag</kbd> on the image to place the square FFT region (yellow) · the FFT amplitude |F| is shown below as the pattern, centred at zero frequency, and everything else (centre, profile, peaks, CIF matching) works on it as on an SAED pattern · calibration = 1 / (FFT size × pixel size). <span id="rsStatus" style="color:var(--ink)"></span></div>
+  </section>
+  <section class="panel" id="gifPanel" hidden style="display:grid;gap:10px">
+    <div class="chartbar">
+      <button id="gifCollapse" title="Collapse / expand this section" aria-label="collapse" style="padding:2px 9px">▾</button>
+      <h2>Animation (GIF)</h2>
+      <span class="row2"><label for="gifMode">frames</label><select id="gifMode" style="width:auto" title="Images as loaded, or the diffraction pattern / FFT used for each profile (a real-space image becomes its FFT)"><option value="img">images as loaded</option><option value="pat">FFT / diffraction patterns</option></select></span>
+      <span class="row2" id="gifZoomBox"><label for="gifZoom">zoom</label><select id="gifZoom" style="width:auto" title="Magnification around the pattern centre"><option value="1">1×</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option><option value="4">4×</option></select></span>
+      <span class="row2"><label for="gifBri">brightness</label><input id="gifBri" type="range" min="-100" max="100" step="1" value="0" style="width:6rem"></span>
+      <span class="row2"><label for="gifCon">contrast</label><input id="gifCon" type="range" min="-100" max="100" step="1" value="0" style="width:6rem"></span><button id="gifBCReset" title="Brightness 0, contrast 0" style="padding:2px 8px">↺</button>
+      <span class="row2"><label for="gifSize">size</label><select id="gifSize" style="width:auto"><option value="384">384 px</option><option value="512" selected>512 px</option><option value="768">768 px</option><option value="1024">1024 px</option></select></span>
+      <span class="row2"><label for="gifDt">frame time</label><input id="gifDt" type="range" min="0.05" max="3" step="0.05" value="0.5" style="width:8rem"><input id="gifDtN" type="number" min="0.02" step="0.05" value="0.5" style="width:4.5rem"><span class="keys">s</span></span>
+      <button class="primary" id="gifMake" title="Builds the frames from the shown images, in the comparison order">Make GIF</button>
+      <span class="spacer"></span>
+      <button id="gifSave" disabled>Download GIF</button>
+    </div>
+    <div class="chartbar gifTxt"><span class="keys">on GIF:</span><label><input type="checkbox" data-k="name"> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date"> date</label><label><input type="checkbox" data-k="time"> time</label><label><input type="checkbox" data-k="Ts"> T set</label><label><input type="checkbox" data-k="T"> T meas</label><label><input type="checkbox" data-k="P"> pressure</label><label title="Gas flow"><input type="checkbox" data-k="gas"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><label><input type="checkbox" data-k="log"> log times</label><label><input type="checkbox" data-k="count"> frame number</label></div>
+    <div class="chartbar"><button id="gifPrev" aria-label="previous frame">◀</button><button id="gifPause" aria-pressed="false">❚❚ pause</button><button id="gifNext" aria-label="next frame">▶</button><span class="keys" id="gifFrame"></span><span class="spacer"></span><span class="status" id="gifStatus">Uses the images shown in Compare profiles, in their order (drag rows to reorder). Tick “on GIF” items to add text to the frames.</span></div>
+    <div style="display:flex;justify-content:center;background:#07090b;border:1px solid var(--line);border-radius:var(--r);padding:8px"><canvas id="gifCv" width="512" height="512" style="max-width:100%;height:auto;image-rendering:auto"></canvas></div>
   </section>
 
   <section class="work">
@@ -199,7 +217,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
         <div class="hud bottom"><span id="hudCursor">hover the pattern: r and d at the cursor</span></div>
       </div>
       <div class="row2" style="justify-content:space-between">
-<span class="row2 infoSel" style="gap:6px" title="What the information box on the images shows"><span class="keys">on image:</span><label><input type="checkbox" data-k="name" checked> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date" checked> date</label><label><input type="checkbox" data-k="time" checked> time</label><label><input type="checkbox" data-k="Ts" checked> T set</label><label><input type="checkbox" data-k="T" checked> T meas</label><label><input type="checkbox" data-k="P" checked> pressure</label><label><input type="checkbox" data-k="log" checked> log times</label></span>
+<span class="row2 infoSel" style="gap:6px" title="What the information box on the images shows"><span class="keys">on image:</span><label><input type="checkbox" data-k="name" checked> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date" checked> date</label><label><input type="checkbox" data-k="time" checked> time</label><label><input type="checkbox" data-k="Ts" checked> T set</label><label><input type="checkbox" data-k="T" checked> T meas</label><label><input type="checkbox" data-k="P" checked> pressure</label><label title="Gas flow"><input type="checkbox" data-k="gas"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><label><input type="checkbox" data-k="log" checked> log times</label></span>
         <label title="When locked, clicks and arrow keys no longer move the centre; a click measures the spot under the cursor instead"><input id="lock" type="checkbox"> Lock centre <span class="keys">(on after Compute; then click a spot to see its d)</span></label>
         <span class="row2" style="gap:8px"><button id="fullView" title="Show the whole pattern (h)">Full view</button>
         <button id="svimg" disabled title="Saves the pattern as currently shown, with guide circles and selected rings">Save image with rings (.png)</button></span>
@@ -283,7 +301,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
         <select id="xmode" style="width:auto"><option value="d">d (Å)</option><option value="tt">2θ (°)</option><option value="q">q (nm⁻¹)</option><option value="r">r (px)</option></select></div><div class="row2"><label for="xlo">from</label><input id="xlo" type="number" step="any"><label for="xhi">to</label><input id="xhi" type="number" step="any"><button id="zreset" title="Back to the full range (or double-click the plot)">Reset zoom</button></div></div>
     <div class="chartbar"><div class="row2"><label title="Vertical line at each detected peak; it turns green when a shown CIF line is within ±1 % in d"><input id="pkLines" type="checkbox"> peak lines</label><label title="On: the peak line runs down to the baseline. Off: it stops at the peak marker, so CIF sticks underneath stay clear"><input id="pkFull" type="checkbox" checked> full height</label>
         <label><input id="logy" type="checkbox"> log I</label><label><input id="bgsub" type="checkbox" checked> subtract background</label></div><div class="row2"><label for="sens">peak sensitivity</label><input id="sens" type="range" min="2" max="20" step="0.5" value="6" style="width:7rem"><label for="pkMin" title="Ignore detected peaks lower than this % of the strongest peak (peaks you add by hand are always kept)">min height</label><input id="pkMin" type="number" min="0" max="100" step="0.5" value="2" style="width:4.5rem"><span class="keys">%</span></div></div>
-    <div class="chartbar"><span class="row2" style="gap:6px" title="What the legend shows for the experimental profile"><button id="lgEditBtn" title="Edit the legend texts of this plot" style="padding:2px 9px">✎ edit legend</button><span class="keys">legend:</span><label><input id="lgName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="lgType" type="checkbox"> type</label><label><input id="lgDate" type="checkbox"> date</label><label><input id="lgTime" type="checkbox"> time</label><label><input id="lgTs" type="checkbox"> T set</label><label><input id="lgT" type="checkbox" checked> T meas</label><label><input id="lgP" type="checkbox"> pressure</label></span></div>
+    <div class="chartbar"><span class="row2" style="gap:6px" title="What the legend shows for the experimental profile"><button id="lgEditBtn" title="Edit the legend texts of this plot" style="padding:2px 9px">✎ edit legend</button><span class="keys">legend:</span><label><input id="lgName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="lgType" type="checkbox"> type</label><label><input id="lgDate" type="checkbox"> date</label><label><input id="lgTime" type="checkbox"> time</label><label><input id="lgTs" type="checkbox"> T set</label><label><input id="lgT" type="checkbox" checked> T meas</label><label><input id="lgP" type="checkbox"> pressure</label><label title="Gas flow"><input id="lgGas" type="checkbox"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"></span></div>
     <div id="lgEdit" class="lgedit" hidden></div>
     <div class="bench" style="grid-template-columns:minmax(0,1fr)">
       <div id="chartWrap" title="Drag the bottom-right corner to change the plot height"><canvas id="chart" aria-label="Intensity profile"></canvas>
@@ -326,30 +344,12 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <button id="cmpClear" title="Empty the comparison">Clear list</button>
     </div>
     <div class="chartbar">
-      <span class="row2" style="gap:6px" title="What each profile's label shows (legend, or the labels beside the stacked curves)"><span class="keys">label by:</span><label><input id="clName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="clType" type="checkbox"> type</label><label><input id="clDate" type="checkbox"> date</label><label><input id="clTime" type="checkbox"> time</label><label><input id="clTs" type="checkbox"> T set</label><label><input id="clT" type="checkbox"> T meas</label><label><input id="clP" type="checkbox"> pressure</label></span>
+      <span class="row2" style="gap:6px" title="What each profile's label shows (legend, or the labels beside the stacked curves)"><span class="keys">label by:</span><label><input id="clName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="clType" type="checkbox"> type</label><label><input id="clDate" type="checkbox"> date</label><label><input id="clTime" type="checkbox"> time</label><label><input id="clTs" type="checkbox"> T set</label><label><input id="clT" type="checkbox"> T meas</label><label><input id="clP" type="checkbox"> pressure</label><label title="Gas flow"><input id="clGas" type="checkbox"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"></span>
     </div>
     <div id="cmpLgEdit" class="lgedit" hidden></div>
     <div id="cmpWrap" style="position:relative;height:clamp(420px,60vh,820px);min-height:260px;resize:vertical;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)"><canvas id="cmpChart" style="display:block;width:100%;height:100%;cursor:crosshair" aria-label="Profile comparison"></canvas></div>
     <div class="keys">zoom: <kbd>wheel</kbd> or <kbd>drag</kbd> across a range, <kbd>double-click</kbd> to reset · FFTs use the zero-frequency centre automatically; SAED patterns start from an automatic centre (⚠) — press <b>open</b>, set the centre on the pattern above, and the profile updates here. <span id="cmpStatus" style="color:var(--ink)"></span></div>
     <div class="tablebox" style="max-height:300px"><table><thead><tr><th title="Drag a row to change the order">order</th><th>show</th><th></th><th style="text-align:left">image</th><th>acquired</th><th>T set / meas</th><th>pressure</th><th>type</th><th>centre</th><th></th></tr></thead><tbody id="cmpRows"></tbody></table></div>
-  </section>
-  <section class="panel" id="gifPanel" hidden style="display:grid;gap:10px">
-    <div class="chartbar">
-      <button id="gifCollapse" title="Collapse / expand this section" aria-label="collapse" style="padding:2px 9px">▾</button>
-      <h2>Animation (GIF)</h2>
-      <span class="row2"><label for="gifMode">frames</label><select id="gifMode" style="width:auto" title="Images as loaded, or the diffraction pattern / FFT used for each profile (a real-space image becomes its FFT)"><option value="img">images as loaded</option><option value="pat">FFT / diffraction patterns</option></select></span>
-      <span class="row2" id="gifZoomBox"><label for="gifZoom">zoom</label><select id="gifZoom" style="width:auto" title="Magnification around the pattern centre"><option value="1">1×</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option><option value="4">4×</option></select></span>
-      <span class="row2"><label for="gifBri">brightness</label><input id="gifBri" type="range" min="-100" max="100" step="1" value="0" style="width:6rem"></span>
-      <span class="row2"><label for="gifCon">contrast</label><input id="gifCon" type="range" min="-100" max="100" step="1" value="0" style="width:6rem"></span><button id="gifBCReset" title="Brightness 0, contrast 0" style="padding:2px 8px">↺</button>
-      <span class="row2"><label for="gifSize">size</label><select id="gifSize" style="width:auto"><option value="384">384 px</option><option value="512" selected>512 px</option><option value="768">768 px</option><option value="1024">1024 px</option></select></span>
-      <span class="row2"><label for="gifDt">frame time</label><input id="gifDt" type="range" min="0.05" max="3" step="0.05" value="0.5" style="width:8rem"><input id="gifDtN" type="number" min="0.02" step="0.05" value="0.5" style="width:4.5rem"><span class="keys">s</span></span>
-      <button class="primary" id="gifMake" title="Builds the frames from the shown images, in the comparison order">Make GIF</button>
-      <span class="spacer"></span>
-      <button id="gifSave" disabled>Download GIF</button>
-    </div>
-    <div class="chartbar gifTxt"><span class="keys">on GIF:</span><label><input type="checkbox" data-k="name"> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date"> date</label><label><input type="checkbox" data-k="time"> time</label><label><input type="checkbox" data-k="Ts"> T set</label><label><input type="checkbox" data-k="T"> T meas</label><label><input type="checkbox" data-k="P"> pressure</label><label><input type="checkbox" data-k="log"> log times</label><label><input type="checkbox" data-k="count"> frame number</label></div>
-    <div class="chartbar"><button id="gifPrev" aria-label="previous frame">◀</button><button id="gifPause" aria-pressed="false">❚❚ pause</button><button id="gifNext" aria-label="next frame">▶</button><span class="keys" id="gifFrame"></span><span class="spacer"></span><span class="status" id="gifStatus">Uses the images shown in Compare profiles, in their order (drag rows to reorder). Tick “on GIF” items to add text to the frames.</span></div>
-    <div style="display:flex;justify-content:center;background:#07090b;border:1px solid var(--line);border-radius:var(--r);padding:8px"><canvas id="gifCv" width="512" height="512" style="max-width:100%;height:auto;image-rendering:auto"></canvas></div>
   </section>
 
   <section class="panel" id="phasePanel" style="display:grid;gap:10px">
@@ -405,6 +405,21 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
         <div class="empty" id="v3empty" style="position:absolute;inset:0">Highlight a phase in the CIF list above (click it, or use ★ Best fit).</div>
       </div>
       <div class="keys" id="v3info"></div>
+      <div class="chartbar" id="v3gBar" style="border-top:1px solid var(--line);padding-top:8px">
+        <span class="keys" style="font-weight:600">Rotating GIF</span>
+        <span class="row2"><label for="v3gAx">axis</label><select id="v3gAx" style="width:auto"><option value="v">screen vertical ↻</option><option value="h">screen horizontal</option><option value="d1" selected>screen diagonal ↗</option><option value="d2">screen diagonal ↘</option><option value="z">viewing direction</option><option value="a">crystal a</option><option value="b">crystal b</option><option value="c">crystal c</option><option value="110">crystal [110]</option><option value="111">crystal [111] (body diagonal)</option></select></span>
+        <span class="row2"><label for="v3gAng">angle</label><input id="v3gAng" type="number" min="1" max="3600" step="1" value="360" style="width:4.8rem"><span class="keys">°</span></span>
+        <span class="row2"><label for="v3gN">frames</label><input id="v3gN" type="number" min="2" max="360" step="1" value="150" style="width:4.2rem"></span>
+        <span class="row2"><label for="v3gDt">frame time</label><input id="v3gDt" type="number" min="0.02" max="5" step="0.01" value="0.14" style="width:4.6rem"><span class="keys">s</span></span>
+        <span class="keys" id="v3gSpd"></span>
+        <span class="row2"><label for="v3gSize">size</label><select id="v3gSize" style="width:auto"><option value="384">384 px</option><option value="512" selected>512 px</option><option value="768">768 px</option><option value="1024">1024 px</option></select></span>
+        <span class="row2"><label for="v3gInk" title="Colour of the unit-cell lines and text (the background is transparent)">lines</label><select id="v3gInk" style="width:auto"><option value="#222222">dark</option><option value="#eeeeee" selected>light</option></select></span>
+        <label title="Scale and centre the structure so that every atom stays inside the frame for the whole rotation (off: use the zoom / pan of the view above)"><input id="v3gFit" type="checkbox" checked> fit to frame</label><label title="Element symbol on each atom"><input id="v3gLab" type="checkbox" checked> atom labels</label><label><input id="v3gInfo" type="checkbox"> info box</label><label><input id="v3gKey" type="checkbox"> element key</label>
+        <span class="spacer"></span>
+        <button class="primary" id="v3gMake" title="Starts from the current view">Make GIF</button><button id="v3gSave" disabled>Download GIF</button>
+      </div>
+      <div class="row2" style="gap:12px;align-items:flex-start"><div id="v3gPrevBox" hidden style="background:repeating-conic-gradient(#cfd4da 0 25%,#f4f6f8 0 50%) 0 0/16px 16px;border:1px solid var(--line);border-radius:var(--r);line-height:0"><canvas id="v3gPrev" width="256" height="256" style="width:256px;height:256px"></canvas></div><span class="status" id="v3gStatus">Rotates the current view (set it with the mouse first). Transparent background — the chequerboard in the preview is not in the GIF.</span></div>
+
     </div>
   </section>
 </div>
@@ -983,8 +998,9 @@ function expLegend(){const acq=S.acqStr||(S.real&&S.real.acq)||"",parts=[];
   {const a=acqSel(acq,k=>$(k==="date"?"lgDate":"lgTime").checked);if(a)parts.push(a);}
   if(($("lgTs").checked||$("lgT").checked)&&S.tlog&&acq){const r=tempAt(acq);if(r&&!r.err){if($("lgTs").checked&&isFinite(r.set))parts.push(`T set ${fmtT(r.set)}`);if($("lgT").checked&&isFinite(r.meas))parts.push(`T meas ${fmtT(r.meas,true)}`);}}
   if($("lgP").checked&&S.plog&&acq){const r=logAt(S.plog,acq);if(r&&!r.err)parts.push(S.plog.cols.map(c=>`${c.name} ${fmtP(c.v[r.i])}`).join(" ")+(S.plog.cols[0]&&S.plog.cols[0].unit?" "+S.plog.cols[0].unit:""));}
+  if($("lgGas").checked&&gasTxt())parts.push(gasTxt());
   return parts.length?`Experimental (${parts.join(" · ")})`:"Experimental";}
-for(const id of ["lgName","lgType","lgDate","lgTime","lgTs","lgT","lgP"])document.getElementById(id).addEventListener("change",()=>drawChart());
+for(const id of ["lgGas","lgName","lgType","lgDate","lgTime","lgTs","lgT","lgP"])document.getElementById(id).addEventListener("change",()=>drawChart());
 function drawChart(target,tdpr){
   const exp=target instanceof HTMLCanvasElement,cv=exp?target:cvC;/* target is an Event when used as an event handler */const ctx=cv.getContext("2d");if(!exp)sizeCanvas(cvC);const cw=cv.width,ch=cv.height,dpr=exp?tdpr:cw/Math.max(1,cvC.getBoundingClientRect().width);
   ctx.clearRect(0,0,cw,ch); const P=S.profile; if(!P)return;
@@ -1293,12 +1309,12 @@ function phaseFromBlock(b,fileName){
       if(seen.some(q=>q.every((v,i)=>{const d=Math.abs(v-p[i]);return Math.min(d,1-d)<1e-3;})))continue;seen.push(p);atoms.push({el,lab:iL>=0?r[iL]:el,x:p[0],y:p[1],z:p[2],occ,B});}}
   if(!atoms.length)return null;
   if(unknown.size)warn=(warn?warn+"; ":"")+"skipped unknown atom types: "+[...unknown].join(", ");
-  const sg=(g("_space_group_name_h-m_alt")||g("_symmetry_space_group_name_h-m")||"").trim();
+  const sg=(g("_space_group_name_h-m_alt")||g("_symmetry_space_group_name_h-m")||"").trim(),sgn=parseInt(g("_space_group_it_number")||g("_symmetry_int_tables_number")||"",10)||0;
   const formula=(g("_chemical_formula_sum")||g("_chemical_formula_structural")||"").replace(/\s+/g," ").trim();
   const mineral=(g("_chemical_name_mineral")||"").trim();
   const code=g("_database_code_icsd")||g("_cod_database_code")||"";
   const P=g("_cell_measurement_pressure")||g("_diffrn_ambient_pressure")||"";
-  return {cell:[a,bb,c,al,be,ga],atoms,sg,formula,mineral,code,file:fileName,block:b.name,warn,pressure:P};}
+  return {cell:[a,bb,c,al,be,ga],atoms,sg,sgn,formula,mineral,code,file:fileName,block:b.name,warn,pressure:P};}
 function simulate(ph,dmin){
   const [a,b,c,al,be,ga]=ph.cell,ra=Math.PI/180,ca=Math.cos(al*ra),cb=Math.cos(be*ra),cg=Math.cos(ga*ra);
   const G=[[a*a,a*b*cg,a*c*cb],[a*b*cg,b*b,b*c*ca],[a*c*cb,b*c*ca,c*c]];
@@ -1516,6 +1532,19 @@ const cv3=$("v3d");
 function fracToCart(cell){const [a,b,c,al,be,ga]=cell,r=Math.PI/180,ca=Math.cos(al*r),cb=Math.cos(be*r),cg=Math.cos(ga*r),sg=Math.sin(ga*r);
   const cz=c*Math.sqrt(Math.max(1e-12,1-cb*cb-((ca-cb*cg)/sg)**2));
   const M=[[a,b*cg,c*cb],[0,b*sg,c*(ca-cb*cg)/sg],[0,0,cz]];return f=>[M[0][0]*f[0]+M[0][1]*f[1]+M[0][2]*f[2],M[1][1]*f[1]+M[1][2]*f[2],M[2][2]*f[2]];}
+/* Bravais lattice from the space group (number → crystal system, first letter of the H-M symbol → centring) */
+function latticeType(ph){let n=+ph.sgn||0;const L=(String(ph.sg||"").trim()[0]||"").toUpperCase(),[a,b,c,al,be,ga]=ph.cell.map(Number),eq=(x,y,t)=>Math.abs(x-y)<(t||1e-3*Math.max(x,y));
+  let sys=n?(n<=2?"triclinic":n<=15?"monoclinic":n<=74?"orthorhombic":n<=142?"tetragonal":n<=167?"trigonal":n<=194?"hexagonal":"cubic"):"";
+  if(!sys){const r90=x=>Math.abs(x-90)<0.05;if(eq(a,b)&&eq(b,c)&&r90(al)&&r90(be)&&r90(ga))sys="cubic";else if(eq(a,b)&&r90(al)&&r90(be)&&Math.abs(ga-120)<0.05)sys=L==="R"?"trigonal":"hexagonal";
+    else if(eq(a,b)&&r90(al)&&r90(be)&&r90(ga))sys="tetragonal";else if(r90(al)&&r90(be)&&r90(ga))sys="orthorhombic";else if([al,be,ga].filter(r90).length===2)sys="monoclinic";else if(L)sys="triclinic";}
+  if(!sys)return "";const pre={triclinic:"a",monoclinic:"m",orthorhombic:"o",tetragonal:"t",trigonal:"h",hexagonal:"h",cubic:"c"}[sys];
+  const cen=L==="I"?"I":L==="F"?"F":"ABC".includes(L)&&L?"C":L==="R"?"R":"P";
+  const word={P:"primitive",I:"body-centred",F:"face-centred",C:"base-centred",R:"rhombohedral"}[cen];
+  if(sys==="cubic")return {P:"simple cubic (SC, cP)",I:"body-centred cubic (BCC, cI)",F:"face-centred cubic (FCC, cF)"}[cen]||`${word} cubic`;
+  if(sys==="tetragonal")return cen==="I"?"body-centred tetragonal (BCT, tI)":"primitive tetragonal (tP)";
+  if(sys==="hexagonal")return "hexagonal (hP)";
+  if(sys==="trigonal")return cen==="R"?"rhombohedral, trigonal (hR)":"trigonal, hexagonal lattice (hP)";
+  return `${word} ${sys} (${pre}${cen==="R"?"P":cen})`;}
 function v3Phase(){if(S.focus!=null){const p=S.phases.find(x=>x.id===S.focus);if(p)return p;}return S.phases.find(x=>x.show)||null;}
 function v3Build(){const ph=V3.ph;V3.atoms=[];V3.bonds=[];if(!ph)return;
   const n=[+$("v3na").value||1,+$("v3nb").value||1,+$("v3nc").value||1].map(v=>Math.max(1,Math.min(6,Math.round(v))));
@@ -1537,7 +1566,7 @@ function v3Build(){const ph=V3.ph;V3.atoms=[];V3.bonds=[];if(!ph)return;
   V3.cell={toC,n};
   const els=[...new Set(ph.atoms.map(a=>a.el))];
   $("v3legend").innerHTML="";for(const e of els){const s=document.createElement("span");s.innerHTML=`<i style="background:${elInfo(e).c}"></i>${e}`;$("v3legend").appendChild(s);}
-  $("v3info").textContent=`${ph.legend.trim()} · ${ph.sg||""} · a b c = ${ph.cell.slice(0,3).map(v=>v.toFixed(3)).join(", ")} Å · α β γ = ${ph.cell.slice(3).map(v=>(+v).toFixed(2)).join(", ")}° · ${A.length} atoms, ${V3.bonds.length} bonds shown`;}
+  $("v3info").textContent=`${ph.legend.trim()} · ${ph.sg||""} · ${latticeType(ph)} · a b c = ${ph.cell.slice(0,3).map(v=>v.toFixed(3)).join(", ")} Å · α β γ = ${ph.cell.slice(3).map(v=>(+v).toFixed(2)).join(", ")}° · ${A.length} atoms, ${V3.bonds.length} bonds shown`;}
 function v3Sync(force){const on=$("v3on").checked;$("v3body").hidden=!on;if(!on)return;
   const ph=v3Phase();const k=ph?ph.id+"|"+[...["v3na","v3nb","v3nc","v3tol"].map(i=>$(i).value),$("v3edge").checked,$("v3bond").checked,$("v3same").checked].join(","):"";
   if(force||k!==V3.key){const newPh=!V3.ph||!ph||V3.ph.id!==(ph&&ph.id);V3.ph=ph;V3.key=k;v3Build();if(newPh&&ph)v3View("c",true);}
@@ -1551,14 +1580,14 @@ function v3View(ax,keepZoom){if(!V3.cell)return;const toC=V3.cell.toC;
   const z=nrm(v.map(t=>-t));let x=nrm(cross(up,z));if(!isFinite(x[0]))x=[1,0,0];const y=cross(z,x);
   V3.R=[x,y.map(t=>-t),z];   // screen: x right, y down, z toward viewer
   if(!keepZoom){V3.zoom=1;V3.pan=[0,0];}if(keepZoom===true){V3.zoom=1;V3.pan=[0,0];}v3Draw();}
-function v3Project(){const W=cv3.width,H=cv3.height,R=V3.R,c=V3.ctr,sc=V3.zoom*0.47*Math.min(W,H)/V3.size,D=V3.size*4,persp=$("v3persp").checked;
+function v3Project(cv,RR,ZM,PN){cv=cv||cv3;const W=cv.width,H=cv.height,R=RR||V3.R,c=V3.ctr,pk=Math.min(W,H)/Math.max(1,Math.min(cv3.width,cv3.height)),pan=PN||V3.pan,sc=(ZM||V3.zoom)*0.47*Math.min(W,H)/V3.size,D=V3.size*4,persp=$("v3persp").checked;
   return p=>{const q=[p[0]-c[0],p[1]-c[1],p[2]-c[2]];const x=R[0][0]*q[0]+R[0][1]*q[1]+R[0][2]*q[2],y=R[1][0]*q[0]+R[1][1]*q[1]+R[1][2]*q[2],z=R[2][0]*q[0]+R[2][1]*q[1]+R[2][2]*q[2];
-    const f=persp?D/(D-z):1;return [W/2+V3.pan[0]+x*sc*f,H/2+V3.pan[1]+y*sc*f,z,sc*f];};}
+    const f=persp?D/(D-z):1;return [W/2+pan[0]*pk+x*sc*f,H/2+pan[1]*pk+y*sc*f,z,sc*f];};}
 function shade(hex,k){const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,m=v=>Math.round(k>=0?v+(255-v)*k:v*(1+k));return `rgb(${m(r)},${m(g)},${m(b)})`;}
-function v3Draw(target){const cv=target||cv3;if(!target){if(!$("v3on").checked)return;sizeCanvas(cv3);}
-  const ctx=cv.getContext("2d"),W=cv.width,H=cv.height,css=getComputedStyle(document.documentElement),dpr=W/Math.max(1,cv.getBoundingClientRect().width||W);
-  ctx.fillStyle=$("v3white").checked?"#ffffff":css.getPropertyValue("--panel").trim()||"#111";ctx.fillRect(0,0,W,H);
-  if(!V3.ph||!V3.atoms.length)return;const P=v3Project(),A=V3.atoms,rs=+$("v3size").value||0.5,ink=$("v3white").checked?"#222":css.getPropertyValue("--ink").trim();
+function v3Draw(target,O){O=O||{};const cv=target||cv3;if(!target){if(!$("v3on").checked)return;sizeCanvas(cv3);}
+  const ctx=cv.getContext("2d"),W=cv.width,H=cv.height,css=getComputedStyle(document.documentElement),dpr=O.dpr||W/Math.max(1,cv.getBoundingClientRect().width||W);
+  if(O.transparent)ctx.clearRect(0,0,W,H);else{ctx.fillStyle=$("v3white").checked?"#ffffff":css.getPropertyValue("--panel").trim()||"#111";ctx.fillRect(0,0,W,H);}
+  if(!V3.ph||!V3.atoms.length)return;const P=v3Project(cv,O.R,O.zoom,O.pan),A=V3.atoms,rs=+$("v3size").value||0.5,ink=O.ink||($("v3white").checked?"#222":css.getPropertyValue("--ink").trim());
   const pr=A.map(a=>P(a.p));const items=[];
   A.forEach((a,i)=>items.push({z:pr[i][2],t:0,i}));
   const adj=A.map(()=>[]);if($("v3bond").checked)V3.bonds.forEach(([i,j])=>{adj[i].push(j);adj[j].push(i);});
@@ -1571,7 +1600,7 @@ function v3Draw(target){const cv=target||cv3;if(!target){if(!$("v3on").checked)r
     ctx.font=`600 ${13*dpr}px "IBM Plex Mono",monospace`;ctx.textAlign="center";ctx.textBaseline="middle";
     for(const [f,l,c] of [[[1.12,0,0],"a","#e4572e"],[[0,1.12,0],"b","#2fbf71"],[[0,0,1.12],"c","#4a86e8"]]){const p=P(toC(f));ctx.fillStyle=c;ctx.fillText(l,p[0],p[1]);}
     ctx.restore();}
-  const labels=$("v3lab").checked;
+  const labels=O.labels!=null?O.labels:$("v3lab").checked;
   for(const it of items){
     /* each atom: its half-bonds first (centre to bond midpoint), then the sphere, back to front */
     {const i=it.i,p=pr[i];if(adj[i].length){ctx.lineCap="butt";ctx.strokeStyle=shade(elInfo(A[i].el).c,-0.2);
@@ -1579,11 +1608,15 @@ function v3Draw(target){const cv=target||cv3;if(!target){if(!$("v3on").checked)r
     const a=A[it.i],p=pr[it.i],e=elInfo(a.el),r=Math.max(1.5*dpr,e.r*rs*p[3]);
     const g=ctx.createRadialGradient(p[0]-r*0.35,p[1]-r*0.35,r*0.1,p[0],p[1],r);g.addColorStop(0,shade(e.c,0.6));g.addColorStop(0.55,e.c);g.addColorStop(1,shade(e.c,-0.55));
     ctx.fillStyle=g;ctx.globalAlpha=a.occ<0.99?0.55+0.45*a.occ:1;ctx.beginPath();ctx.arc(p[0],p[1],r,0,2*Math.PI);ctx.fill();ctx.globalAlpha=1;
-    if(it.i===V3.hover){ctx.strokeStyle=ink;ctx.lineWidth=2*dpr;ctx.stroke();}
-    if(labels&&r>6*dpr){ctx.fillStyle="#000";ctx.font=`600 ${Math.min(14,r/dpr*0.8)*dpr}px "IBM Plex Sans",sans-serif`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(a.el,p[0],p[1]);}}
-  { /* phase info box (bottom left): name, ICSD, space group, cell */
+    if(it.i===V3.hover&&!O.transparent){ctx.strokeStyle=ink;ctx.lineWidth=2*dpr;ctx.stroke();}
+    if(labels&&r>(O.labels?3:6)*dpr){const dark=(()=>{const n=parseInt(e.c.slice(1),16);return (0.299*(n>>16)+0.587*(n>>8&255)+0.114*(n&255))/255<0.5;})();
+      const fz=O.labels?Math.max(9,Math.min(14,r/dpr*0.8)):Math.min(14,r/dpr*0.8);ctx.font=`600 ${fz*dpr}px "IBM Plex Sans",sans-serif`;ctx.textAlign="center";ctx.textBaseline="middle";
+      if(O.labels&&fz>r/dpr*0.8){ctx.lineWidth=2.5*dpr;ctx.strokeStyle=dark?"#000":"#fff";ctx.lineJoin="round";ctx.strokeText(a.el,p[0],p[1]);}ctx.fillStyle=dark?"#fff":"#000";ctx.fillText(a.el,p[0],p[1]);}}
+  if(O.key){const els=[...new Set(A.map(a=>a.el))];const fs=13*dpr;ctx.font=`600 ${fs}px "IBM Plex Mono",monospace`;ctx.textAlign="left";ctx.textBaseline="middle";
+    els.forEach((el,k)=>{const y=12*dpr+fs*0.7+k*fs*1.5,x=W-12*dpr-ctx.measureText(el).width-fs*1.4;ctx.fillStyle=elInfo(el).c;ctx.beginPath();ctx.arc(x+fs*0.45,y,fs*0.45,0,2*Math.PI);ctx.fill();ctx.strokeStyle="#0006";ctx.lineWidth=1;ctx.stroke();ctx.fillStyle=ink;ctx.fillText(el,x+fs*1.2,y);});}
+  if(!O.transparent||O.info){ /* phase info box (bottom left): name, ICSD, space group, cell */
     const ph=V3.ph,c=ph.cell,wb=$("v3white").checked,ls=[compactFormula(ph.formula||ph.label)+(ph.mineral?` (${ph.mineral})`:""),
-      [ph.code?`ICSD ${ph.code}`:"",ph.sg?`space group ${ph.sg}`:""].filter(Boolean).join(" · "),
+      [ph.code?`ICSD ${ph.code}`:"",ph.sg?`space group ${ph.sg}${ph.sgn?` (No. ${ph.sgn})`:""}`:""].filter(Boolean).join(" · "),latticeType(ph),
       `a = ${c[0].toFixed(4)} Å   b = ${c[1].toFixed(4)} Å   c = ${c[2].toFixed(4)} Å`,`α = ${(+c[3]).toFixed(2)}°   β = ${(+c[4]).toFixed(2)}°   γ = ${(+c[5]).toFixed(2)}°`,
       `V = ${(()=>{const r=Math.PI/180,ca=Math.cos(c[3]*r),cb=Math.cos(c[4]*r),cg=Math.cos(c[5]*r);return (c[0]*c[1]*c[2]*Math.sqrt(Math.max(0,1-ca*ca-cb*cb-cg*cg+2*ca*cb*cg))).toFixed(2);})()} Å³`].filter(Boolean);
     const fs=12*dpr,lh=fs*1.35,pad=8*dpr;ctx.font=`${fs}px "IBM Plex Mono",monospace`;const w0=Math.max(...ls.map(t=>ctx.measureText(t).width));
@@ -1670,7 +1703,7 @@ function rsDraw(){if(!S.real||!RS.prev)return;sizeCanvas(cvR);const ctx=cvR.getC
   ctx.fillStyle="#ffd23f";ctx.font=`600 ${12*dpr}px "IBM Plex Mono",monospace`;ctx.textBaseline="top";
   const pix=+$("rsPix").value,rt=`FFT region ${N}×${N}`,rw=ctx.measureText(rt).width;
   ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(ox+x0*k+3*dpr,oy+y0*k+3*dpr,rw+8*dpr,17*dpr);ctx.fillStyle="#ffd23f";ctx.fillText(rt,ox+x0*k+7*dpr,oy+y0*k+6*dpr);
-  {const ls=[[IF("name")?R.name:"",IF("type")?"real-space image":""].filter(Boolean).join(" · ")].filter(Boolean).concat(acqSel(R.acq)?["Acquired "+acqSel(R.acq)]:[],R.acq&&typeof infoLines==="function"?infoLines(R.acq).map(l=>l.txt):[]),aw=Math.max(0,...ls.map(t=>ctx.measureText(t).width));
+  {const ls=[[IF("name")?R.name:"",IF("type")?"real-space image":""].filter(Boolean).join(" · ")].filter(Boolean).concat(acqSel(R.acq)?["Acquired "+acqSel(R.acq)]:[],typeof infoLines==="function"?infoLines(R.acq).map(l=>l.txt):[]),aw=Math.max(0,...ls.map(t=>ctx.measureText(t).width));
     if(ls.length){ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(ox+R.W*k-aw-14*dpr,oy+3*dpr,aw+11*dpr,(4+15*ls.length)*dpr);ctx.fillStyle="#fff";ctx.textBaseline="top";ls.forEach((t,i)=>ctx.fillText(t,ox+R.W*k-aw-9*dpr,oy+(6+15*i)*dpr));}}
   if(pix>0){/* scale bar */const nice=[1,2,5,10,20,50,100,200,500,1000,2000,5000];const tgt=R.W*pix*0.2,L=nice.reduce((a,b)=>Math.abs(b-tgt)<Math.abs(a-tgt)?b:a),lp=L/pix*k;
     ctx.fillStyle="#fff";ctx.fillRect(ox+12*dpr,oy+R.H*k-18*dpr,lp,4*dpr);ctx.textBaseline="bottom";ctx.fillText(L+" nm",ox+12*dpr,oy+R.H*k-22*dpr);}}
@@ -1703,7 +1736,7 @@ $("rsSave").addEventListener("click",async()=>{const R=S.real;if(!R)return;const
   const c=document.createElement("canvas");c.width=w;c.height=h;const x=c.getContext("2d");x.putImageData(new ImageData(g,w,h),0,0);
   const u=w/1000,fs=Math.max(12,Math.round(18*u)),k=1/f;x.font=`600 ${fs}px "IBM Plex Mono",monospace`;x.textBaseline="top";
   if($("rsSaveRoi").checked){const N=+$("rsN").value;x.strokeStyle="#ffd23f";x.lineWidth=Math.max(2,3*u);x.strokeRect(R.x0*k,R.y0*k,N*k,N*k);}
-  const ls=[[IF("name")?R.name:"",IF("type")?"real-space image":""].filter(Boolean).join(" · "),acqSel(R.acq)?"Acquired "+acqSel(R.acq):""].concat(R.acq?infoPlain(R.acq,true):[]).filter(Boolean);
+  const ls=[[IF("name")?R.name:"",IF("type")?"real-space image":""].filter(Boolean).join(" · "),acqSel(R.acq)?"Acquired "+acqSel(R.acq):""].concat(infoPlain(R.acq,true)).filter(Boolean);
   if(ls.length){const aw=Math.max(...ls.map(t=>x.measureText(t).width)),pad=fs*0.4,lh=fs*1.25;x.fillStyle="rgba(0,0,0,.65)";x.fillRect(w-aw-3*pad,pad,aw+2*pad,lh*ls.length+pad);
     x.fillStyle="#fff";ls.forEach((t,i)=>x.fillText(t,w-aw-2*pad,pad*1.5+i*lh));}
   const pix=+$("rsPix").value;if(pix>0){const nice=[1,2,5,10,20,50,100,200,500,1000,2000,5000],tgt=R.W*pix*0.2,L=nice.reduce((a,b)=>Math.abs(b-tgt)<Math.abs(a-tgt)?b:a),lp=L/pix*k,bx=fs,by=h-fs*1.6;
@@ -1802,10 +1835,11 @@ const atTxt=(lab,r)=>`${lab} log ${r.at}`+(Math.abs(r.dt)>0.5?` (Δt ${r.dt>0?"+
 /* lines to show with the image, as chosen in “show on image”: {txt, sub (log time), err} */
 /* "on image" check boxes (several copies, kept in sync) */
 const IF=k=>{const c=document.querySelector(`.infoSel input[data-k="${k}"]`);return c?c.checked:true;};
-function infoLines(acq,F){F=F||IF;const out=[];if(!acq)return out;const lg=F("log");
+function infoLines(acq,F){F=F||IF;const out=[];if(!acq){if(F("gas")&&gasTxt())out.push({txt:gasTxt()});return out;}const lg=F("log");
   if((F("Ts")||F("T"))&&S.tlog){const r=tempAt(acq);if(r&&r.err)out.push({txt:"T: "+r.err,err:true});else if(r){out.push({txt:[F("Ts")?`T set ${fmtT(r.set)}`:"",F("T")?`T measured ${fmtT(r.meas,true)}`:""].filter(Boolean).join(" · ")});if(lg)out.push({txt:atTxt("T",r),sub:true});}}
   if(F("P")&&S.plog){const r=logAt(S.plog,acq);if(r&&r.err)out.push({txt:"P: "+r.err,err:true});
     else if(r){out.push({txt:S.plog.cols.map(c=>`${c.name} ${fmtP(c.v[r.i])}${c.unit?" "+c.unit:""}`).join(" · ")});if(lg)out.push({txt:atTxt("P",r),sub:true});}}
+  if(F("gas")&&gasTxt())out.push({txt:gasTxt()});
   return out;}
 document.querySelectorAll(".infoSel input").forEach(c=>c.addEventListener("change",()=>{document.querySelectorAll(`.infoSel input[data-k="${c.dataset.k}"]`).forEach(x=>x.checked=c.checked);
   try{localStorage.setItem("saed-infosel",JSON.stringify([...document.querySelectorAll(".infoSel input")].filter((x,i,a)=>a.findIndex(y=>y.dataset.k===x.dataset.k)===i).map(x=>[x.dataset.k,x.checked])));}catch(e){}tempShow();}));
@@ -1914,7 +1948,7 @@ function brRender(){const grid=$("brGrid");grid.textContent="";const L=brOrder()
     t.innerHTML=`<b></b><span class="tm"></span><span class="kd"></span>`;t.querySelector("b").textContent=it.rel;
     t.querySelector(".tm").textContent=it.acq?(it.acqFromFile?"file time ":"")+it.acq:"";t.querySelector(".kd").textContent=[kindTxt,it.W?`${it.W}×${it.H}`:"",it.cal||""].filter(Boolean).join(" · ");
     for(const l of brInfo(it)){const s=document.createElement("span");s.className="lg";s.textContent=l;t.appendChild(s);}
-    card.appendChild(t);card.addEventListener("click",()=>brOpen(it));grid.appendChild(card);}
+    card.appendChild(t);card.title="Click to tick / untick, then press Compare ticked";card.addEventListener("click",()=>{it.tick=!it.tick;const cb=tick.querySelector("input");cb.checked=it.tick;card.classList.toggle("ticked",it.tick);brTickCount();});grid.appendChild(card);}
   brTickCount();
   imgSelRender();$("brShow").hidden=!BR.items.length;$("brShow").textContent=`Image list (${BR.items.length})`;}
 function brOpen(it){$("brModal").hidden=true;openFile(it.file);setTimeout(()=>{brRender();},50);}
@@ -1937,12 +1971,12 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("brModal").hidde
 /* Esc un-highlights the highlighted CIF phase (before anything else uses Esc) */
 document.addEventListener("keydown",e=>{if(e.key!=="Escape"||S.focus==null||!$("brModal").hidden)return;const tag=(e.target.tagName||"").toLowerCase();if(tag==="input"&&/text|number|search/.test(e.target.type)||tag==="textarea")return;
   S.focus=null;renderPhases();redrawAll();drawChart();e.preventDefault();e.stopPropagation();},true);
-function brTickCount(){const n=BR.items.filter(i=>i.tick).length;if(typeof imgSelRender==="function"&&!(S.cmp&&S.cmp.length))imgSelRender();$("brCompare").textContent=n===1?"Open ticked (1)":`Compare ticked (${n})`;$("brCompare").disabled=!n;}
+function brTickCount(){const n=BR.items.filter(i=>i.tick).length;if(typeof imgSelRender==="function"&&!(S.cmp&&S.cmp.length))imgSelRender();$("brCompare").textContent=`Compare ticked (${n})`;$("brCompare").disabled=!n;}
 $("brTickAll").addEventListener("click",()=>{for(const it of brOrder())it.tick=true;brRender();});
 $("brTickNone").addEventListener("click",()=>{for(const it of BR.items)it.tick=false;brRender();});
 $("brCompare").addEventListener("click",async()=>{const L=BR.items.filter(i=>i.tick&&i.done&&!i.err);$("brModal").hidden=true;
-  if(L.length===1){cmpSet([]);await openFile(L[0].file);setStatus("Only one image ticked: opened it (tick two or more to compare).");return;}
-  cmpSet(L);$("cmpPanel").scrollIntoView({behavior:"smooth",block:"start"});cmpRunAll(true);});
+  cmpSet(L);if(L.length>1)$("cmpPanel").scrollIntoView({behavior:"smooth",block:"start"});await cmpRunAll(true);
+  if(L.length===1)setStatus(`One image ticked: ${L[0].rel} opened and its profile computed (tick two or more to overlay profiles).`);});
 $("brSort").addEventListener("change",brRender);$("brKind").addEventListener("change",brRender);
 /* image drop-down (top left): the comparison images, or all images of the browsed folder before any comparison */
 let IMGSEL=[];
@@ -1970,10 +2004,11 @@ function gradCol(t){const n=GRAD.length-1,i=Math.min(n-1,Math.floor(t*n)),f=t*n-
 function cmpOrder(){const k=$("cmpSort").value,L=S.cmp.slice();if(k==="custom"){}else if(k==="temp")L.sort(byTemp);else if(k==="name")L.sort((a,b)=>a.rel.localeCompare(b.rel,undefined,{numeric:true}));
   else L.sort((a,b)=>((isFinite(a.ms)?a.ms:Infinity)-(isFinite(b.ms)?b.ms:Infinity))||a.rel.localeCompare(b.rel,undefined,{numeric:true}));if($("cmpRev").checked)L.reverse();return L;}
 function cmpColor(e){const L=cmpOrder().filter(x=>x.show&&x.prof);if($("cmpCol").value==="grad"&&L.length>1){const i=L.indexOf(e);return gradCol(i<0?0:i/(L.length-1));}return e.color;}
-function cmpLabel(e){const parts=[["clName","name"],["clType","type"],["clDate","date"],["clTime","time"],["clTs","tset"],["clT","temp"],["clP","pres"]].filter(([id])=>$(id).checked).map(x=>x[1]),out=[];
+function cmpLabel(e){const parts=[["clName","name"],["clType","type"],["clDate","date"],["clTime","time"],["clTs","tset"],["clT","temp"],["clP","pres"],["clGas","gas"]].filter(([id])=>$(id).checked).map(x=>x[1]),out=[];
   for(const k of parts){if(k==="name")out.push(e.rel);else if(k==="type")out.push(e.kind==="diff"?"SAED":"FFT");else if(k==="time"||k==="date"){const a=acqSel(e.acq,x=>x===k);if(a)out.push(a);}
     else if(k==="temp"||k==="tset"){const r=S.tlog&&e.acq?tempAt(e.acq):null,v=r&&!r.err?(k==="tset"?r.set:r.meas):NaN;if(isFinite(v))out.push(k==="tset"?`set ${fmtT(v)}`:`${v.toFixed(1)} °C`);}
-    else if(k==="pres"){const r=S.plog&&e.acq?logAt(S.plog,e.acq):null;if(r&&!r.err)out.push(S.plog.cols.map(c=>`${c.name} ${fmtP(c.v[r.i])}`).join(" ")+(S.plog.cols[0]&&S.plog.cols[0].unit?" "+S.plog.cols[0].unit:""));}}
+    else if(k==="pres"){const r=S.plog&&e.acq?logAt(S.plog,e.acq):null;if(r&&!r.err)out.push(S.plog.cols.map(c=>`${c.name} ${fmtP(c.v[r.i])}`).join(" ")+(S.plog.cols[0]&&S.plog.cols[0].unit?" "+S.plog.cols[0].unit:""));}
+    else if(k==="gas"){if(gasTxt())out.push(gasTxt());}}
   return out.length?out.join(" · "):e.rel;}
 function cmpSet(items){const keep=new Set(items.map(i=>i.file));S.cmp=S.cmp.filter(e=>keep.has(e.file));if(S.cmpActive&&!keep.has(S.cmpActive.file))S.cmpActive=null;return cmpAdd(items);}
 function cmpVis(){$("cmpPanel").hidden=S.cmp.length<2;}
@@ -2089,7 +2124,7 @@ for(const id of ["cmpLo","cmpHi","cmpNd","cmpNd2","cmpOff"])$(id).addEventListen
 $("cmpOff").addEventListener("input",drawCmp);
 for(const id of ["cmpBg","cmpSticks","cmpRev","cmpStFull"])$(id).addEventListener("change",()=>{$("cmpStWrap").hidden=!$("cmpSticks").checked;cmpRender();});
 $("cmpStH").addEventListener("input",()=>{$("cmpStHv").textContent=$("cmpStH").value+" %";drawCmp();});
-for(const id of ["clName","clType","clDate","clTime","clTs","clT","clP"])$(id).addEventListener("change",()=>cmpRender());
+for(const id of ["clName","clType","clDate","clTime","clTs","clT","clP","clGas"])$(id).addEventListener("change",()=>cmpRender());
 for(const id of ["cmpLay","cmpNorm","cmpCol","cmpSort"])$(id).addEventListener("change",()=>{$("cmpOffWrap").hidden=$("cmpLay").value!=="stack";$("cmpNdWrap").hidden=!/^r/.test($("cmpNorm").value);cmpRender();});
 $("cmpRun").addEventListener("click",()=>cmpRunAll(false));
 $("cmpClear").addEventListener("click",()=>{S.cmp=[];S.cmpActive=null;for(const i of BR.items)i.tick=false;cmpVis();cmpRender();});
@@ -2219,7 +2254,7 @@ async function gifFrameSource(e,T){const f=e.file;
   return {thumb:t,tw:c.width,th:c.height,kind:e.kind||"diff"};}
 const GF=k=>{const c=document.querySelector(`.gifTxt input[data-k="${k}"]`);return c?c.checked:false;};
 function gifInfo(e){const L=[];const nm=[GF("name")?e.rel:"",GF("type")?({diff:"SAED",fft:"FFT",real:$("gifMode").value==="pat"?"FFT of real-space image":"real-space image"}[e.kind]||""):""].filter(Boolean).join(" · ");if(nm)L.push(nm);
-  if(acqSel(e.acq,GF))L.push("Acquired "+acqSel(e.acq,GF));if(e.acq)L.push(...infoLines(e.acq,GF).filter(l=>!l.err).map(l=>l.txt));return L;}
+  if(acqSel(e.acq,GF))L.push("Acquired "+acqSel(e.acq,GF));L.push(...infoLines(e.acq,GF).filter(l=>!l.err).map(l=>l.txt));return L;}
 function gifCompose(){const T=GIF.size,n=GIF.base.length;GIF.canv=GIF.base.map((b,k)=>{const e=GIF.ents[k],c=document.createElement("canvas");c.width=T;c.height=T;const g=c.getContext("2d");g.drawImage(gifBC(b),0,0);
     const info=gifInfo(e);if(info.length){const fs=Math.max(10,Math.round(T/42)),lh=Math.round(fs*1.3);g.font=`600 ${fs}px "IBM Plex Mono",monospace`;g.textBaseline="top";
       const tw=Math.max(...info.map(t=>g.measureText(t).width)),bw=Math.min(T-8,tw+12),bh=lh*info.length+8;g.fillStyle="rgba(0,0,0,.7)";g.fillRect(T-bw-4,4,bw,bh);g.fillStyle="#fff";info.forEach((t,i)=>g.fillText(t,T-bw+2,8+i*lh,bw-10));}
@@ -2263,12 +2298,86 @@ $("gifDt").addEventListener("input",()=>{$("gifDtN").value=$("gifDt").value;gifP
 $("gifPause").addEventListener("click",()=>{const on=$("gifPause").getAttribute("aria-pressed")!=="true";$("gifPause").setAttribute("aria-pressed",String(on));$("gifPause").textContent=on?"▶ play":"❚❚ pause";gifPlay();});
 $("gifPrev").addEventListener("click",()=>{if(!GIF.canv.length)return;GIF.k=(GIF.k-1+GIF.canv.length)%GIF.canv.length;$("gifPause").setAttribute("aria-pressed","true");$("gifPause").textContent="▶ play";gifPlay();});
 $("gifNext").addEventListener("click",()=>{if(!GIF.canv.length)return;GIF.k=(GIF.k+1)%GIF.canv.length;$("gifPause").setAttribute("aria-pressed","true");$("gifPause").textContent="▶ play";gifPlay();});
-S.gifCollapsed=false;
+S.gifCollapsed=true;
 function gifApplyCollapse(){const pan=$("gifPanel"),head=pan.firstElementChild;for(const el of pan.children)if(el!==head)el.style.display=S.gifCollapsed?"none":"";
   for(const el of head.children)if(!["gifCollapse"].includes(el.id)&&el.tagName!=="H2")el.style.display=S.gifCollapsed?"none":"";$("gifCollapse").textContent=S.gifCollapsed?"▸":"▾";}
-$("gifCollapse").addEventListener("click",()=>{S.gifCollapsed=!S.gifCollapsed;gifApplyCollapse();});
+$("gifCollapse").addEventListener("click",()=>{S.gifCollapsed=!S.gifCollapsed;gifApplyCollapse();});gifApplyCollapse();
 {const _cv=cmpVis;cmpVis=function(){_cv();$("gifPanel").hidden=S.cmp.length<2;};}
 
+/* gas flow typed by the user, shown as “Gas flow 13 SCCM” wherever its box is ticked */
+function gasTxt(){const c=document.querySelector(".gasV");const v=c?String(c.value).trim():"";return v!==""?`${v} SCCM`:"";}
+function gasChanged(){try{if(typeof drawChart==="function"&&S.profile)drawChart();}catch(e){}try{cmpRender();}catch(e){}try{if(typeof tempShow==="function")tempShow();}catch(e){}
+  try{if(typeof GIF!=="undefined"&&GIF.base&&GIF.base.length){gifCompose();gifPlay();}}catch(e){}}
+document.querySelectorAll(".gasV").forEach(c=>c.addEventListener("input",()=>{document.querySelectorAll(".gasV").forEach(x=>{if(x!==c)x.value=c.value;});gasChanged();}));
+
+/* ============================================================== 3D: rotating GIF with a transparent background */
+function v3RotM(u,t){const l=Math.hypot(...u)||1,[x,y,z]=u.map(v=>v/l),c=Math.cos(t),s=Math.sin(t),C=1-c;
+  return [[c+x*x*C,x*y*C-z*s,x*z*C+y*s],[y*x*C+z*s,c+y*y*C,y*z*C-x*s],[z*x*C-y*s,z*y*C+x*s,c+z*z*C]];}
+/* GIF89a with a 255-colour palette + transparent index 255, each frame cleared before the next (disposal 2) */
+function v3GifEncode(frames,W,H,palette,delayCs){const out=[];const b=v=>out.push(v&255),w16=v=>{b(v);b(v>>8);};const str=s=>{for(const c of s)b(c.charCodeAt(0));};
+  str("GIF89a");w16(W);w16(H);b(0xF7);b(255);b(0);
+  for(let i=0;i<256;i++){const c=palette[i]||[0,0,0];b(c[0]);b(c[1]);b(c[2]);}
+  b(0x21);b(0xFF);b(11);str("NETSCAPE2.0");b(3);b(1);w16(0);b(0);
+  for(const px of frames){b(0x21);b(0xF9);b(4);b((2<<2)|1);w16(delayCs);b(255);b(0);
+    b(0x2C);w16(0);w16(0);w16(W);w16(H);b(0);
+    b(8);let bytes=[],cur=0,nb=0;const emit=(code,size)=>{cur|=code<<nb;nb+=size;while(nb>=8){bytes.push(cur&255);cur>>=8;nb-=8;}};
+    let dict=new Map(),next=258,size=9;emit(256,size);let prefix=px[0];
+    for(let i=1;i<px.length;i++){const k=px[i],key=prefix*256+k;const v=dict.get(key);
+      if(v!==undefined){prefix=v;continue;}
+      emit(prefix,size);if(next<4096){dict.set(key,next++);if(next>(1<<size)&&size<12)size++;}else{emit(256,size);dict=new Map();next=258;size=9;}
+      prefix=k;}
+    emit(prefix,size);emit(257,size);if(nb>0)bytes.push(cur&255);
+    for(let i=0;i<bytes.length;i+=255){const n=Math.min(255,bytes.length-i);b(n);for(let j=0;j<n;j++)b(bytes[i+j]);}b(0);}
+  b(0x3B);return new Uint8Array(out);}
+/* median-cut palette (≤255 colours) over the opaque pixels of all frames, then index every frame (alpha < 64 → transparent) */
+function v3Quantise(imgs){const hist=new Map();
+  for(const d of imgs)for(let i=0;i<d.length;i+=4)if(d[i+3]>=64){const k=(d[i]>>3)<<10|(d[i+1]>>3)<<5|(d[i+2]>>3);hist.set(k,(hist.get(k)||0)+1);}
+  let boxes=[[...hist.entries()].map(([k,n])=>[(k>>10&31)*8+4,(k>>5&31)*8+4,(k&31)*8+4,n,k])];
+  const rng=bx=>{let r=[0,1,2].map(()=>[255,0]);for(const e of bx)for(let c=0;c<3;c++){r[c][0]=Math.min(r[c][0],e[c]);r[c][1]=Math.max(r[c][1],e[c]);}return r;};
+  while(boxes.length<255){let bi=-1,bs=0,bc=0;boxes.forEach((bx,i)=>{if(bx.length<2)return;const r=rng(bx),n=bx.reduce((s,e)=>s+e[3],0);for(let c=0;c<3;c++){const sc=(r[c][1]-r[c][0])*Math.sqrt(n);if(sc>bs){bs=sc;bi=i;bc=c;}}});
+    if(bi<0)break;const bx=boxes[bi].sort((p,q)=>p[bc]-q[bc]),tot=bx.reduce((s,e)=>s+e[3],0);let acc=0,cut=1;for(let i=0;i<bx.length;i++){acc+=bx[i][3];if(acc>=tot/2){cut=Math.max(1,Math.min(bx.length-1,i+1));break;}}
+    boxes.splice(bi,1,bx.slice(0,cut),bx.slice(cut));}
+  const pal=boxes.filter(bx=>bx.length).map(bx=>{let n=0,r=0,g=0,bb=0;for(const e of bx){n+=e[3];r+=e[0]*e[3];g+=e[1]*e[3];bb+=e[2]*e[3];}return [Math.round(r/n),Math.round(g/n),Math.round(bb/n)];});
+  if(!pal.length)pal.push([0,0,0]);const map=new Map();
+  const near=k=>{let v=map.get(k);if(v!==undefined)return v;const r=(k>>10&31)*8+4,g=(k>>5&31)*8+4,bb=(k&31)*8+4;let best=0,bd=1e9;pal.forEach((p,i)=>{const d=(p[0]-r)**2+(p[1]-g)**2+(p[2]-bb)**2;if(d<bd){bd=d;best=i;}});map.set(k,best);return best;};
+  const frames=imgs.map(d=>{const px=new Uint8Array(d.length/4);for(let i=0,j=0;i<d.length;i+=4,j++)px[j]=d[i+3]<64?255:near((d[i]>>3)<<10|(d[i+1]>>3)<<5|(d[i+2]>>3));return px;});
+  return {pal,frames};}
+const V3G={canv:[],timer:null,k:0,T:0};
+function v3gSpeed(){const a=+$("v3gAng").value||0,n=Math.max(2,+$("v3gN").value||2),dt=Math.max(0.02,+$("v3gDt").value||0.1);
+  $("v3gSpd").textContent=`${(a/n).toFixed(1)}° per frame · ${(a/n/dt).toFixed(0)}°/s · ${(n*dt).toFixed(1)} s per loop`;}
+function v3gAxis(){const ax=$("v3gAx").value,R=V3.R;
+  if(ax==="d1"||ax==="d2"){const sg=ax==="d1"?-1:1;return [0,1,2].map(i=>R[0][i]+sg*R[1][i]);}   // screen y points down: ↗ = x − y
+  if(ax==="110")return V3.cell.toC([1,1,0]);if(ax==="111")return V3.cell.toC([1,1,1]);
+  if(ax==="v")return [R[1][0],R[1][1],R[1][2]];if(ax==="h")return [R[0][0],R[0][1],R[0][2]];if(ax==="z")return [R[2][0],R[2][1],R[2][2]];
+  return V3.cell.toC(ax==="a"?[1,0,0]:ax==="b"?[0,1,0]:[0,0,1]);}
+async function v3gMake(){if(!V3.ph||!V3.atoms.length){$("v3gStatus").textContent="Show a phase in 3D first.";return;}
+  const T=+$("v3gSize").value,n=Math.max(2,Math.min(360,Math.round(+$("v3gN").value||150))),ang=(+$("v3gAng").value||360)*Math.PI/180,st=$("v3gStatus");
+  const ink=$("v3gInk").value,u=v3gAxis(),R0=V3.R.map(r=>r.slice()),dpr=Math.max(1,T/400);
+  let zoom=null,pan=null;
+  if($("v3gFit").checked){   // extents scale linearly with zoom (perspective factor does not depend on it), so measure at zoom 1 and rescale
+    const probe={width:T,height:T},rs=+$("v3size").value||0.5,cellPts=[];if($("v3cell").checked&&V3.cell){const n=V3.cell.n;for(const i of [0,n[0]])for(const j of [0,n[1]])for(const k of [0,n[2]])cellPts.push(V3.cell.toC([i,j,k]));}
+    let ext=1e-9;for(let k=0;k<n;k++){const P=v3Project(probe,mmul(R0,v3RotM(u,ang*k/n)),1,[0,0]);
+      for(const a of V3.atoms){const q=P(a.p),r=elInfo(a.el).r*rs*q[3];ext=Math.max(ext,Math.abs(q[0]-T/2)+r,Math.abs(q[1]-T/2)+r);}
+      for(const c of cellPts){const q=P(c);ext=Math.max(ext,Math.abs(q[0]-T/2)+14*dpr,Math.abs(q[1]-T/2)+14*dpr);}}
+    zoom=(T/2-0.04*T)/ext;pan=[0,0];}
+  $("v3gMake").disabled=true;v3gStop();V3G.canv=[];V3G.T=T;
+  try{for(let k=0;k<n;k++){if(k%6===0){st.textContent=`Drawing frame ${k+1} / ${n}…`;await new Promise(r=>setTimeout(r,0));}
+      const c=document.createElement("canvas");c.width=T;c.height=T;const R=mmul(R0,v3RotM(u,ang*k/n));   // full turn: last frame stops one step short of the first, so the loop is seamless
+      v3Draw(c,{transparent:true,R,zoom,pan,dpr,ink,info:$("v3gInfo").checked,key:$("v3gKey").checked,labels:$("v3gLab").checked});V3G.canv.push(c);}}
+  finally{$("v3gMake").disabled=false;}
+  $("v3gSave").disabled=false;$("v3gPrevBox").hidden=false;st.textContent=`${n} frames ready (${T} × ${T} px, transparent background).`;v3gPlay();}
+function v3gPlay(){v3gStop();if(!V3G.canv.length)return;const cv=$("v3gPrev"),g=cv.getContext("2d");cv.width=V3G.T;cv.height=V3G.T;
+  const show=()=>{g.clearRect(0,0,cv.width,cv.height);g.drawImage(V3G.canv[V3G.k%V3G.canv.length],0,0);};show();
+  V3G.timer=setInterval(()=>{V3G.k=(V3G.k+1)%V3G.canv.length;show();},Math.max(0.02,+$("v3gDt").value||0.1)*1000);}
+function v3gStop(){if(V3G.timer){clearInterval(V3G.timer);V3G.timer=null;}}
+async function v3gSave(){if(!V3G.canv.length)return;const st=$("v3gStatus"),T=V3G.T;st.textContent="Encoding GIF…";await new Promise(r=>setTimeout(r,20));
+  const {pal,frames}=v3Quantise(V3G.canv.map(c=>c.getContext("2d").getImageData(0,0,T,T).data));const dt=Math.max(0.02,+$("v3gDt").value||0.1);
+  const bytes=v3GifEncode(frames,T,T,pal,Math.round(dt*100));const blob=new Blob([bytes],{type:"image/gif"});
+  const nm=((V3.ph.formula||"structure").replace(/\s+/g,"")+(V3.ph.code?"_"+V3.ph.code:""))+`_rotate${$("v3gAng").value}deg_${frames.length}f.gif`;
+  await saveFile(nm,blob);st.textContent=`GIF saved: ${nm} (${frames.length} frames, ${dt} s per frame, ${(blob.size/1e6).toFixed(2)} MB, ${pal.length} colours + transparent).`;}
+$("v3gMake").addEventListener("click",v3gMake);$("v3gSave").addEventListener("click",v3gSave);
+for(const id of ["v3gAng","v3gN","v3gDt"])$(id).addEventListener("input",()=>{v3gSpeed();if(id==="v3gDt"&&V3G.canv.length)v3gPlay();});
+v3gSpeed();
 </script>
 
 </body></html>
