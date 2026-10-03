@@ -1556,6 +1556,14 @@ function v3Draw(target){const cv=target||cv3;if(!target){if(!$("v3on").checked)r
     ctx.fillStyle=g;ctx.globalAlpha=a.occ<0.99?0.55+0.45*a.occ:1;ctx.beginPath();ctx.arc(p[0],p[1],r,0,2*Math.PI);ctx.fill();ctx.globalAlpha=1;
     if(it.i===V3.hover){ctx.strokeStyle=ink;ctx.lineWidth=2*dpr;ctx.stroke();}
     if(labels&&r>6*dpr){ctx.fillStyle="#000";ctx.font=`600 ${Math.min(14,r/dpr*0.8)*dpr}px "IBM Plex Sans",sans-serif`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(a.el,p[0],p[1]);}}
+  { /* phase info box (bottom left): name, ICSD, space group, cell */
+    const ph=V3.ph,c=ph.cell,wb=$("v3white").checked,ls=[compactFormula(ph.formula||ph.label)+(ph.mineral?` (${ph.mineral})`:""),
+      [ph.code?`ICSD ${ph.code}`:"",ph.sg?`space group ${ph.sg}`:""].filter(Boolean).join(" · "),
+      `a = ${c[0].toFixed(4)} Å   b = ${c[1].toFixed(4)} Å   c = ${c[2].toFixed(4)} Å`,`α = ${(+c[3]).toFixed(2)}°   β = ${(+c[4]).toFixed(2)}°   γ = ${(+c[5]).toFixed(2)}°`,
+      `V = ${(()=>{const r=Math.PI/180,ca=Math.cos(c[3]*r),cb=Math.cos(c[4]*r),cg=Math.cos(c[5]*r);return (c[0]*c[1]*c[2]*Math.sqrt(Math.max(0,1-ca*ca-cb*cb-cg*cg+2*ca*cb*cg))).toFixed(2);})()} Å³`].filter(Boolean);
+    const fs=12*dpr,lh=fs*1.35,pad=8*dpr;ctx.font=`${fs}px "IBM Plex Mono",monospace`;const w0=Math.max(...ls.map(t=>ctx.measureText(t).width));
+    const bx=10*dpr,by=H-10*dpr-pad*2-lh*ls.length;ctx.fillStyle=wb?"rgba(255,255,255,.85)":"rgba(0,0,0,.6)";ctx.fillRect(bx,by,w0+pad*2,lh*ls.length+pad*2);
+    ctx.textAlign="left";ctx.textBaseline="top";ls.forEach((t,k)=>{ctx.fillStyle=wb?"#111":"#fff";ctx.font=`${k===0?"600 ":""}${fs}px "IBM Plex Mono",monospace`;ctx.fillText(t,bx+pad,by+pad+k*lh);});}
   if(V3.hover>=0&&V3.hover<A.length&&!target){const a=A[V3.hover],t=`${a.lab} (${a.el}) · x y z = ${a.f.map(v=>v.toFixed(4)).join(", ")}${a.occ<0.99?" · occ "+a.occ.toFixed(3):""}`;
     ctx.font=`${12*dpr}px "IBM Plex Mono",monospace`;ctx.textAlign="left";ctx.textBaseline="top";const w=ctx.measureText(t).width;
     ctx.fillStyle=css.getPropertyValue("--bg").trim()||"#000";ctx.globalAlpha=.85;ctx.fillRect(8*dpr,8*dpr,w+12*dpr,20*dpr);ctx.globalAlpha=1;ctx.fillStyle=ink;ctx.fillText(t,14*dpr,12*dpr);}}
@@ -1585,7 +1593,6 @@ $("v3size").addEventListener("input",()=>v3Draw());
 new ResizeObserver(()=>v3Draw()).observe($("v3wrap"));
 $("v3save").addEventListener("click",()=>{if(!V3.ph)return;const c=document.createElement("canvas");c.width=cv3.width;c.height=cv3.height;v3Draw(c);
   const x=c.getContext("2d"),dpr=c.width/cv3.getBoundingClientRect().width;x.fillStyle=$("v3white").checked?"#222":getComputedStyle(document.documentElement).getPropertyValue("--ink");
-  x.font=`${13*dpr}px "IBM Plex Sans",sans-serif`;x.textBaseline="bottom";x.fillText(V3.ph.legend.trim()+(V3.ph.sg?"  "+V3.ph.sg:""),12*dpr,c.height-10*dpr);
   c.toBlob(b=>saveFile(((V3.ph.formula||"structure").replace(/\s+/g,"")+(V3.ph.code?"_"+V3.ph.code:""))+"_3D.png",b),"image/png");});
 
 /* ============================================================== real-space image → FFT (then the same workflow as a pattern) */
