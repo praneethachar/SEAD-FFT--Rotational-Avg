@@ -334,7 +334,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <h2>Phases from CIF</h2>
       <label class="btn primary" for="cifIn">Add CIF files…<input id="cifIn" type="file" accept=".cif,.CIF" multiple></label>
       <label class="btn" for="cifDir" title="Pick a folder; every sub-folder with CIFs gets its own box">Add folder…<input id="cifDir" type="file" webkitdirectory directory multiple></label>
-      <span class="row2" style="gap:4px"><button id="cBest" disabled title="Rank the phases in the chosen folder against the current peak list and highlight the best one">★ Best fit</button><button id="cBestPrev" disabled title="Previous (better) fit" aria-label="Previous fit">◀</button><button id="cBestNext" disabled title="Next (worse) fit" aria-label="Next fit">▶</button><label for="cBestIn">in</label><select id="cBestIn" style="width:auto;min-width:8rem;max-width:14rem" disabled title="Which folder box to search"><option value="">all folders</option></select></span>
+      <span class="row2" style="gap:4px"><button id="cBest" disabled title="Rank the phases in the chosen folder against the current peak list and highlight the best one">★ Best fit</button><button id="cBestPrev" disabled title="Previous (better) fit" aria-label="Previous fit">◀</button><button id="cBestNext" disabled title="Next (worse) fit" aria-label="Next fit">▶</button><label for="cBestIn">in</label><select id="cBestIn" style="width:auto;min-width:8rem;max-width:14rem" disabled title="Which folder box to search"><option value="">all folders</option></select></span><button id="mpOpen" title="Find the combination of up to 3 phases that explains the most peaks">★★ Multi-phase fit</button>
       <div class="row2"><label for="cs">calibration factor s</label><input id="cs" type="range" min="0.95" max="1.05" step="0.0005" value="1" style="width:9rem"><input id="csN" type="number" step="0.0005" value="1" style="width:5.6rem"></div>
       <div class="row2"><label for="cmin">lines ≥</label><input id="cmin" type="number" min="0" max="100" step="1" value="5" style="width:4rem"><label>% I</label></div>
       <div class="row2"><label><input id="cRings" type="checkbox" checked> rings on SAED</label><label><input id="cSticks" type="checkbox" checked> sticks on profile</label><label><input id="cLab" type="checkbox"> hkl labels</label><label title="d × s, where the ring and stick are drawn"><input id="cLabD" type="checkbox" checked> d labels</label><label for="cLabSize">size</label><input id="cLabSize" type="number" min="6" max="30" step="1" value="10" style="width:3.6rem"></div>
@@ -342,7 +342,20 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <span class="spacer"></span>
       <button id="cClear" disabled>Remove all</button>
     </div>
-    <div class="keys">Drop or add any number of .cif files, or whole folders: each folder gets its own box with the folder name. Click a phase to highlight it (shown as a preview with its rings and sticks) and use ↑ ↓ to step through the phases; tick it (or press space) to keep it shown. Calculated with kinematic electron scattering factors; ring intensity ∝ m·|F|²·d². d<sub>obs</sub> = s × d<sub>calc</sub>: s corrects a small calibration error and applies to all phases. <span id="cifStatus" style="color:var(--ink)"></span></div>
+        <div id="mpBox" class="lgedit" hidden>
+      <div class="chartbar" style="gap:8px 14px">
+        <b>Multi-phase best fit</b>
+        <span class="row2"><label for="mpK">up to</label><select id="mpK" style="width:auto"><option value="1">1 phase</option><option value="2">2 phases</option><option value="3" selected>3 phases</option></select></span>
+        <span class="row2" title="The calibration factor s is searched in this range (shared by all phases of a combination)"><label for="mpS">fit s within ±</label><input id="mpS" type="number" min="0" max="0.1" step="0.005" value="0.03" style="width:5rem"></span>
+        <span class="row2" title="A peak counts as explained when a line of a phase is within this relative distance"><label for="mpTol">match ±</label><input id="mpTol" type="number" min="0.2" max="3" step="0.1" value="1" style="width:4.5rem"><span class="keys">%</span></span>
+        <span class="keys" id="mpScope"></span>
+        <button class="primary" id="mpRun">Run</button>
+        <span class="spacer"></span><button id="mpClose">Close</button>
+      </div>
+      <div class="keys">Searches combinations of the candidate phases (the “in” choice next to ★ Best fit: all folders, ★ Starred or one folder) for the set that explains the most observed peaks, with one common calibration factor s. Score = intensity-weighted share of peaks explained, corrected for chance matches, minus a penalty for strong calculated lines (≥ 30 %) that are not observed and a small penalty per extra phase. Every phase in a combination must explain at least one peak the others do not. Click a result to show it (ticks those phases and sets s).</div>
+      <div class="tablebox" style="max-height:320px"><table><thead><tr><th>#</th><th style="text-align:left">phases</th><th>s</th><th>peaks explained</th><th>strong missing</th><th style="text-align:left">unexplained peaks (Å)</th><th>score</th></tr></thead><tbody id="mpRows"><tr><td colspan="7" style="text-align:center;color:var(--muted)">press Run</td></tr></tbody></table></div>
+    </div>
+<div class="keys">Drop or add any number of .cif files, or whole folders: each folder gets its own box with the folder name. Click a phase to highlight it (shown as a preview with its rings and sticks) and use ↑ ↓ to step through the phases; tick it (or press space) to keep it shown. Calculated with kinematic electron scattering factors; ring intensity ∝ m·|F|²·d². d<sub>obs</sub> = s × d<sub>calc</sub>: s corrects a small calibration error and applies to all phases. <span id="cifStatus" style="color:var(--ink)"></span></div>
     <div class="bench" style="grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)">
       <div id="phaseBox" tabindex="0" aria-label="Phases: arrow keys move the highlight, space ticks"><div id="phaseGroups"><div class="keys" style="padding:12px;text-align:center">no CIF loaded</div></div></div>
       <div id="lineBoxWrap"><div class="tablebox"><table><thead><tr><th style="text-align:left">hkl</th><th>d calc</th><th>d × s</th><th>2θ (°)</th><th>I %</th><th>obs peak</th></tr></thead>
@@ -2089,6 +2102,53 @@ function openCmpLgEdit(){const box=$("cmpLgEdit");if(!box.hidden){box.hidden=tru
   const rows=cmpOrder().filter(e=>e.show&&e.prof).map(e=>({color:cmpColor(e),auto:(()=>{const v=e.customLabel;e.customLabel="";const a=cmpLabel(e);e.customLabel=v;return a;})(),get:()=>e.customLabel||"",set:v=>{e.customLabel=v;}})).concat(phRows());
   legEditor(box,rows,()=>{drawCmp();if(typeof tmDraw==="function")tmDraw();});box.hidden=false;}
 $("lgEditBtn").addEventListener("click",openLgEdit);$("cmpLgEditBtn").addEventListener("click",openCmpLgEdit);
+/* ============================================================== multi-phase best fit */
+function mpCandidates(){const g=$("cBestIn").value;return S.phases.filter(ph=>!g||(g===STAR_G?ph.star:(ph.group||"Files")===g));}
+async function mpRun(){const peaks=S.peaks||[];const st=$("mpRows");
+  if(!peaks.length){st.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--warn)">No peaks: compute / select a profile first.</td></tr>';return;}
+  const C=mpCandidates();if(!C.length){st.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--warn)">No candidate phases in this choice.</td></tr>';return;}
+  const K=+$("mpK").value,ds=Math.max(0,+$("mpS").value||0),tol=(+$("mpTol").value||1)/100,mn=+$("cmin").value||0,s0=phaseScale();
+  st.innerHTML='<tr><td colspan="7" style="text-align:center">searching…</td></tr>';$("mpRun").disabled=true;await new Promise(r=>setTimeout(r,20));
+  const t0=performance.now(),P=peaks.map(p=>p.d),n=P.length,w=peaks.map(p=>Math.sqrt(Math.max(p.rel,1))),W=w.reduce((a,b)=>a+b,0);
+  const dlo=Math.min(...P)*0.97,dhi=Math.max(...P)*1.03,span=Math.log(dhi/dlo);
+  const sv=[];const step=ds>0?Math.max(0.001,ds/12):1;for(let s=s0-ds;s<=s0+ds+1e-9;s+=step)sv.push(+s.toFixed(5));if(!sv.length)sv.push(s0);
+  const best=[];const keep=(r)=>{best.push(r);};
+  for(const s of sv){
+    /* per phase at this s: which peaks it explains, chance coverage, strong lines missing */
+    const info=C.map(ph=>{const L=ph.lines.filter(x=>x.I>=mn).map(x=>({d:x.d*s,I:x.I})).filter(x=>x.d>=dlo&&x.d<=dhi);
+      const hit=new Uint8Array(n);for(let i=0;i<n;i++)if(L.some(x=>Math.abs(x.d-P[i])/P[i]<=tol))hit[i]=1;
+      const iv=L.map(x=>[Math.log(x.d)-tol,Math.log(x.d)+tol]).sort((a,b)=>a[0]-b[0]);let cov=0,e=-Infinity;for(const [a,b] of iv){const a2=Math.max(a,e);if(b>a2)cov+=b-a2;e=Math.max(e,b);}
+      const strong=L.filter(x=>x.I>=30),miss=strong.filter(x=>!P.some(d=>Math.abs(x.d-d)/d<=tol)).length;
+      return {ph,hit,chance:Math.min(0.95,cov/span),miss,strong:strong.length};}).filter(o=>o.hit.some(v=>v));
+    const score=(set)=>{const u=new Uint8Array(n);let hw=0;for(const o of set)for(let i=0;i<n;i++)if(o.hit[i])u[i]=1;for(let i=0;i<n;i++)if(u[i])hw+=w[i];hw/=W;
+      /* each phase must add something */
+      for(const o of set){let own=0;for(let i=0;i<n;i++)if(o.hit[i]&&!set.some(q=>q!==o&&q.hit[i]))own++;if(!own&&set.length>1)return null;}
+      const ch=1-set.reduce((a,o)=>a*(1-o.chance),1),ms=set.reduce((a,o)=>a+o.miss,0),st=set.reduce((a,o)=>a+o.strong,0);
+      return {score:(hw-ch)/(1-ch)-0.5*(st?ms/st:1)-0.04*(set.length-1),hw,u,ms,st};};
+    const singles=info.map(o=>({set:[o],r:score([o])})).filter(x=>x.r).sort((a,b)=>b.r.score-a.r.score);
+    singles.slice(0,15).forEach(x=>keep({s,set:x.set,r:x.r}));
+    if(K>=2){const top=singles.slice(0,40).map(x=>x.set[0]);const pairs=[];
+      for(let i=0;i<top.length;i++)for(let j=i+1;j<top.length;j++){const r=score([top[i],top[j]]);if(r)pairs.push({set:[top[i],top[j]],r});}
+      pairs.sort((a,b)=>b.r.score-a.r.score);pairs.slice(0,15).forEach(x=>keep({s,set:x.set,r:x.r}));
+      if(K>=3){for(const pr of pairs.slice(0,25))for(const o of top){if(pr.set.includes(o))continue;const r=score([...pr.set,o]);if(r)keep({s,set:[...pr.set,o],r});}}}
+    await new Promise(r=>setTimeout(r,0));}
+  /* best s for each distinct combination, then rank */
+  const byKey=new Map();for(const b of best){const k=b.set.map(o=>o.ph.id).sort((a,c)=>a-c).join(",");const o=byKey.get(k);if(!o||b.r.score>o.r.score)byKey.set(k,b);}
+  const R=[...byKey.values()].sort((a,b)=>b.r.score-a.r.score).slice(0,15);S.mpRes=R;
+  st.textContent="";if(!R.length){st.innerHTML='<tr><td colspan="7" style="text-align:center">no combination explains any peak</td></tr>';}
+  R.forEach((b,k)=>{const tr=document.createElement("tr");tr.style.cursor="pointer";const un=P.filter((d,i)=>!b.r.u[i]);
+    tr.innerHTML=`<td>${k+1}</td><td style="text-align:left;white-space:normal"></td><td>${b.s.toFixed(4)}</td><td>${n-un.length} / ${n} (${(100*b.r.hw).toFixed(0)} % wt)</td><td>${b.r.ms} / ${b.r.st}</td><td style="text-align:left;white-space:normal" class="keys"></td><td>${b.r.score.toFixed(3)}</td>`;
+    const c=tr.children[1];b.set.forEach(o=>{const sp=document.createElement("span");sp.style.whiteSpace="nowrap";sp.style.marginRight="10px";sp.innerHTML=`<i style="display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;background:${o.ph.color}"></i>`;sp.appendChild(document.createTextNode(phLeg(o.ph).trim()));c.appendChild(sp);});
+    tr.children[5].textContent=un.map(d=>d.toFixed(3)).join(", ")||"—";
+    tr.addEventListener("click",()=>{for(const ph of S.phases)ph.show=false;for(const o of b.set)o.ph.show=true;S.focus=null;$("cs").value=b.s;$("csN").value=b.s;
+      [...st.children].forEach(x=>x.classList.remove("focus"));tr.classList.add("focus");phaseRefresh();
+      $("cifStatus").textContent=`Multi-phase fit #${k+1}: ${b.set.map(o=>phLeg(o.ph).trim()).join(" + ")} at s = ${b.s.toFixed(4)} — explains ${n-un.length} of ${n} peaks.`;});
+    st.appendChild(tr);});
+  $("mpRun").disabled=false;$("mpScope").textContent=`${C.length} candidates · ${n} peaks · ${sv.length} s values · ${((performance.now()-t0)/1000).toFixed(1)} s`;}
+$("mpOpen").addEventListener("click",()=>{const b=$("mpBox");b.hidden=!b.hidden;if(!b.hidden){const g=$("cBestIn").value;$("mpScope").textContent=`candidates: ${g?g:"all folders"} (${mpCandidates().length} phases) · ${(S.peaks||[]).length} peaks`;}});
+$("mpClose").addEventListener("click",()=>{$("mpBox").hidden=true;});
+$("mpRun").addEventListener("click",mpRun);
+
 </script>
 
 </body></html>
