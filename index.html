@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 </head><body>
-<title>d-Spacing Compare</title>
+<title>d-Spacing Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -30,6 +30,7 @@
 #brModal{position:fixed;inset:0;z-index:50;background:rgba(5,8,11,.6);display:flex;align-items:center;justify-content:center;padding:24px}
 .brpanel{background:var(--panel);border:1px solid var(--line);border-radius:12px;width:min(1400px,100%);max-height:100%;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.45)}
 .brhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:12px 14px}.brhead h2{margin:0}
+.brwrap{display:flex;flex-direction:column;gap:4px}.brnote{width:100%;box-sizing:border-box;min-height:2.4em;resize:vertical;font:12px/1.35 var(--f-data);padding:5px 7px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)}.brnote:not(:placeholder-shown){border-color:#e0a800}
 #brGrid{overflow:auto;padding:4px 14px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
 .brcard{display:flex;flex-direction:column;gap:6px;text-align:left;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer;color:var(--ink);font:inherit}
 .brcard:hover{border-color:var(--accent)}.brcard.cur{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
@@ -145,7 +146,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
     <span class="row2" style="gap:6px"><button class="primary" id="brPick" title="Choose a folder: every image in it (and its sub-folders) is listed with time, temperature and pressure; pick one to analyse">📂 Browse folder…</button><input id="brDir" type="file" webkitdirectory directory multiple hidden>
       <button id="brShow" hidden title="Reopen the image list">Image list</button>
       </span>
-    <div class="brand"><h1>d-Spacing Compare</h1><small>compare ring profiles of several SAED patterns / FFTs</small></div>
+    <div class="brand"><h1>d-Spacing Studio</h1><small>compare ring profiles of several SAED patterns / FFTs</small><button id="setReset" title="Forget the remembered tick boxes, menus, sliders and open / closed sections, and go back to the defaults (notes and stars are kept)" style="margin-left:10px;padding:2px 9px;font-size:.78rem">↺ default settings</button></div>
     <label class="btn primary" for="file">Open .dm4 / .dm3 / image<input id="file" type="file" accept=".dm4,.dm3,.png,.jpg,.jpeg,.tif,.tiff"></label>
     <label class="row2" title="Auto: DM files calibrated in nm / Å / µm are real-space images (an FFT is computed), 1/nm files are patterns. Plain PNG/JPG/TIF are treated as patterns unless you choose “real-space image”.">file is
       <select id="ftype" style="width:auto"><option value="auto">auto-detect</option><option value="diff">a diffraction pattern / FFT</option><option value="real">a real-space image → compute FFT</option></select></label>
@@ -159,6 +160,8 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
     </div>
     <div class="row2" style="gap:6px 10px;flex-wrap:wrap">
       <label class="btn" for="pIn" title="Pressure log (.txt / .csv / .xlsx) with a Time column and one column per gauge (e.g. MC1, MC2); values may carry units such as “3.80E-04 Pa”">Load pressure log…<input id="pIn" type="file" accept=".txt,.csv,.tsv,.log,.xlsx"></label>
+      <label for="pOff" title="Add this many seconds to the image time before looking it up in the pressure log (if the two computers' clocks differ)">clock offset</label><input id="pOff" type="number" step="1" value="0" style="width:4.5rem"><span class="keys">s</span>
+      <label for="pTol" title="Largest allowed gap between the image time and the nearest pressure-log entry">max gap</label><input id="pTol" type="number" step="1" min="1" value="10" style="width:4rem"><span class="keys">s</span>
       <button id="pClear" title="Forget the pressure log">clear</button>
       <span class="keys" id="pStatus">no pressure log loaded</span>
       <select id="showInfo" hidden style="width:auto"><option value="both">temperature + pressure</option><option value="temp">temperature</option><option value="pres">pressure</option><option value="none">nothing (time only)</option></select>
@@ -187,7 +190,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <canvas id="rsCv" aria-label="Real-space image; drag to place the FFT region" style="display:block;width:100%;height:100%;cursor:crosshair;touch-action:none"></canvas></div>
     <div class="row2" style="justify-content:flex-end;gap:12px"><label title="Also draw the yellow FFT region square on the saved image"><input id="rsSaveRoi" type="checkbox"> with FFT region</label>
 <span class="row2 infoSel" style="gap:6px" title="What the information box on the images shows"><span class="keys">on image:</span><label><input type="checkbox" data-k="name"> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date"> date</label><label><input type="checkbox" data-k="time" checked> time</label><label><input type="checkbox" data-k="Ts" checked> T set</label><label><input type="checkbox" data-k="T"> T meas</label><label><input type="checkbox" data-k="P"> pressure</label><label title="Gas flow"><input type="checkbox" data-k="gas"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><input class="gasN" type="text" placeholder="gas" title="Gas name, written after SCCM (e.g. PH3)" style="width:5.5rem"><label><input type="checkbox" data-k="log" checked> log times</label></span><span class="spacer"></span>
-      <button id="rsSave" title="Saves the real-space image (up to 2048 px) with scale bar, acquisition time and temperature">Save image (.png)</button></div>
+      <button id="rsSave" title="Saves the real-space image (up to 2048 px) with scale bar, acquisition time and temperature">Save image (.png)</button><button class="cpBtn" data-cv="rsCv" data-src="rsSave" title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button></div>
     <div class="keys"><kbd>click</kbd> or <kbd>drag</kbd> on the image to place the square FFT region (yellow) · the FFT amplitude |F| is shown below as the pattern, centred at zero frequency, and everything else (centre, profile, peaks, CIF matching) works on it as on an SAED pattern · calibration = 1 / (FFT size × pixel size). <span id="rsStatus" style="color:var(--ink)"></span></div>
   </section>
   <section class="panel" id="gifPanel" hidden style="display:grid;gap:10px">
@@ -223,7 +226,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
 <span class="row2 infoSel" style="gap:6px" title="What the information box on the images shows"><span class="keys">on image:</span><label><input type="checkbox" data-k="name"> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date"> date</label><label><input type="checkbox" data-k="time" checked> time</label><label><input type="checkbox" data-k="Ts" checked> T set</label><label><input type="checkbox" data-k="T"> T meas</label><label><input type="checkbox" data-k="P"> pressure</label><label title="Gas flow"><input type="checkbox" data-k="gas"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><input class="gasN" type="text" placeholder="gas" title="Gas name, written after SCCM (e.g. PH3)" style="width:5.5rem"><label><input type="checkbox" data-k="log" checked> log times</label></span>
         <label title="When locked, clicks and arrow keys no longer move the centre; a click measures the spot under the cursor instead"><input id="lock" type="checkbox"> Lock centre <span class="keys">(on after Compute; then click a spot to see its d)</span></label>
         <span class="row2" style="gap:8px"><button id="fullView" title="Show the whole pattern (h)">Full view</button>
-        <button id="svimg" disabled title="Saves the pattern as currently shown, with guide circles and selected rings">Save image with rings (.png)</button></span>
+        <button id="svimg" disabled title="Saves the pattern as currently shown, with guide circles and selected rings">Save image with rings (.png)</button><button class="cpBtn" data-cv="main" data-src="svimg" disabled title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button></span>
       </div>
     </div>
 
@@ -232,7 +235,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
         <canvas id="polar" aria-label="Polar unwrap: radius across, azimuth up. Rings are straight vertical lines when the centre is right."></canvas>
         <div class="hud"><span>Polar unwrap · rings straight = centre right</span><span id="hudP"></span></div>
       </div>
-      <div style="display:flex;justify-content:flex-end"><button id="svpolar" disabled title="The polar view as shown, with CIF lines and labels">Save polar view (.png)</button></div>
+      <div style="display:flex;justify-content:flex-end"><button id="svpolar" disabled title="The polar view as shown, with CIF lines and labels">Save polar view (.png)</button><button class="cpBtn" data-cv="polar" data-src="svpolar" disabled title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button></div>
 
       <div class="panel ctrls">
         <fieldset>
@@ -319,7 +322,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <button id="svfull" disabled>Full profile (.txt)</button>
       <button id="svpk" disabled>Peak list (.csv)</button>
       <button id="svset" disabled>Centre &amp; settings (.json)</button>
-      <button id="svplot" disabled title="The plot as shown: profile, peak markers, CIF sticks and legend, selected rings">Plot with overlays (.png)</button>
+      <button id="svplot" disabled title="The plot as shown: profile, peak markers, CIF sticks and legend, selected rings">Plot with overlays (.png)</button><button class="cpBtn" data-cv="chart" data-src="svplot" disabled title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button>
       <span class="status" id="saveStatus">Files are only written when you press a Save button.</span>
     </div>
   </section>
@@ -343,7 +346,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <span class="row2"><label for="cmpSort">order</label><select id="cmpSort" style="width:auto"><option value="time">by acquisition time</option><option value="temp">by T measured</option><option value="name">by name</option><option value="custom">custom (drag rows)</option></select><label><input id="cmpRev" type="checkbox"> reverse</label></span>
       <span class="row2"><label for="cmpCol">colours</label><select id="cmpCol" style="width:auto"><option value="dist">distinct</option><option value="grad">gradient (in order)</option></select></span>
       <span class="spacer"></span>
-      <button id="cmpLgEditBtn" title="Edit the legend / label texts of this plot">✎ edit legend</button><button id="cmpSvPng" disabled>Save plot (.png)</button><button id="cmpSvTxt" disabled title="All shown profiles on one common grid (as plotted, without the stacking offset)">Save data (.txt)</button>
+      <button id="cmpLgEditBtn" title="Edit the legend / label texts of this plot">✎ edit legend</button><button id="cmpSvPng" disabled>Save plot (.png)</button><button class="cpBtn" data-cv="cmpChart" data-src="cmpSvPng" disabled title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button><button id="cmpSvTxt" disabled title="All shown profiles on one common grid (as plotted, without the stacking offset)">Save data (.txt)</button>
       <button id="cmpClear" title="Empty the comparison">Clear list</button>
     </div>
     <div class="chartbar">
@@ -358,8 +361,8 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
   <section class="panel" id="phasePanel" style="display:grid;gap:10px">
     <div class="chartbar">
       <h2>Phases from CIF</h2>
-      <label class="btn primary" for="cifIn">Add CIF files…<input id="cifIn" type="file" accept=".cif,.CIF" multiple></label>
-      <label class="btn" for="cifDir" title="Pick a folder; every sub-folder with CIFs gets its own box">Add folder…<input id="cifDir" type="file" webkitdirectory directory multiple></label>
+      <label class="btn primary" for="cifDir" title="Pick a folder; every sub-folder with CIFs gets its own box">Add folder…<input id="cifDir" type="file" webkitdirectory directory multiple></label>
+      <label class="btn" for="cifIn">Add CIF files…<input id="cifIn" type="file" accept=".cif,.CIF" multiple></label><span id="cifRecent" class="row2" style="gap:6px;flex-wrap:wrap"></span>
       <span class="row2" style="gap:4px"><button id="cBest" disabled title="Rank the phases in the chosen folder against the current peak list and highlight the best one">★ Best fit</button><button id="cBestPrev" disabled title="Previous (better) fit" aria-label="Previous fit">◀</button><button id="cBestNext" disabled title="Next (worse) fit" aria-label="Next fit">▶</button><label for="cBestIn">in</label><select id="cBestIn" style="width:auto;min-width:8rem;max-width:14rem" disabled title="Which folder box to search"><option value="">all folders</option></select></span><button id="mpOpen" title="Find the combination of up to 3 phases that explains the most peaks">★★ Multi-phase fit</button>
       <div class="row2"><label for="cs">calibration factor s</label><input id="cs" type="range" min="0.95" max="1.05" step="0.0005" value="1" style="width:9rem"><input id="csN" type="number" step="0.0005" value="1" style="width:5.6rem"></div>
       <div class="row2"><label for="cmin">lines ≥</label><input id="cmin" type="number" min="0" max="100" step="1" value="5" style="width:4rem"><label>% I</label></div>
@@ -385,7 +388,9 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
     <div class="bench" style="grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)">
       <div id="phaseBox" tabindex="0" aria-label="Phases: arrow keys move the highlight, space ticks"><div id="phaseGroups"><div class="keys" style="padding:12px;text-align:center">no CIF loaded</div></div></div>
       <div id="lineBoxWrap"><div class="tablebox"><table><thead><tr><th style="text-align:left">hkl</th><th>d calc</th><th>d × s</th><th>2θ (°)</th><th>I %</th><th>obs peak</th></tr></thead>
-        <tbody id="lineRows"><tr><td colspan="6" style="text-align:center;color:var(--muted)">click a phase to list its lines</td></tr></tbody></table></div></div>
+        <tbody id="lineRows"><tr><td colspan="6" style="text-align:center;color:var(--muted)">click a phase to list its lines</td></tr></tbody></table></div>
+        <div id="snBox" style="margin-top:10px;display:grid;gap:6px"><div class="row2" style="gap:8px"><b style="font-size:.85rem">📝 Notes</b><span class="keys" id="snStat"></span><span class="spacer" style="flex:1"></span><button id="snSave" title="Save these notes to a text file">💾 Save</button><label class="btn" for="snIn" title="Read notes from a text file (replaces the text, after asking)">📂 Load<input id="snIn" type="file" accept=".txt,.md" style="display:none"></label></div>
+          <textarea id="snText" placeholder="phase-ID notes — kept automatically while you type" style="width:100%;box-sizing:border-box;min-height:180px;resize:vertical;font:12.5px/1.45 var(--f-data);padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)"></textarea></div></div>
     </div>
   </section>
   <section class="panel" id="v3Panel" style="display:grid;gap:10px">
@@ -398,7 +403,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <span class="row2"><label><input id="v3bond" type="checkbox" checked> bonds</label><label title="Also bond atoms of the same element (e.g. Cr–Cr, O–O)"><input id="v3same" type="checkbox"> same-element</label><label for="v3tol" title="Bond drawn when distance &lt; tolerance × (r_cov,1 + r_cov,2)">tol</label><input id="v3tol" type="number" min="0.8" max="1.6" step="0.05" value="1.15" style="width:4.2rem"></span>
       <span class="row2"><label><input id="v3cell" type="checkbox" checked> unit cell</label><label title="Also draw atoms on the far faces / edges / corners"><input id="v3edge" type="checkbox" checked> boundary atoms</label><label><input id="v3lab" type="checkbox"> element labels</label><label><input id="v3persp" type="checkbox" checked> perspective</label><label><input id="v3white" type="checkbox"> white background</label></span>
       <span class="spacer"></span>
-      <button id="v3save">Save view (.png)</button>
+      <button id="v3save">Save view (.png)</button><button class="cpBtn" data-cv="v3d" data-src="v3save" title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button>
     </div>
     <div id="v3body" hidden style="display:grid;gap:8px">
       <div class="keys">Shows the highlighted phase (or the first ticked one). <kbd>drag</kbd> rotate · <kbd>shift</kbd>+<kbd>drag</kbd> or <kbd>right-drag</kbd> pan · <kbd>wheel</kbd> zoom · <kbd>double-click</kbd> reset (view along c) · arrow keys rotate when the view has focus · hover an atom for its site label and coordinates. Radii: covalent (Cordero 2008) × atom size; colours: Jmol. Partially occupied sites are drawn translucent.</div>
@@ -431,16 +436,29 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
     <div class="brhead"><h2 id="brTitle">Images</h2><span class="spacer"></span>
       <label for="brSort">sort</label><select id="brSort" style="width:auto"><option value="time">by acquisition time</option><option value="temp">by T measured</option><option value="name">by name</option></select>
       <label for="brKind">show</label><select id="brKind" style="width:auto"><option value="all">all</option><option value="diff">diffraction / FFT</option><option value="real">real-space images</option></select>
+      <button id="brNotesSave" title="Write the notes of all images in this folder to a text file">💾 Save notes</button><label title="Write the notes file into the image folder automatically, a moment after each change (Chrome / Edge, folder opened with Browse folder)"><input id="brNotesAuto" type="checkbox" checked> auto-save</label><label class="btn" for="brNotesIn" title="Read notes back from a file saved earlier (matched by file name)">📂 Load notes<input id="brNotesIn" type="file" accept=".txt,.json,.md" style="display:none"></label>
       <button id="brTickAll">tick all</button><button id="brTickNone">untick all</button>
       <button class="primary" id="brCompare" disabled title="Add the ticked images to the comparison and compute their profiles">Compare ticked (0)</button>
       <button id="brClose" title="Close (Esc)">✕ Close</button></div>
-    <div class="keys" style="padding:0 14px 8px">Click an image to open it; the list closes and you keep working on the main page. Temperature and pressure come from the loaded logs (matched to each image's acquisition time). ◀ ▶ next to “Browse folder” step through this list.</div>
+    <div class="keys" style="padding:0 14px 8px">Click an image to tick it, then press Compare ticked. Type notes under any image: they are kept in this browser, 💾 Save notes writes them to a file and 📂 Load notes reads one back. Temperature and pressure come from the loaded logs (matched to each image's acquisition time). ◀ ▶ next to “Browse folder” step through this list.</div>
     <div id="brGrid"></div>
   </div>
 </div>
 <div id="drop" hidden>Drop a .dm4 / .dm3 pattern or .cif files</div>
 
 <script>
+/* ============================================================== remember settings: every tick box, menu, slider and number (restored before the app starts) */
+const SETK="set-compare",SET_EX=new Set(["cx", "cy", "scale", "kv", "rsPix", "rsN", "xlo", "xhi", "cmpLo", "cmpHi", "cSearch", "cs", "csN", "cBestIn", "imgSel", "pkLineSel", "snText", "showInfo", "lgGas", "clGas", "brNotesAuto"]);
+const setEls=()=>[...document.querySelectorAll("input[id],select[id]")].filter(el=>!SET_EX.has(el.id)&&!/^(file|search|text|color|hidden)$/.test(el.type||"")&&!el.closest(".lgedit")&&!el.classList.contains("gasV")&&!el.classList.contains("gasN"));
+const setDK=()=>[...document.querySelectorAll(".gifTxt input[data-k]")].filter(el=>el.dataset.k!=="gas");
+let SETV={};try{SETV=JSON.parse(localStorage.getItem(SETK)||"{}");}catch(e){SETV={};}
+(function(){for(const el of setEls()){if(!(el.id in SETV))continue;const v=SETV[el.id];
+    if(el.type==="checkbox")el.checked=!!v;else if(el.tagName==="SELECT"){if([...el.options].some(o=>o.value===v))el.value=v;}else el.value=v;}
+  for(const el of setDK()){const k="gif:"+el.dataset.k;if(k in SETV)el.checked=!!SETV[k];}})();
+let setT=0;function setSave(){clearTimeout(setT);setT=setTimeout(()=>{const o={_ui:SETV._ui||{}};for(const el of setEls())o[el.id]=el.type==="checkbox"?el.checked:el.value;
+  for(const el of setDK())o["gif:"+el.dataset.k]=el.checked;SETV=o;try{localStorage.setItem(SETK,JSON.stringify(o));}catch(e){}},250);}
+document.addEventListener("change",setSave,true);document.addEventListener("input",e=>{if(e.target&&(e.target.type==="range"||e.target.type==="number"))setSave();},true);
+
 "use strict";
 /* ============================================================== DM3 / DM4 reader */
 function parseDM(buf){
@@ -1229,8 +1247,9 @@ hookPicker("file",async()=>{const [h]=await pickWithMemory("saed-pattern",o=>win
   types:[{description:"Diffraction pattern / FFT / image",accept:{"application/octet-stream":[".dm4",".dm3"],"image/*":[".png",".jpg",".jpeg",".tif",".tiff"]}}]});
   openFile(await h.getFile());});
 hookPicker("cifIn",async()=>{const hs=await pickWithMemory("saed-cif",o=>window.showOpenFilePicker(o),{multiple:true,types:[{description:"CIF files",accept:{"chemical/x-cif":[".cif"]}}]});
+  if(hs&&hs[0]){PICK_DB.set("saed-cifdir",hs[0]);cifRecentAdd({kind:"files",hs});}   // the folder picker then also starts where these files are
   addCIFs(await Promise.all(hs.map(h=>h.getFile())));});
-hookPicker("cifDir",async()=>{const d=await pickWithMemory("saed-cifdir",o=>window.showDirectoryPicker(o),{mode:"read"});const out=[];await walkDir(d,[d.name],out);
+hookPicker("cifDir",async()=>{const d=await pickWithMemory("saed-cifdir",o=>window.showDirectoryPicker(o),{mode:"read"});PICK_DB.set("saed-cif",d);cifRecentAdd({kind:"dir",h:d});const out=[];await walkDir(d,[d.name],out);
   if(!out.length){$("cifStatus").textContent=`No .cif files found in “${d.name}”.`;return;}addCIFs(out);});
 let dragDepth=0;
 window.addEventListener("dragenter",e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes("Files")){dragDepth++;$("drop").hidden=false;e.preventDefault();}});
@@ -1378,21 +1397,36 @@ const groupsOf=()=>{const order=[],m=new Map();for(const ph of S.phases){const g
 /* starred phases: a separate "★ Starred" box on top (they also stay in their own folder box); remembered per CIF file in this browser */
 const STAR_G="★ Starred",starKey=ph=>"saed-star:"+ph.file+"|"+(ph.code||ph.block||"");
 const starLoad=ph=>{try{return localStorage.getItem(starKey(ph))==="1";}catch(e){return false;}};
-const starSave=ph=>{try{ph.star?localStorage.setItem(starKey(ph),"1"):localStorage.removeItem(starKey(ph));}catch(e){}};
+const starSave=ph=>{try{ph.star?localStorage.setItem(starKey(ph),"1"):localStorage.removeItem(starKey(ph));}catch(e){}if(typeof notesAuto==="function")notesAuto();};
 /* search: digits match the ICSD/COD number, anything else matches formula, label or file name */
 const phMatch=ph=>{const q=($("cSearch")?$("cSearch").value:"").trim().toLowerCase();if(!q)return true;
   if(/^\d+$/.test(q))return String(ph.code||"").includes(q)||(ph.file||"").toLowerCase().includes(q);
   const hay=[ph.code,ph.label,ph.legend,ph.formula,ph.file,ph.mineral].filter(Boolean).join(" ").toLowerCase().replace(/\s+/g," ");return q.split(/\s+/).every(w=>hay.includes(w)||hay.replace(/ /g,"").includes(w));};
 const viewGroups=()=>{const st=S.phases.filter(p=>p.star&&phMatch(p));return (st.length?[[STAR_G,st,true]]:[]).concat(groupsOf().map(([g,L])=>[g,L.filter(phMatch)]).filter(([,L])=>L.length));};
 const displayOrder=()=>{const seen=new Set();return viewGroups().flatMap(([g,L])=>S.collapsed&&S.collapsed.has(g)?[]:L).filter(p=>!seen.has(p.id)&&seen.add(p.id));};
+/* notes on starred phases (shared by both apps, saved in the notes files with the stars) */
+const stKeyOf=ph=>ph.file+"|"+(ph.code||ph.block||"");
+const stNoteGet=ph=>{try{return localStorage.getItem("saed-starnote:"+stKeyOf(ph))||"";}catch(e){return "";}};
+let stNoteT=0;function stNoteSet(ph,v){try{v.trim()?localStorage.setItem("saed-starnote:"+stKeyOf(ph),v):localStorage.removeItem("saed-starnote:"+stKeyOf(ph));}catch(e){}
+  clearTimeout(stNoteT);stNoteT=setTimeout(()=>{if(typeof notesAuto==="function")notesAuto();if(typeof isnAuto==="function")isnAuto();},300);}
+const stNoteOfKey=k=>{try{return localStorage.getItem("saed-starnote:"+k)||"";}catch(e){return "";}};
+const stLine=k=>{const n=stNoteOfKey(k).replace(/[\r\n|]+/g," ").trim();return k.replace("|"," | ")+(n?" | "+n:"");};
+function stLineApply(t){const parts=t.split(/\s*\|\s*/),f=parts[0],c=parts[1]||"",n=parts.slice(2).join(" / ").trim();if(!f)return null;const k=f+"|"+c;
+  try{localStorage.setItem("saed-star:"+k,"1");if(n)localStorage.setItem("saed-starnote:"+k,n);}catch(e){}return {f,c,n};}
+window.addEventListener("storage",e=>{if(!e.key||!e.key.startsWith("saed-starnote:"))return;const k=e.key.slice(14);
+  document.querySelectorAll(".stnote").forEach(inp=>{if(inp.dataset.sk===k&&document.activeElement!==inp)inp.value=e.newValue||"";});});
+let PH_ANCH=null;
+document.addEventListener("pointerdown",e=>{const tr=e.target.closest&&e.target.closest("#phaseGroups tr[data-id]");PH_ANCH=tr?{id:tr.dataset.id,box:tr.dataset.box,t:performance.now()}:null;},true);
 function renderPhases(){
-  const box=$("phaseGroups");box.textContent="";$("cClear").disabled=!S.phases.length;for(const b of ["cBest","cBestPrev","cBestNext","cBestIn"])$(b).disabled=!S.phases.length;
+  const box=$("phaseGroups");const PHkeep={};box.querySelectorAll(".pgroup").forEach(gr=>{const b=gr.querySelector(".pgbody");if(b)PHkeep[gr.dataset.g]=b.scrollTop;});
+  const PHanc=(PH_ANCH&&performance.now()-PH_ANCH.t<3000)?PH_ANCH:null;if(PHanc){const r=[...box.querySelectorAll(`tr[data-id="${PHanc.id}"]`)].find(x=>x.dataset.box===PHanc.box);PHanc.top=r?r.getBoundingClientRect().top:null;}
+  box.textContent="";$("cClear").disabled=!S.phases.length;for(const b of ["cBest","cBestPrev","cBestNext","cBestIn"])$(b).disabled=!S.phases.length;
   {const sel=$("cBestIn"),keep=sel.value,gs=viewGroups().map(x=>x[0]);sel.textContent="";const o0=document.createElement("option");o0.value="";o0.textContent="all folders";sel.appendChild(o0);
    for(const g of gs){const o=document.createElement("option");o.value=g;o.textContent=g;sel.appendChild(o);}sel.value=gs.includes(keep)?keep:"";}S.collapsed=S.collapsed||new Set();
   if(!S.phases.length){box.innerHTML='<div class="keys" style="padding:12px;text-align:center">no CIF loaded</div>';renderLines();renderPhaseCaption();return;}
   if(!viewGroups().length){box.innerHTML=`<div class="keys" style="padding:12px;text-align:center">no phase matches “${($("cSearch").value||"").replace(/[<>&]/g,"")}”</div>`;renderLines();renderPhaseCaption();return;}
   for(const [g,list,isStar] of viewGroups()){
-    const grp=document.createElement("div");grp.className="pgroup"+(isStar?" star":"");const closed=S.collapsed.has(g);
+    const grp=document.createElement("div");grp.className="pgroup"+(isStar?" star":"");grp.dataset.g=g;const closed=S.collapsed.has(g);
     const head=document.createElement("div");head.className="pghead";
     head.innerHTML=`<button class="tog" title="Show / hide this folder" aria-label="toggle">${closed?"▸":"▾"}</button><b></b><span class="keys"></span><input type="color" class="boxc" title="Set every phase in this box to one colour" aria-label="box colour"><button class="boxr" title="Give every phase in this box its own colour again">↺ colours</button><button class="bf" title="Best fit within this folder">★ best fit</button><button class="all">tick all</button><button class="none">untick all</button>`+(isStar?`<button class="rm" title="Unstar all (the phases stay loaded in their folders)">unstar all</button>`:`<button class="rm" title="Remove this folder's phases">remove</button>`);
     head.querySelector("b").textContent=isStar?g:"📁 "+g;head.querySelector(".keys").textContent=`${list.length} phase${list.length>1?"s":""}, ${list.filter(p=>p.show).length} ticked`;
@@ -1412,7 +1446,7 @@ function renderPhases(){
       const tbl=document.createElement("table");
       tbl.innerHTML='<thead><tr><th style="text-align:center">show</th><th style="text-align:left">phase</th><th>a, b, c (Å)</th><th title="Observed peaks with a calculated line (≥ min I) within ±1 %">peaks matched</th><th title="Calculated lines ≥ 30 % with no observed peak within ±1 %">strong missing</th><th></th></tr></thead><tbody></tbody>';
       const tb=tbl.querySelector("tbody");
-      for(const ph of list){const tr=document.createElement("tr");tr.dataset.id=ph.id;if(ph.id===S.focus)tr.className="focus";
+      for(const ph of list){const tr=document.createElement("tr");tr.dataset.id=ph.id;tr.dataset.box=g;
         const st=matchStats(ph);
         tr.innerHTML=`<td style="text-align:center;white-space:nowrap"><input type="checkbox" ${ph.show?"checked":""} aria-label="show"><button class="starb${ph.star?" on":""}" title="${ph.star?"Unstar":"Star: also list it in the ★ Starred box"}" aria-label="star">${ph.star?"★":"☆"}</button></td><td><input type="color" class="swc" title="Choose this phase's colour" aria-label="colour"><b></b><br><span class="keys"></span></td><td></td><td></td><td></td><td><button class="x" title="Remove" aria-label="Remove">×</button></td>`;
         {const c=tr.querySelector(".swc");c.value=isStar?(ph.starColor||ph.baseColor):ph.baseColor;c.addEventListener("click",ev=>ev.stopPropagation());
@@ -1421,26 +1455,43 @@ function renderPhases(){
          c.addEventListener("change",()=>{colSave(ph,c.value,isStar?"star":null);phRedraw();});}
         tr.querySelector("b").textContent=ph.label;
         tr.querySelector(".keys").textContent=[ph.code?"ICSD/COD "+ph.code:"",ph.file,ph.pressure?"P "+ph.pressure:"",ph.warn?"⚠ "+ph.warn:""].filter(Boolean).join(" · ");
+        {const nt=stNoteGet(ph);   /* short note per starred phase: editable in the ★ box, shown in the folder boxes */
+         if(isStar){const inp=document.createElement("input");inp.type="text";inp.className="stnote";inp.dataset.sk=stKeyOf(ph);inp.value=nt;inp.placeholder="📝 note on this phase…";
+           inp.style.cssText="display:block;width:100%;box-sizing:border-box;margin-top:4px;font:12px var(--f-data);padding:3px 7px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)";
+           inp.addEventListener("click",ev=>ev.stopPropagation());inp.addEventListener("keydown",ev=>ev.stopPropagation());inp.addEventListener("input",()=>stNoteSet(ph,inp.value));
+           tr.children[1].appendChild(inp);}
+         else if(nt){const d=document.createElement("div");d.className="keys";d.style.cssText="margin-top:2px;color:#e0a800";d.textContent="📝 "+nt;tr.children[1].appendChild(d);}}
         tr.children[2].textContent=ph.cell.slice(0,3).map(v=>v.toFixed(4)).join(", ");
         tr.children[3].textContent=st?`${st.n} / ${st.N}`:"–";tr.children[4].textContent=st?`${st.miss} / ${st.strong}`:"–";
         tr.querySelector("input").addEventListener("change",e=>{ph.show=e.target.checked;renderPhases();phRedraw();});
-        tr.querySelector(".starb").addEventListener("click",e=>{e.stopPropagation();ph.star=!ph.star;starSave(ph);renderPhases();});
+        tr.querySelector(".starb").addEventListener("click",e=>{e.stopPropagation();ph.star=!ph.star;starSave(ph);
+          if(!isStar&&ph.star&&ph.id===S.focus){const i=list.indexOf(ph),nx=list[i+1]||list[i-1];if(nx){S.focus=nx.id;S.focusBox=g;renderPhases();phRedraw();phScroll(nx.id);return;}}   // starring the highlighted phase: the highlight goes on to the next phase of this box
+          renderPhases();});
         tr.querySelector(".x").addEventListener("click",e=>{e.stopPropagation();S.phases=S.phases.filter(p=>p!==ph);if(S.focus===ph.id)S.focus=null;renderPhases();redrawAll();drawChart();});
-        tr.addEventListener("click",e=>{if(e.target.closest("input,button"))return;focusPhase(ph.id);$("phaseBox").focus({preventScroll:true});});
+        tr.addEventListener("click",e=>{if(e.target.closest("input,button"))return;focusPhase(ph.id,g);$("phaseBox").focus({preventScroll:true});});
         tb.appendChild(tr);}
       const body=document.createElement("div");body.className="pgbody";body.appendChild(tbl);grp.appendChild(body);}
     box.appendChild(grp);}
-  renderLines();renderPhaseCaption();if(typeof v3Sync==="function")v3Sync();}
+  /* keep every box scrolled where it was, and the clicked row where it was on the screen */
+  box.querySelectorAll(".pgroup").forEach(gr=>{const b=gr.querySelector(".pgbody");if(b&&gr.dataset.g in PHkeep)b.scrollTop=PHkeep[gr.dataset.g];});
+  if(PHanc&&PHanc.top!=null)requestAnimationFrame(()=>{const r=[...box.querySelectorAll(`tr[data-id="${PHanc.id}"]`)].find(x=>x.dataset.box===PHanc.box);if(r){const d=r.getBoundingClientRect().top-PHanc.top;if(Math.abs(d)>1)window.scrollBy(0,d);}});
+  phMarkFocus();renderLines();renderPhaseCaption();if(typeof v3Sync==="function")v3Sync();}
 /* one redraw per animation frame, however many highlight changes arrive (arrow keys held down) */
 let phRAF=0;function phRedraw(){if(phRAF)return;phRAF=requestAnimationFrame(()=>{phRAF=0;redrawAll();drawChart();});}
-function focusPhase(id){S.focus=id;
+/* rows of the highlighted phase: only the one in the box it was picked in (a starred phase is listed twice) */
+function phFocusRows(id){const all=[...$("phaseGroups").querySelectorAll(`tr[data-id="${id}"]`)],inBox=all.filter(r=>r.dataset.box===S.focusBox);return inBox.length?inBox:all.slice(0,1);}
+function phMarkFocus(){const on=S.focus!=null?new Set(phFocusRows(S.focus)):new Set();$("phaseGroups").querySelectorAll("tr[data-id]").forEach(r=>r.classList.toggle("focus",on.has(r)));}
+function phScroll(id){const tr=phFocusRows(id)[0];if(tr){const bx=tr.closest(".pgbody,.tablebox");if(bx){const br=bx.getBoundingClientRect(),rr=tr.getBoundingClientRect(),hh=(bx.querySelector("thead")||{offsetHeight:0}).offsetHeight;if(rr.top<br.top+hh)bx.scrollTop-=br.top+hh-rr.top;else if(rr.bottom>br.bottom)bx.scrollTop+=rr.bottom-br.bottom;}}}
+function focusPhase(id,box){S.focus=id;if(box!==undefined)S.focusBox=box;
   /* fast path: only move the highlight in the existing table instead of rebuilding all rows */
-  const rows=$("phaseGroups").querySelectorAll("tr[data-id]");if(rows.length&&[...rows].some(r=>r.dataset.id==id)){rows.forEach(r=>r.classList.toggle("focus",r.dataset.id==id));renderLines();renderPhaseCaption();if(typeof v3Sync==="function")v3Sync();}
+  const rows=$("phaseGroups").querySelectorAll("tr[data-id]");if(rows.length&&[...rows].some(r=>r.dataset.id==id)){phMarkFocus();renderLines();renderPhaseCaption();if(typeof v3Sync==="function")v3Sync();}
   else renderPhases();
   phRedraw();
-  const tr=$("phaseGroups").querySelector(`tr[data-id="${id}"]`);if(tr){const bx=tr.closest(".pgbody,.tablebox");if(bx){const br=bx.getBoundingClientRect(),rr=tr.getBoundingClientRect(),hh=(bx.querySelector("thead")||{offsetHeight:0}).offsetHeight;if(rr.top<br.top+hh)bx.scrollTop-=br.top+hh-rr.top;else if(rr.bottom>br.bottom)bx.scrollTop+=rr.bottom-br.bottom;}}}
+  phScroll(id);}
 $("phaseBox").addEventListener("keydown",e=>{const L=displayOrder();if(!L.length)return;let i=L.findIndex(p=>p.id===S.focus);
-  if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();e.stopPropagation();i=i<0?0:Math.max(0,Math.min(L.length-1,i+(e.key==="ArrowDown"?1:-1)));focusPhase(L[i].id);}
+  /* arrows walk the rows as they appear on screen, staying in the box of the highlighted row */
+  const E=viewGroups().flatMap(([g,Lg])=>S.collapsed&&S.collapsed.has(g)?[]:Lg.map(p=>({p,g})));let j=E.findIndex(o=>o.p.id===S.focus&&o.g===S.focusBox);if(j<0)j=E.findIndex(o=>o.p.id===S.focus);
+  if((e.key==="ArrowDown"||e.key==="ArrowUp")&&E.length){e.preventDefault();e.stopPropagation();j=j<0?0:Math.max(0,Math.min(E.length-1,j+(e.key==="ArrowDown"?1:-1)));focusPhase(E[j].p.id,E[j].g);}
   else if((e.key===" "||e.key==="Enter")&&i>=0){e.preventDefault();e.stopPropagation();const ph=L[i];ph.show=!ph.show;renderPhases();redrawAll();drawChart();}});
 function renderPhaseCaption(){const n=S.phases.length,v=S.phases.filter(p=>p.show).length;$("cifStatus").textContent=n?`${n} phase${n>1?"s":""} loaded, ${v} ticked.`:"";}
 function renderLines(){
@@ -1859,7 +1910,7 @@ async function loadPresLog(f){const st=$("pStatus");st.textContent="Reading "+f.
     PICK_DB.set("saed-preslog",S.plog);tempShow();}
   catch(err){st.textContent="Could not read the pressure log: "+err.message;}}
 function logAt(L,acq){if(!L||!acq)return null;const t=acqToMs(acq);if(!isFinite(t))return {err:"acquisition time not readable"};
-  const q=t+(+$("tOff").value||0)*1000,tol=+$("tTol").value||10;let lo=0,hi=L.t.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(L.t[m]<q)lo=m;else hi=m;}
+  const isP=L===S.plog,q=t+(+$(isP?"pOff":"tOff").value||0)*1000,tol=+$(isP?"pTol":"tTol").value||10;let lo=0,hi=L.t.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(L.t[m]<q)lo=m;else hi=m;}
   const i=Math.abs(L.t[lo]-q)<=Math.abs(L.t[hi]-q)?lo:hi,dt=(L.t[i]-q)/1000;
   if(Math.abs(dt)>tol)return {err:`no log entry within ±${tol} s`};return {i,dt,at:fmtWall(L.t[i])};}
 const fmtP=v=>isFinite(v)?v.toExponential(2).toUpperCase().replace(/E([+-])(\d)$/,"E$10$2"):"—";
@@ -1894,7 +1945,7 @@ $("showInfo").addEventListener("change",()=>{try{localStorage.setItem("saed-show
 try{const v=localStorage.getItem("saed-showinfo");if(v)$("showInfo").value=v;}catch(e){}
 (async()=>{const L=await PICK_DB.get("saed-preslog");if(L&&L.t&&L.t.length){S.plog=L;tempShow();}})();
 $("tIn").addEventListener("change",e=>{const f=e.target.files[0];if(f)loadTempLog(f);e.target.value="";});
-$("tOff").addEventListener("change",tempShow);$("tTol").addEventListener("change",tempShow);
+$("tOff").addEventListener("change",tempShow);$("tTol").addEventListener("change",tempShow);$("pOff").addEventListener("change",tempShow);$("pTol").addEventListener("change",tempShow);
 $("tClear").addEventListener("click",()=>{S.tlog=null;PICK_DB.set("saed-templog",null);$("tStatus").textContent="no log loaded";tempShow();});
 (async()=>{const L=await PICK_DB.get("saed-templog");if(L&&L.t&&L.t.length){S.tlog=L;tempShow();}})();
 
@@ -1969,7 +2020,7 @@ function byTemp(a,b){const ta=measT(a),tb=measT(b);return ((isFinite(ta)?ta:Infi
 function brOrder(){const k=$("brSort").value,L=BR.items.slice();
   if(k==="temp")L.sort(byTemp);else if(k==="name")L.sort((a,b)=>a.rel.localeCompare(b.rel,undefined,{numeric:true}));else L.sort((a,b)=>((isFinite(a.ms)?a.ms:Infinity)-(isFinite(b.ms)?b.ms:Infinity))||a.rel.localeCompare(b.rel,undefined,{numeric:true}));
   const kind=$("brKind").value;return L.filter(it=>kind==="all"||!it.done||it.kind===kind||(kind==="diff"&&it.kind==="fft"));}
-function brRender(){const grid=$("brGrid");grid.textContent="";const L=brOrder();
+function brRender(){const grid=$("brGrid"),ae=document.activeElement,keepN=ae&&ae.classList&&ae.classList.contains("brnote")?{rel:ae.dataset.rel,a:ae.selectionStart,b:ae.selectionEnd,top:grid.scrollTop}:null;grid.textContent="";const L=brOrder();
   $("brTitle").textContent=`${BR.dir||"Images"} · ${BR.items.length} file${BR.items.length!==1?"s":""}`+(BR.items.some(i=>!i.done)?` · reading ${BR.items.filter(i=>i.done).length}/${BR.items.length}…`:"");
   for(const it of L){const card=document.createElement("button");card.className="brcard"+(it.file===S.lastFile?" cur":"");card.type="button";
     const tick=document.createElement("label");tick.className="brtick";tick.innerHTML=`<input type="checkbox" ${it.tick?"checked":""}> compare`;tick.addEventListener("click",ev=>ev.stopPropagation());
@@ -1980,21 +2031,26 @@ function brRender(){const grid=$("brGrid");grid.textContent="";const L=brOrder()
     t.innerHTML=`<b></b><span class="tm"></span><span class="kd"></span>`;t.querySelector("b").textContent=it.rel;
     t.querySelector(".tm").textContent=it.acq?(it.acqFromFile?"file time ":"")+it.acq:"";t.querySelector(".kd").textContent=[kindTxt,it.W?`${it.W}×${it.H}`:"",it.cal||""].filter(Boolean).join(" · ");
     for(const l of brInfo(it)){const s=document.createElement("span");s.className="lg";s.textContent=l;t.appendChild(s);}
-    card.appendChild(t);card.title="Click to tick / untick, then press Compare ticked";card.addEventListener("click",()=>{it.tick=!it.tick;const cb=tick.querySelector("input");cb.checked=it.tick;card.classList.toggle("ticked",it.tick);brTickCount();});grid.appendChild(card);}
+    card.appendChild(t);card.title="Click to tick / untick, then press Compare ticked";card.addEventListener("click",()=>{it.tick=!it.tick;const cb=tick.querySelector("input");cb.checked=it.tick;card.classList.toggle("ticked",it.tick);brTickCount();});
+    const wrap=document.createElement("div");wrap.className="brwrap";wrap.appendChild(card);
+    const nt=document.createElement("textarea");nt.className="brnote";nt.placeholder="notes…";nt.dataset.rel=it.rel;nt.value=noteGet(it);nt.rows=Math.min(8,Math.max(2,nt.value.split("\n").length));
+    nt.addEventListener("input",()=>{noteSet(it,nt.value);nt.rows=Math.min(8,Math.max(2,nt.value.split("\n").length));});nt.addEventListener("keydown",e=>e.stopPropagation());
+    wrap.appendChild(nt);grid.appendChild(wrap);}
+  if(keepN){const n=[...grid.querySelectorAll(".brnote")].find(x=>x.dataset.rel===keepN.rel);if(n){n.focus({preventScroll:true});n.setSelectionRange(keepN.a,keepN.b);grid.scrollTop=keepN.top;}}
   brTickCount();
   imgSelRender();$("brShow").hidden=!BR.items.length;$("brShow").textContent=`Image list (${BR.items.length})`;}
 function brOpen(it){$("brModal").hidden=true;openFile(it.file);setTimeout(()=>{brRender();},50);}
 function brStep(k){const L=brOrder().filter(i=>i.done&&!i.err);if(!L.length)return;let i=L.findIndex(x=>x.file===S.lastFile);i=i<0?0:(i+k+L.length)%L.length;openFile(L[i].file);
   setStatus(`Image ${i+1} of ${L.length} (${$("brSort").value==="name"?"by name":"by time"}): ${L[i].rel}`);}
-async function brLoad(entries,dirName){const gen=++BR.gen;BR.dir=dirName;BR.items=entries.filter(e=>IMG_EXT.test(e.file.name)).map(e=>({file:e.file,rel:e.rel,done:false}));
+async function brLoad(entries,dirName){const gen=++BR.gen;BR.dir=dirName;setTimeout(()=>notesFromFolder(gen),0);BR.items=entries.filter(e=>IMG_EXT.test(e.file.name)).map(e=>({file:e.file,rel:e.rel,done:false}));
   $("brModal").hidden=false;brRender();if(!BR.items.length){$("brTitle").textContent=`No images (.dm4 .dm3 .tif .png .jpg) in “${dirName}”`;return;}
   let last=0;for(const it of BR.items){if(gen!==BR.gen)return;await scanItem(it);if(performance.now()-last>400){brRender();last=performance.now();}}
   if(gen===BR.gen)brRender();}
 async function brWalk(dir,path,out){for await(const [name,h] of dir.entries()){if(h.kind==="directory")await brWalk(h,path.concat(name),out);else if(IMG_EXT.test(name))out.push({file:await h.getFile(),rel:path.concat(name).join("/")});}}
 $("brPick").addEventListener("click",async e=>{e.preventDefault();
-  if(FSA){try{const d=await pickWithMemory("saed-imgdir",o=>window.showDirectoryPicker(o),{mode:"read"});const out=[];await brWalk(d,[],out);brLoad(out,d.name);return;}catch(err){if(err&&err.name==="AbortError")return;}}
+  if(FSA){try{const d=await pickWithMemory("saed-imgdir",o=>window.showDirectoryPicker(o),{mode:"read"});const out=[];await brWalk(d,[],out);BR.handle=d;brLoad(out,d.name);return;}catch(err){if(err&&err.name==="AbortError")return;}}
   $("brDir").click();});
-$("brDir").addEventListener("change",e=>{const fs=[...e.target.files];const root=(fs[0]&&fs[0].webkitRelativePath||"").split("/")[0];
+$("brDir").addEventListener("change",e=>{BR.handle=null;const fs=[...e.target.files];const root=(fs[0]&&fs[0].webkitRelativePath||"").split("/")[0];
   brLoad(fs.map(f=>({file:f,rel:(f.webkitRelativePath||f.name).split("/").slice(1).join("/")||f.name})),root||"folder");e.target.value="";});
 $("brShow").addEventListener("click",()=>{if(S.cmp.length){const f=new Set(S.cmp.map(e=>e.file));for(const i of BR.items)i.tick=f.has(i.file);}$("brModal").hidden=false;brRender();});
 $("brClose").addEventListener("click",()=>{$("brModal").hidden=true;});
@@ -2174,7 +2230,7 @@ $("cmpSvTxt").addEventListener("click",()=>{const {mode,lo,hi,out}=cmpSeries();i
   const toQ=v=>mode==="d"?10/v:mode==="q"?v:(2*Math.sin(v*Math.PI/360)/lambdaA(+$("kv").value||300))*10;
   const q0=Math.min(toQ(lo),toQ(hi)),q1=Math.max(toQ(lo),toQ(hi)),N=1500,lam=lambdaA(+$("kv").value||300);
   const interp=(s,q)=>{const Q=s.e.prof.Q;let a=0,b=Q.length-1;if(q<Q[0]||q>Q[b])return NaN;while(b-a>1){const m=(a+b)>>1;if(Q[m]<q)a=m;else b=m;}const t=(q-Q[a])/(Q[b]-Q[a]||1);return s.Y[a]*(1-t)+s.Y[b]*t;};
-  const head=["# d-Spacing Compare · "+out.length+" profiles · "+($("cmpBg").checked?"background subtracted":"raw")+" · normalisation: "+$("cmpNorm").value+(/^r/.test($("cmpNorm").value)?` in d = ${$("cmpNd").value}–${$("cmpNd2").value} Å`:"")];
+  const head=["# d-Spacing Studio · "+out.length+" profiles · "+($("cmpBg").checked?"background subtracted":"raw")+" · normalisation: "+$("cmpNorm").value+(/^r/.test($("cmpNorm").value)?` in d = ${$("cmpNd").value}–${$("cmpNd2").value} Å`:"")];
   out.forEach((s,k)=>{const T=S.tlog&&s.e.acq?tempAt(s.e.acq):null;head.push(`# I${k+1}: ${s.e.rel} · ${s.e.acq||""}`+(T&&!T.err?` · T ${fmtT(T.meas,true)}`:"")+` · centre ${s.e.cen==="fft"?"FFT zero freq.":`(${s.e.cx.toFixed(2)}, ${s.e.cy.toFixed(2)})`}`);});
   head.push(["d(A)","2theta(deg)","q(1/nm)"].concat(out.map((_,k)=>"I"+(k+1))).join("\t"));const rows=[];
   for(let j=0;j<N;j++){const q=q1-(q1-q0)*j/(N-1),d=10/q,tt=2*Math.asin(Math.min(1,lam/(2*d)))*180/Math.PI;rows.push([d.toFixed(5),tt.toFixed(5),q.toFixed(5)].concat(out.map(s=>{const v=interp(s,q);return isFinite(v)?v.toPrecision(6):"NaN";})).join("\t"));}
@@ -2419,6 +2475,121 @@ async function v3gSave(){if(!V3G.canv.length)return;const st=$("v3gStatus"),T=V3
 $("v3gMake").addEventListener("click",v3gMake);$("v3gSave").addEventListener("click",v3gSave);
 for(const id of ["v3gAng","v3gN","v3gDt"])$(id).addEventListener("input",()=>{v3gSpeed();if(id==="v3gDt"&&V3G.canv.length)v3gPlay();});
 v3gSpeed();
+/* ============================================================== Ctrl+C / ⌘+C on a plot: copy the current view (with its legend) to the clipboard as a PNG */
+const CP={hov:null,last:null};
+document.addEventListener("pointermove",e=>{const t=e.target;CP.hov=t&&t.tagName==="CANVAS"&&t.width>120&&!t.closest(".brcard")?t:null;},true);
+document.addEventListener("pointerdown",e=>{const t=e.target;if(t&&t.tagName==="CANVAS"&&t.width>120&&!t.closest(".brcard"))CP.last=t;},true);
+function cpToast(msg,bad){let t=document.getElementById("cpToast");if(!t){t=document.createElement("div");t.id="cpToast";t.style.cssText="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;padding:8px 14px;border-radius:8px;font:600 13px 'IBM Plex Sans',sans-serif;box-shadow:0 4px 18px rgba(0,0,0,.35);pointer-events:none;transition:opacity .25s";document.body.appendChild(t);}
+  t.textContent=msg;t.style.background=bad?"#7a2a22":"#123d33";t.style.color="#fff";t.style.opacity="1";clearTimeout(t._h);t._h=setTimeout(()=>{t.style.opacity="0";},1800);}
+function cpRender(cv){const W=cv.width,H=cv.height,c=document.createElement("canvas");c.width=W;c.height=H;const g=c.getContext("2d"),css=getComputedStyle(document.documentElement);
+  if(typeof cv3!=="undefined"&&cv===cv3&&typeof v3Draw==="function"&&V3.ph){v3Draw(c,{key:true,dpr:W/Math.max(1,cv3.getBoundingClientRect().width)});return c;}
+  g.fillStyle=css.getPropertyValue("--panel").trim()||"#fff";if(cv.id==="tmCv"||cv.id==="main"||cv.id==="rsCv"||cv.id==="gifCv")g.fillStyle="#07090b";
+  if(cv.id!=="v3gPrev")g.fillRect(0,0,W,H);g.drawImage(cv,0,0);
+  /* the information box over the pattern is HTML: draw its lines into the copy */
+  const tag=cv.id==="main"?document.getElementById("tempTag"):null;
+  if(tag&&!tag.hidden&&tag.innerText.trim()){const ls=tag.innerText.split("\n").map(s=>s.trim()).filter(Boolean),dpr=W/Math.max(1,cv.getBoundingClientRect().width),fs=12*dpr,lh=fs*1.35,pad=7*dpr;
+    g.font=`${fs}px "IBM Plex Mono",monospace`;const w=Math.max(...ls.map(t=>g.measureText(t).width));g.fillStyle="rgba(0,0,0,.65)";g.fillRect(W-w-2*pad-8*dpr,6*dpr,w+2*pad,lh*ls.length+pad);
+    g.fillStyle="#fff";g.textAlign="right";g.textBaseline="top";ls.forEach((t,i)=>g.fillText(t,W-pad-8*dpr,6*dpr+pad*0.6+i*lh));}
+  return c;}
+/* redraw the plot once without the mouse cursor read-out before copying it */
+function cpNoHover(cv){try{if(cv.id==="cmpChart"&&typeof cmpHover!=="undefined"){cmpHover=null;drawCmp();}
+  else if(cv.id==="chart"&&typeof hoverX!=="undefined"){hoverX=null;drawChart();}
+  else if(cv.id==="tmCv"&&typeof TM!=="undefined"){TM.hover=null;tmDraw();}
+  else if(typeof cv3!=="undefined"&&cv===cv3){V3.hover=-1;}}catch(e){}}
+async function cpCopy(cv){cpNoHover(cv);const c=cpRender(cv);
+  try{if(!navigator.clipboard||typeof ClipboardItem==="undefined")throw new Error("this browser cannot copy images");
+    const blob=new Promise(res=>c.toBlob(res,"image/png"));await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);cpToast(`Plot copied (${c.width} × ${c.height} px) — paste with Ctrl+V`);}
+  catch(err){cpToast("Could not copy: "+err.message+" — use the Save button instead",true);}}
+document.querySelectorAll(".cpBtn").forEach(bt=>{const cv=document.getElementById(bt.dataset.cv),src=document.getElementById(bt.dataset.src);
+  bt.addEventListener("click",()=>{if(cv)cpCopy(cv);});
+  if(src&&bt.dataset.src!=="tmClear"&&bt.dataset.src!=="v3save"&&bt.dataset.src!=="rsSave"){const sync=()=>{bt.disabled=src.disabled;};sync();new MutationObserver(sync).observe(src,{attributes:true,attributeFilter:["disabled"]});}});
+/* ============================================================== notes under each image of the browsed folder */
+const NOTES=(()=>{try{return JSON.parse(localStorage.getItem("saed-notes")||"{}");}catch(e){return {};}})();
+const noteKey=it=>(BR.dir||"")+"/"+it.rel;
+function noteGet(it){return NOTES[noteKey(it)]||"";}
+let noteT=0;function noteSet(it,v){const k=noteKey(it);if(v.trim())NOTES[k]=v;else delete NOTES[k];clearTimeout(noteT);noteT=setTimeout(()=>{try{localStorage.setItem("saed-notes",JSON.stringify(NOTES));}catch(e){}},300);if(typeof notesAuto==="function")notesAuto();}
+const notesName=()=>`${(BR.dir||"images").replace(/[\\/:*?"<>|]+/g,"_")}_notes.txt`;
+function notesText(){const L=brOrder().filter(it=>noteGet(it).trim());const out=[`# d-Spacing Studio notes · folder ${BR.dir||""} · saved ${new Date().toLocaleString()}`,`# one block per image: a line “## file name”, then the notes; starred phases: “file | ICSD code | note”`,""];
+  for(const it of L)out.push("## "+it.rel,noteGet(it).replace(/\s+$/,""),"");
+  /* starred CIF phases (all remembered stars, also those of CIFs not loaded right now): one line “file | ICSD code” */
+  {const g=($("snText").value||"").replace(/\s+$/,"");if(g)out.push("## 📝 general notes",g,"");}
+  const st=starList();if(st.length){out.push("## ★ starred CIF phases");for(const k of st)out.push(stLine(k));out.push("");}
+  return {n:L.length+st.length+(($("snText").value||"").trim()?1:0),txt:out.join("\n")};}
+function starList(){const o=[];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith("saed-star:")&&localStorage.getItem(k)==="1")o.push(k.slice(10));}}catch(e){}return o.sort();}
+function starsApply(txt){let n=0;for(const line of String(txt).split(/\r?\n/)){const t=line.trim();if(!t)continue;const sa=stLineApply(t);if(!sa)continue;const f=sa.f,c=sa.c;for(const ph of S.phases)if(ph.file===f&&String(ph.code||ph.block||"")===String(c||"")&&!ph.star){ph.star=true;}n++;}
+  if(n)renderPhases();return n;}
+function notesParse(txt){let got={};if(/^\s*\{/.test(txt))return JSON.parse(txt);let cur=null,buf=[];const flush=()=>{if(cur!=null)got[cur]=buf.join("\n").replace(/\s+$/,"");};
+  for(const line of txt.split(/\r?\n/)){if(line.startsWith("## ")){flush();cur=line.slice(3).trim();buf=[];}else if(cur!=null)buf.push(line);}flush();return got;}
+function notesApply(got,quiet){const base=n=>n.split("/").pop().toLowerCase();let n=0;
+  if(got["📝 general notes"]!=null){const g=String(got["📝 general notes"]);delete got["📝 general notes"];const ta=$("snText");
+    if(g.trim()&&ta.value.trim()!==g.trim()){ta.value=ta.value.trim()?(ta.value.includes(g.trim())?ta.value:ta.value.replace(/\s+$/,"")+"\n\n"+g):g;try{localStorage.setItem("saed-sidenotes",ta.value);}catch(e){}}}
+  if(got["★ starred CIF phases"]!=null){starsApply(got["★ starred CIF phases"]);delete got["★ starred CIF phases"];}
+  for(const it of BR.items){const k=Object.keys(got).find(x=>x===it.rel||x.endsWith("/"+it.rel))??Object.keys(got).find(x=>base(x)===base(it.rel));if(k!=null&&String(got[k]).trim()){const kk=noteKey(it);NOTES[kk]=String(got[k]);n++;}}
+  try{localStorage.setItem("saed-notes",JSON.stringify(NOTES));}catch(e){}return n;}
+let notesMsgT=0;function notesMsg(t){$("brTitle").textContent=`${BR.dir||"Images"} · ${t}`;clearTimeout(notesMsgT);notesMsgT=setTimeout(brRender,2500);}
+$("brNotesSave").addEventListener("click",()=>{const {n,txt}=notesText();if(!n){notesMsg("no notes or starred phases to save yet");return;}saveFile(notesName(),new Blob([txt],{type:"text/plain"}));});
+$("brNotesIn").addEventListener("change",async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;let got;
+  try{got=notesParse(await f.text());}catch(err){notesMsg("could not read the notes file: "+err.message);return;}const n=notesApply(got);brRender();notesMsg(`notes loaded for ${n} image${n!==1?"s":""}`);});
+/* auto-save: the notes file lives in the image folder itself (needs the folder opened with Browse folder in Chrome / Edge) */
+try{const v=localStorage.getItem("saed-notes-auto");if(v!==null)$("brNotesAuto").checked=v==="1";}catch(e){}
+$("brNotesAuto").addEventListener("change",async()=>{const on=$("brNotesAuto").checked;try{localStorage.setItem("saed-notes-auto",on?"1":"0");}catch(e){}
+  if(on){if(!BR.handle){notesMsg("auto-save needs the folder opened with “Browse folder” in Chrome or Edge — use 💾 Save notes here");return;}if(await notesPerm(true))notesWrite();}});
+async function notesPerm(ask){const h=BR.handle;if(!h||!h.queryPermission)return false;try{let st=await h.queryPermission({mode:"readwrite"});if(st!=="granted"&&ask)st=await h.requestPermission({mode:"readwrite"});return st==="granted";}catch(e){return false;}}
+let notesWT=0;
+async function notesWrite(){const h=BR.handle;if(!h)return;try{if(!(await notesPerm(false)))return;const fh=await h.getFileHandle(notesName(),{create:true}),w=await fh.createWritable();await w.write(notesText().txt);await w.close();
+    $("brTitle").textContent=`${BR.dir||"Images"} · ${BR.items.length} files · notes auto-saved to ${notesName()} at ${new Date().toLocaleTimeString()}`;}catch(err){notesMsg("auto-save failed: "+err.message);}}
+function notesAuto(){if(!$("brNotesAuto").checked||!BR.handle)return;clearTimeout(notesWT);notesWT=setTimeout(notesWrite,1200);}
+/* first keystroke asks once for permission to write into the folder (the browser needs a click or key press for that) */
+document.addEventListener("keydown",e=>{if(e.target&&e.target.classList&&e.target.classList.contains("brnote")&&$("brNotesAuto").checked&&BR.handle&&!BR.permAsked){BR.permAsked=true;notesPerm(true);}},true);
+async function notesFromFolder(gen){const h=BR.handle;BR.permAsked=false;if(!h)return;try{const fh=await h.getFileHandle(notesName());const got=notesParse(await (await fh.getFile()).text());if(gen!==BR.gen)return;
+    const n=notesApply(got);if(n){brRender();notesMsg(`notes read from ${notesName()} for ${n} image${n!==1?"s":""}`);}}catch(e){/* no notes file yet */}}
+/* ============================================================== side notes next to the CIF list */
+{const KEY="saed-sidenotes",ta=$("snText"),st=$("snStat");let t=0;
+ try{ta.value=localStorage.getItem(KEY)||"";}catch(e){}
+ const stamp=m=>{st.textContent=m;};
+ ta.addEventListener("input",()=>{clearTimeout(t);t=setTimeout(()=>{try{localStorage.setItem(KEY,ta.value);stamp("kept "+new Date().toLocaleTimeString());}catch(e){stamp("could not keep: "+e.message);}if(typeof notesAuto==="function")notesAuto();},400);});
+ $("snSave").addEventListener("click",()=>{saveFile("d-Spacing_notes_"+new Date().toISOString().slice(0,10)+".txt",new Blob([ta.value],{type:"text/plain"}));});
+ $("snIn").addEventListener("change",async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;const txt=await f.text();
+   if(ta.value.trim()&&!confirm("Replace the current notes with "+f.name+"? (Cancel adds it at the end instead)"))ta.value=ta.value.replace(/\s+$/,"")+"\n\n"+txt;else ta.value=txt;
+   ta.dispatchEvent(new Event("input"));stamp("loaded "+f.name);});}
+/* open / closed sections and CIF folder boxes */
+function uiSave(){const u={};if(typeof S!=="undefined"){u.pk=S.pkCollapsed;u.cmp=document.getElementById("cmpPanel").classList.contains("pcoll")||S.cmpCollapsed;u.gif=S.gifCollapsed;u.boxes=S.collapsed?[...S.collapsed]:[];}
+  SETV._ui=u;try{localStorage.setItem(SETK,JSON.stringify(SETV));}catch(e){}}
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#pkCollapse,#cmpCollapse,#gifCollapse,.pghead .tog"))setTimeout(uiSave,0);});
+(function(){const u=SETV._ui;if(!u)return;try{
+  if(u.boxes&&u.boxes.length){S.collapsed=new Set(u.boxes);}
+  if(typeof u.pk==="boolean"&&typeof pkApplyCollapse==="function"){S.pkCollapsed=u.pk;pkApplyCollapse();}
+  if(typeof u.cmp==="boolean"){if(typeof cmpApplyCollapse==="function"){S.cmpCollapsed=u.cmp;cmpApplyCollapse();}else{const pn=document.getElementById("cmpPanel");pn.classList.toggle("pcoll",u.cmp);document.getElementById("cmpCollapse").textContent=u.cmp?"▸":"▾";}}
+  if(typeof u.gif==="boolean"&&typeof gifApplyCollapse==="function"){S.gifCollapsed=u.gif;gifApplyCollapse();}}catch(e){}})();
+/* slider read-outs follow the restored values */
+for(const id of ["cmpStH","pkStH"]){const el=document.getElementById(id);if(el)el.dispatchEvent(new Event("input"));}
+document.getElementById("cmpStWrap")&&(document.getElementById("cmpStWrap").hidden=!document.getElementById("cmpSticks").checked);
+document.getElementById("setReset").addEventListener("click",()=>{if(!confirm("Go back to the default settings? (Notes and starred phases are kept.)"))return;try{localStorage.removeItem(SETK);localStorage.removeItem("saed-infosel");}catch(e){}SETV={};document.removeEventListener("change",setSave,true);location.reload();});
+/* stars set in the other app (same browser) show up here at once; the folder notes file is updated too */
+window.addEventListener("storage",e=>{if(!e.key||!e.key.startsWith("saed-star:"))return;const id=e.key.slice(10),on=e.newValue==="1";let ch=false;
+  for(const ph of S.phases){if((ph.file+"|"+(ph.code||ph.block||""))===id&&!!ph.star!==on){ph.star=on;ch=true;}}
+  if(ch){renderPhases();if(typeof phRedraw==="function")phRedraw();}
+  if(typeof notesAuto==="function")notesAuto();});
+/* recent CIF folders / file sets: one ↻ button each (shared by both apps), × removes a button */
+const CIFR_MAX=15;
+async function cifRecentGet(){const L=await PICK_DB.get("saed-cifrecent");if(Array.isArray(L))return L;const old=await PICK_DB.get("saed-ciflast");return old?[{kind:"dir",h:old}]:[];}
+const cifRName=e=>e.kind==="dir"?e.h.name:(e.hs.length===1?e.hs[0].name.replace(/\.cif$/i,""):`${e.hs.length} files (${e.hs[0].name.replace(/\.cif$/i,"")}…)`);
+async function cifRSame(a,b){if(a.kind!==b.kind)return false;try{if(a.kind==="dir")return await a.h.isSameEntry(b.h);if(a.hs.length!==b.hs.length)return false;for(let i=0;i<a.hs.length;i++)if(!(await a.hs[i].isSameEntry(b.hs[i])))return false;return true;}catch(e){return false;}}
+async function cifRecentAdd(e){if(!FSA)return;const L=await cifRecentGet();const out=[e];for(const x of L){if(!(await cifRSame(x,e)))out.push(x);}await PICK_DB.set("saed-cifrecent",out.slice(0,CIFR_MAX));cifRecentUI();}
+async function cifRecentUI(){const box=$("cifRecent");if(!box)return;box.textContent="";if(!FSA)return;const L=await cifRecentGet();
+  L.forEach((e,i)=>{const g=document.createElement("span");g.className="row2";g.style.cssText="gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden";
+    const b=document.createElement("button");b.textContent="↻ "+cifRName(e);b.style.cssText="border:0;border-radius:0";b.title=e.kind==="dir"?`Load the CIF folder “${e.h.name}” again, without the dialog`:`Load these CIF files again: ${e.hs.map(h=>h.name).join(", ")}`;
+    const x=document.createElement("button");x.textContent="×";x.title="Remove this button";x.style.cssText="border:0;border-left:1px solid var(--line);border-radius:0;padding:2px 8px";
+    b.addEventListener("click",()=>cifRecentOpen(e));
+    x.addEventListener("click",async()=>{const L2=await cifRecentGet(),keep=[];for(const y of L2)if(!(await cifRSame(y,e)))keep.push(y);await PICK_DB.set("saed-cifrecent",keep);cifRecentUI();});
+    g.appendChild(b);g.appendChild(x);box.appendChild(g);});}
+async function cifRecentOpen(e){const nm=cifRName(e);
+  try{const hs=e.kind==="dir"?[e.h]:e.hs;for(const h of hs){let st=await h.queryPermission({mode:"read"});if(st!=="granted")st=await h.requestPermission({mode:"read"});if(st!=="granted"){$("cifStatus").textContent="Permission to read “"+nm+"” was not given.";return;}}
+    if(e.kind==="dir"){const out=[];await walkDir(e.h,[e.h.name],out);if(!out.length){$("cifStatus").textContent=`No .cif files found in “${nm}”.`;return;}addCIFs(out);}
+    else addCIFs(await Promise.all(e.hs.map(h=>h.getFile())));}
+  catch(err){$("cifStatus").textContent=`Could not open “${nm}” (moved or renamed?): ${err.message} — use Add folder… / Add CIF files…, or × to remove the button`;}}
+cifRecentUI();
+window.addEventListener("focus",cifRecentUI);   /* pick up folders added in the other app */
 </script>
 
 </body></html>
