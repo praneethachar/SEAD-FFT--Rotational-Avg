@@ -307,7 +307,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
         <select id="xmode" style="width:auto"><option value="d">d (Å)</option><option value="tt">2θ (°)</option><option value="q">q (nm⁻¹)</option><option value="r">r (px)</option></select></div><div class="row2"><label for="xlo">from</label><input id="xlo" type="number" step="any"><label for="xhi">to</label><input id="xhi" type="number" step="any"><button id="zreset" title="Back to the full range (or double-click the plot)">Reset zoom</button></div></div>
     <div class="chartbar"><div class="row2"><label title="Vertical line at each detected peak; it turns green when a shown CIF line is within ±1 % in d"><input id="pkLines" type="checkbox"> peak lines</label><label title="On: the peak line runs down to the baseline. Off: it stops at the peak marker, so CIF sticks underneath stay clear"><input id="pkFull" type="checkbox" checked> full height</label><span class="row2" style="gap:6px;margin-left:8px" title="CIF sticks on this plot"><label for="pkStH" title="Height of a 100 % CIF line, as a fraction of the plot height">stick height</label><input id="pkStH" type="range" min="5" max="100" step="1" value="42" style="width:7rem"><span class="keys" id="pkStHv">42 %</span><label title="Every CIF line runs the full plot height (intensity shown as opacity)"><input id="pkStFull" type="checkbox"> full-height lines</label></span>
         <label><input id="logy" type="checkbox"> log I</label><label><input id="bgsub" type="checkbox" checked> subtract background</label></div><div class="row2"><label for="sens">peak sensitivity</label><input id="sens" type="range" min="2" max="20" step="0.5" value="6" style="width:7rem"><label for="pkMin" title="Ignore detected peaks lower than this % of the strongest peak (peaks you add by hand are always kept)">min height</label><input id="pkMin" type="number" min="0" max="100" step="0.5" value="2" style="width:4.5rem"><span class="keys">%</span></div></div>
-    <div class="chartbar"><span class="row2" style="gap:6px" title="What the legend shows for the experimental profile"><button id="lgEditBtn" title="Edit the legend texts of this plot" style="padding:2px 9px">✎ edit legend</button><span class="keys">legend:</span><label><input id="lgName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="lgType" type="checkbox"> type</label><label><input id="lgDate" type="checkbox"> date</label><label><input id="lgTime" type="checkbox"> time</label><label><input id="lgTs" type="checkbox"> T set</label><label><input id="lgT" type="checkbox" checked> T meas</label><label><input id="lgP" type="checkbox"> pressure</label><label title="Gas flow"><input id="lgGas" type="checkbox"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><input class="gasN" type="text" placeholder="gas" title="Gas name, written after SCCM (e.g. PH3)" style="width:5.5rem"></span></div>
+    <div class="chartbar"><span class="row2" style="gap:6px" title="What the legend shows for the experimental profile"><button id="lgEditBtn" title="Edit the legend texts of this plot" style="padding:2px 9px">✎ edit legend</button><span class="keys">legend:</span><label><input id="lgName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="lgType" type="checkbox"> type</label><label><input id="lgDate" type="checkbox"> date</label><label><input id="lgTime" type="checkbox"> time</label><label><input id="lgTs" type="checkbox"> T set</label><label><input id="lgT" type="checkbox" checked> T meas</label><label><input id="lgP" type="checkbox"> pressure</label><label title="Gas flow"><input id="lgGas" type="checkbox"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><input class="gasN" type="text" placeholder="gas" title="Gas name, written after SCCM (e.g. PH3)" style="width:5.5rem"></span><span hidden><span class="row2" style="gap:4px;margin-left:8px"><label for="pkLgFs" title="Font size of the legend in this plot">legend size</label><input id="pkLgFs" type="number" min="6" max="40" step="1" value="11" style="width:4rem"></span></span><span class="row2" style="gap:6px;margin-left:8px" title="Text of this plot: font, size, and drag text blocks (axis names, legends) with ✥ move text"><label for="txt_pk_fam">font</label><select id="txt_pk_fam" class="txtFam" data-k="pk" style="width:auto"><option value=''>app default</option><option value='"IBM Plex Sans",sans-serif'>IBM Plex Sans</option><option value='Arial,Helvetica,sans-serif'>Arial</option><option value='Calibri,Carlito,sans-serif'>Calibri</option><option value='"Segoe UI",sans-serif'>Segoe UI</option><option value='Verdana,sans-serif'>Verdana</option><option value='"Times New Roman",Times,serif'>Times New Roman</option><option value='Georgia,serif'>Georgia</option><option value='Cambria,serif'>Cambria</option><option value='"Courier New",monospace'>Courier New</option><option value='Consolas,"IBM Plex Mono",monospace'>Consolas</option></select><label for="txt_pk_sc">text size</label><input id="txt_pk_sc" class="txtSc" data-k="pk" type="number" min="50" max="400" step="10" value="100" style="width:4.6rem"><span class="keys">%</span><button class="txtMv" data-k="pk" aria-pressed="false" title="Then drag axis names and legends on the plot to move them; click one to select it and set its own size (or use the mouse wheel over it)">✥ move text</button><button class="txtRs" data-k="pk" title="Put all moved and resized text back as it was">↺ text</button><span class="txtSel row2" data-k="pk" hidden style="gap:4px;margin-left:6px;border-left:2px solid #e0a800;padding-left:6px"><b class="txtSelN"></b><label>size</label><input class="txtSelSz" type="number" min="30" max="500" step="10" value="100" style="width:4.6rem"><span class="keys">%</span></span></span><span class="row2" style="gap:6px;margin-left:8px" title="Background of this plot — 📋 Copy copies the plot with it (none = transparent)"><label for="pb_pk">background</label><select id="pb_pk" style="width:auto"><option value="theme">as page</option><option value="white">white</option><option value="black">black</option><option value="transparent">none (transparent)</option><option value="custom">colour…</option></select><input id="pb_pkCol" type="color" value="#ffffff" hidden style="width:2.2rem;height:1.7rem;padding:0 2px"></span></div>
     <div id="lgEdit" class="lgedit" hidden></div>
     <div class="bench" style="grid-template-columns:minmax(0,1fr)">
       <div id="chartWrap" title="Drag the bottom-right corner to change the plot height"><canvas id="chart" aria-label="Intensity profile"></canvas>
@@ -344,13 +344,13 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <span class="row2"><label for="cmpXm">x axis</label><select id="cmpXm" style="width:auto"><option value="d">d (Å)</option><option value="tt">2θ (°)</option><option value="q">q (nm⁻¹)</option></select></span>
       <span class="row2"><label for="cmpLo">from</label><input id="cmpLo" type="number" step="any" style="width:5.5rem"><label for="cmpHi">to</label><input id="cmpHi" type="number" step="any" style="width:5.5rem"><button id="cmpReset">Reset zoom</button></span>
       <span class="row2"><label for="cmpSort">order</label><select id="cmpSort" style="width:auto"><option value="time">by acquisition time</option><option value="temp">by T measured</option><option value="name">by name</option><option value="custom">custom (drag rows)</option></select><label><input id="cmpRev" type="checkbox"> reverse</label></span>
-      <span class="row2"><label for="cmpCol">colours</label><select id="cmpCol" style="width:auto"><option value="dist">distinct</option><option value="grad">gradient (in order)</option></select></span>
+      <span class="row2"><label for="cmpCol">colours</label><select id="cmpCol" style="width:auto"><option value="dist">distinct</option><option value="grad">gradient (in order)</option><option value="one">one colour</option></select><input id="cmpOneCol" type="color" value="#2a9df4" title="Colour of all profiles" hidden style="width:2.4rem;height:1.9rem;padding:0 2px;margin-left:4px;vertical-align:middle"></span><span class="row2" style="gap:6px;margin-left:8px" title="Background of this plot — 📋 Copy copies the plot with it (none = transparent)"><label for="pb_cmp">background</label><select id="pb_cmp" style="width:auto"><option value="theme">as page</option><option value="white">white</option><option value="black">black</option><option value="transparent">none (transparent)</option><option value="custom">colour…</option></select><input id="pb_cmpCol" type="color" value="#ffffff" hidden style="width:2.2rem;height:1.7rem;padding:0 2px"></span>
       <span class="spacer"></span>
       <button id="cmpLgEditBtn" title="Edit the legend / label texts of this plot">✎ edit legend</button><button id="cmpSvPng" disabled>Save plot (.png)</button><button class="cpBtn" data-cv="cmpChart" data-src="cmpSvPng" disabled title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button><button id="cmpSvTxt" disabled title="All shown profiles on one common grid (as plotted, without the stacking offset)">Save data (.txt)</button>
       <button id="cmpClear" title="Empty the comparison">Clear list</button>
     </div>
     <div class="chartbar">
-      <span class="row2" style="gap:6px" title="What each profile's label shows (legend, or the labels beside the stacked curves)"><span class="keys">label by:</span><label><input id="clName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="clType" type="checkbox"> type</label><label><input id="clDate" type="checkbox"> date</label><label><input id="clTime" type="checkbox"> time</label><label><input id="clTs" type="checkbox"> T set</label><label><input id="clT" type="checkbox"> T meas</label><label><input id="clP" type="checkbox"> pressure</label><label title="Gas flow"><input id="clGas" type="checkbox"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><input class="gasN" type="text" placeholder="gas" title="Gas name, written after SCCM (e.g. PH3)" style="width:5.5rem"></span>
+      <span class="row2" style="gap:6px" title="What each profile's label shows (legend, or the labels beside the stacked curves)"><span class="keys">label by:</span><label><input id="clName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="clType" type="checkbox"> type</label><label><input id="clDate" type="checkbox"> date</label><label><input id="clTime" type="checkbox"> time</label><label><input id="clTs" type="checkbox"> T set</label><label><input id="clT" type="checkbox"> T meas</label><label><input id="clP" type="checkbox"> pressure</label><label title="Gas flow"><input id="clGas" type="checkbox"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><input class="gasN" type="text" placeholder="gas" title="Gas name, written after SCCM (e.g. PH3)" style="width:5.5rem"><span hidden><span class="row2" style="gap:4px;margin-left:6px"><label for="cmpFs" title="Font size of the profile labels / legend in the plot">size</label><input id="cmpFs" type="number" min="6" max="40" step="1" value="11" style="width:4rem"><label for="cmpCifFs" title="Font size of the CIF phase legend in the plot (top left)" style="margin-left:6px">CIF legend size</label><input id="cmpCifFs" type="number" min="6" max="40" step="1" value="11" style="width:4rem"></span></span><span class="row2" style="gap:6px;margin-left:8px" title="Text of this plot: font, size, and drag text blocks (axis names, legends) with ✥ move text"><label for="txt_cmp_fam">font</label><select id="txt_cmp_fam" class="txtFam" data-k="cmp" style="width:auto"><option value=''>app default</option><option value='"IBM Plex Sans",sans-serif'>IBM Plex Sans</option><option value='Arial,Helvetica,sans-serif'>Arial</option><option value='Calibri,Carlito,sans-serif'>Calibri</option><option value='"Segoe UI",sans-serif'>Segoe UI</option><option value='Verdana,sans-serif'>Verdana</option><option value='"Times New Roman",Times,serif'>Times New Roman</option><option value='Georgia,serif'>Georgia</option><option value='Cambria,serif'>Cambria</option><option value='"Courier New",monospace'>Courier New</option><option value='Consolas,"IBM Plex Mono",monospace'>Consolas</option></select><label for="txt_cmp_sc">text size</label><input id="txt_cmp_sc" class="txtSc" data-k="cmp" type="number" min="50" max="400" step="10" value="100" style="width:4.6rem"><span class="keys">%</span><button class="txtMv" data-k="cmp" aria-pressed="false" title="Then drag axis names and legends on the plot to move them; click one to select it and set its own size (or use the mouse wheel over it)">✥ move text</button><button class="txtRs" data-k="cmp" title="Put all moved and resized text back as it was">↺ text</button><span class="txtSel row2" data-k="cmp" hidden style="gap:4px;margin-left:6px;border-left:2px solid #e0a800;padding-left:6px"><b class="txtSelN"></b><label>size</label><input class="txtSelSz" type="number" min="30" max="500" step="10" value="100" style="width:4.6rem"><span class="keys">%</span></span></span></span>
     </div>
     <div id="cmpLgEdit" class="lgedit" hidden></div>
     <div id="cmpWrap" style="position:relative;height:clamp(420px,60vh,820px);min-height:260px;resize:vertical;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)"><canvas id="cmpChart" style="display:block;width:100%;height:100%;cursor:crosshair" aria-label="Profile comparison"></canvas></div>
@@ -401,7 +401,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <span class="row2" style="gap:4px"><label>cells</label><input id="v3na" type="number" min="1" max="6" value="1" style="width:3.2rem" aria-label="cells along a"><input id="v3nb" type="number" min="1" max="6" value="1" style="width:3.2rem" aria-label="cells along b"><input id="v3nc" type="number" min="1" max="6" value="1" style="width:3.2rem" aria-label="cells along c"></span>
       <span class="row2"><label for="v3size">atom size</label><input id="v3size" type="range" min="0.15" max="1.6" step="0.05" value="0.5" style="width:7rem"></span>
       <span class="row2"><label><input id="v3bond" type="checkbox" checked> bonds</label><label title="Also bond atoms of the same element (e.g. Cr–Cr, O–O)"><input id="v3same" type="checkbox"> same-element</label><label for="v3tol" title="Bond drawn when distance &lt; tolerance × (r_cov,1 + r_cov,2)">tol</label><input id="v3tol" type="number" min="0.8" max="1.6" step="0.05" value="1.15" style="width:4.2rem"></span>
-      <span class="row2"><label><input id="v3cell" type="checkbox" checked> unit cell</label><label title="Also draw atoms on the far faces / edges / corners"><input id="v3edge" type="checkbox" checked> boundary atoms</label><label><input id="v3lab" type="checkbox"> element labels</label><label><input id="v3persp" type="checkbox" checked> perspective</label><label><input id="v3white" type="checkbox"> white background</label></span>
+      <span class="row2"><label><input id="v3cell" type="checkbox" checked> unit cell</label><label title="Also draw atoms on the far faces / edges / corners"><input id="v3edge" type="checkbox" checked> boundary atoms</label><label><input id="v3lab" type="checkbox"> element labels</label><span class="row2" style="gap:4px;margin-left:8px"><label for="v3KeyFs" title="Font size of the element key (top right of the 3D view, and in copies / GIFs)">key size</label><input id="v3KeyFs" type="number" min="6" max="40" step="1" value="13" style="width:4rem"></span><label><input id="v3persp" type="checkbox" checked> perspective</label><label hidden><input id="v3white" type="checkbox"> white background</label></span><span class="row2" style="gap:6px;margin-left:8px" title="Background of this plot — 📋 Copy copies the plot with it (none = transparent)"><label for="pb_v3">background</label><select id="pb_v3" style="width:auto"><option value="theme">as page</option><option value="white">white</option><option value="black">black</option><option value="transparent">none (transparent)</option><option value="custom">colour…</option></select><input id="pb_v3Col" type="color" value="#ffffff" hidden style="width:2.2rem;height:1.7rem;padding:0 2px"></span>
       <span class="spacer"></span>
       <button id="v3save">Save view (.png)</button><button class="cpBtn" data-cv="v3d" data-src="v3save" title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button>
     </div>
@@ -448,8 +448,8 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
 
 <script>
 /* ============================================================== remember settings: every tick box, menu, slider and number (restored before the app starts) */
-const SETK="set-compare",SET_EX=new Set(["cx", "cy", "scale", "kv", "rsPix", "rsN", "xlo", "xhi", "cmpLo", "cmpHi", "cSearch", "cs", "csN", "cBestIn", "imgSel", "pkLineSel", "snText", "showInfo", "lgGas", "clGas", "brNotesAuto"]);
-const setEls=()=>[...document.querySelectorAll("input[id],select[id]")].filter(el=>!SET_EX.has(el.id)&&!/^(file|search|text|color|hidden)$/.test(el.type||"")&&!el.closest(".lgedit")&&!el.classList.contains("gasV")&&!el.classList.contains("gasN"));
+const SETK="set-compare",SET_EX=new Set(["cx", "cy", "scale", "kv", "rsPix", "rsN", "xlo", "xhi", "cmpLo", "cmpHi", "cSearch", "cs", "csN", "cBestIn", "imgSel", "pkLineSel", "snText", "showInfo", "lgGas", "clGas", "brNotesAuto", "pkLgFs", "cmpFs", "cmpCifFs"]);
+const setEls=()=>[...document.querySelectorAll("input[id],select[id]")].filter(el=>!SET_EX.has(el.id)&&!/^(file|search|text|hidden)$/.test(el.type||"")&&!el.closest(".lgedit")&&!el.classList.contains("gasV")&&!el.classList.contains("gasN"));
 const setDK=()=>[...document.querySelectorAll(".gifTxt input[data-k]")].filter(el=>el.dataset.k!=="gas");
 let SETV={};try{SETV=JSON.parse(localStorage.getItem(SETK)||"{}");}catch(e){SETV={};}
 (function(){for(const el of setEls()){if(!(el.id in SETV))continue;const v=SETV[el.id];
@@ -457,7 +457,24 @@ let SETV={};try{SETV=JSON.parse(localStorage.getItem(SETK)||"{}");}catch(e){SETV
   for(const el of setDK()){const k="gif:"+el.dataset.k;if(k in SETV)el.checked=!!SETV[k];}})();
 let setT=0;function setSave(){clearTimeout(setT);setT=setTimeout(()=>{const o={_ui:SETV._ui||{}};for(const el of setEls())o[el.id]=el.type==="checkbox"?el.checked:el.value;
   for(const el of setDK())o["gif:"+el.dataset.k]=el.checked;SETV=o;try{localStorage.setItem(SETK,JSON.stringify(o));}catch(e){}},250);}
-document.addEventListener("change",setSave,true);document.addEventListener("input",e=>{if(e.target&&(e.target.type==="range"||e.target.type==="number"))setSave();},true);
+document.addEventListener("change",setSave,true);
+/* ============================================================== plot text: font, size and position of text blocks (per plot) */
+const TXT=(()=>{let v={};try{v=JSON.parse(localStorage.getItem("txt-"+SETK)||"{}");}catch(e){}for(const k of ["pk","cmp"])v[k]=Object.assign({fam:"",scale:1,off:{},sz:{}},v[k]||{});return v;})();
+const txtSave=()=>{try{localStorage.setItem("txt-"+SETK,JSON.stringify(TXT));}catch(e){}};
+let TXT_CUR=null;const TSc=()=>TXT_CUR?TXT_CUR.scale:1;const LMX=d=>64*d*Math.max(1,TSc());const HITS={pk:[],cmp:[]};
+(function(){const d=Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype,"font");if(!d||!d.set)return;
+  Object.defineProperty(CanvasRenderingContext2D.prototype,"font",{configurable:true,get(){return d.get.call(this);},
+    set(v){if(TXT_CUR){v=String(v).replace(/([\d.]+)px/,(m,n)=>(+n*TXT_CUR.scale).toFixed(2)+"px");if(TXT_CUR.fam)v=v.replace(/px\s+.*$/,"px "+TXT_CUR.fam);}d.set.call(this,v);}});})();
+const TXT_SEL={pk:null,cmp:null};
+function txtWith(k,fn,exp){const prev=TXT_CUR;TXT_CUR=Object.assign({key:k,exp:!!exp},TXT[k]);if(!exp)HITS[k]=[];try{return fn();}finally{TXT_CUR=prev;
+  /* in “move text” mode: dashed frame around the selected block */
+  if(!exp&&TXT_SEL[k]&&typeof txtMoving==="function"&&txtMoving(k)){const h=HITS[k].find(b=>b.name===TXT_SEL[k]),cv=k==="pk"?cvC:cvK;if(h){const g=cv.getContext("2d"),d=cv.width/Math.max(1,cv.getBoundingClientRect().width);g.save();g.strokeStyle="#e0a800";g.lineWidth=1.5*d;g.setLineDash([5*d,3*d]);g.strokeRect(h.x0-3*d,h.y0-3*d,h.x1-h.x0+6*d,h.y1-h.y0+6*d);g.restore();}}}}
+/* a text block: moved by its offset and scaled by its own size about an anchor (centre for axis names, top-right for the legend, top-left otherwise) */
+function mvB(ctx,dpr,name,box,fn){const c=TXT_CUR,o=(c&&c.off&&c.off[name])||[0,0],dx=o[0]*dpr,dy=o[1]*dpr,f=(c&&c.sz&&c.sz[name])||1;
+  let ax=0,ay=0;if(box){if(name==="xt"||name==="yt"){ax=(box[0]+box[2])/2;ay=(box[1]+box[3])/2;}else if(name==="lg"){ax=box[2];ay=box[1];}else{ax=box[0];ay=box[1];}}
+  ctx.save();ctx.translate(dx,dy);if(f!==1){ctx.translate(ax,ay);ctx.scale(f,f);ctx.translate(-ax,-ay);}try{fn();}finally{ctx.restore();}
+  if(c&&!c.exp&&box)HITS[c.key].push({name,x0:ax+(box[0]-ax)*f+dx,y0:ay+(box[1]-ay)*f+dy,x1:ax+(box[2]-ax)*f+dx,y1:ay+(box[3]-ay)*f+dy});}
+document.addEventListener("input",e=>{if(e.target&&(e.target.type==="range"||e.target.type==="number"))setSave();},true);
 
 "use strict";
 /* ============================================================== DM3 / DM4 reader */
@@ -1027,7 +1044,7 @@ function yTick(v){const a=Math.abs(v);if(a>=1e5||(a>0&&a<1e-3)){const e=Math.flo
 function drawChart(target,tdpr){
   const exp=target instanceof HTMLCanvasElement,cv=exp?target:cvC;/* target is an Event when used as an event handler */const ctx=cv.getContext("2d");if(!exp)sizeCanvas(cvC);const cw=cv.width,ch=cv.height,dpr=exp?tdpr:cw/Math.max(1,cvC.getBoundingClientRect().width);
   ctx.clearRect(0,0,cw,ch); const P=S.profile; if(!P)return;
-  if(exp){ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue("--panel").trim()||"#fff";ctx.fillRect(0,0,cw,ch);}
+  if(exp&&!window.CP_NOBG){ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue("--panel").trim()||"#fff";ctx.fillRect(0,0,cw,ch);}
   const geomKeep=chartGeom, hoverKeep=hoverX; if(exp)hoverX=null;
   const css=getComputedStyle(document.documentElement),ink=css.getPropertyValue("--ink").trim(),muted=css.getPropertyValue("--muted").trim(),line=css.getPropertyValue("--line").trim(),acc=css.getPropertyValue("--accent").trim(),warn=css.getPropertyValue("--warn").trim();
   const mode=$("xmode").value,X=xOf(mode),logy=$("logy").checked,bgs=$("bgsub").checked;
@@ -1036,7 +1053,7 @@ function drawChart(target,tdpr){
   let ymin=Infinity,ymax=-Infinity;for(let i=0;i<X.length;i++){if(X[i]<lo||X[i]>hi)continue;if(logy&&!(Y[i]>0))continue;const v=logy?Math.log10(Y[i]):Y[i];if(v<ymin)ymin=v;if(v>ymax)ymax=v;}
   if(logy&&ymax>-Infinity)ymin=Math.max(ymin,ymax-3);   // log scale: show three decades below the top, zero/negative values sit on the bottom axis
   if(!(ymax>ymin)){ymin=0;ymax=1;} const pad=(ymax-ymin)*0.04;ymin-=pad;ymax+=pad;
-  const L=64*dpr,Rr=14*dpr,T=14*dpr,B=40*dpr,pw=cw-L-Rr,ph=ch-T-B;
+  const L=LMX(dpr),Rr=14*dpr,T=14*dpr,B=40*dpr*Math.max(1,TSc()),pw=cw-L-Rr,ph=ch-T-B;
   { const head=Math.min(0.45*ph,62*dpr); ymax+= (ymax-ymin)*head/(ph-head); }   // free space above the highest point for the peak labels
   const sx=v=>L+(v-lo)/(hi-lo)*pw, sy=v=>T+ph-((logy?Math.max(ymin,Math.log10(Math.max(v,1e-12))):v)-ymin)/(ymax-ymin)*ph;
   chartGeom={L,pw,T,ph,lo,hi,mode,dpr,sx,sy,X,Y};
@@ -1046,8 +1063,8 @@ function drawChart(target,tdpr){
   ctx.textAlign="right";ctx.textBaseline="middle";
   for(const v of niceTicks(ymin,ymax,5)){const y=T+ph-(v-ymin)/(ymax-ymin)*ph;ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(L+pw,y);ctx.stroke();ctx.fillText(logy?yTick(Math.pow(10,v)):yTick(v),L-6*dpr,y);}
   ctx.fillStyle=ink;ctx.textAlign="center";ctx.textBaseline="bottom";
-  ctx.font=`${12*dpr}px "IBM Plex Sans",sans-serif`;ctx.fillText({d:"d (Å)",tt:"2θ (°)",q:"q (nm⁻¹)",r:"r (px)"}[mode],L+pw/2,ch-2*dpr);
-  ctx.save();ctx.translate(5*dpr,T+ph/2);ctx.rotate(-Math.PI/2);ctx.textBaseline="top";ctx.fillText("Intensity",0,0);ctx.restore();
+  ctx.font=`${12*dpr}px "IBM Plex Sans",sans-serif`;{const t={d:"d (Å)",tt:"2θ (°)",q:"q (nm⁻¹)",r:"r (px)"}[mode],w=ctx.measureText(t).width,h=12*dpr*TSc();mvB(ctx,dpr,"xt",[L+pw/2-w/2,ch-2*dpr-h,L+pw/2+w/2,ch-2*dpr],()=>ctx.fillText(t,L+pw/2,ch-2*dpr));}
+  {const t="Intensity",w=ctx.measureText(t).width,h=12*dpr*TSc();mvB(ctx,dpr,"yt",[5*dpr,T+ph/2-w/2,5*dpr+h,T+ph/2+w/2],()=>{ctx.translate(5*dpr,T+ph/2);ctx.rotate(-Math.PI/2);ctx.textBaseline="top";ctx.fillText(t,0,0);});}
   ctx.save();ctx.beginPath();ctx.rect(L,T,pw,ph);ctx.clip();
   ctx.strokeStyle=acc;ctx.lineWidth=1.3*dpr;ctx.beginPath();let first=true;
   for(let i=0;i<X.length;i++){if(X[i]<lo||X[i]>hi){first=true;continue;}const x=sx(X[i]),y=sy(Y[i]);if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);}
@@ -1063,7 +1080,7 @@ function drawChart(target,tdpr){
   const cifD=S.phases.filter(phVisible).flatMap(ph=>ph.lines.filter(x=>x.I>=cmV).map(x=>x.d*sV));
   { /* keep labels out of the legend box (top right) */
     const lt=[expLegend()+"  "].concat($("cSticks").checked?S.phases.filter(phVisible).map(phs=>phLeg(phs)+(phs.show?"":"  (preview)")):[]);
-    ctx.font=`${11*dpr}px "IBM Plex Sans",sans-serif`;const lw=Math.max(...lt.map(t=>ctx.measureText(t).width));placed.push({x0:L+pw-lw-30*dpr,x1:L+pw,y0:T+36*dpr,y1:T+40*dpr+lt.length*16*dpr});}
+    const PF=(+$("pkLgFs").value||11)*dpr;ctx.font=`${PF}px "IBM Plex Sans",sans-serif`;const lw=Math.max(...lt.map(t=>ctx.measureText(t).width));placed.push({x0:L+pw-lw-30*dpr,x1:L+pw,y0:T+36*dpr,y1:T+40*dpr+lt.length*PF*TSc()*1.45});}
   const pkFont=`600 ${11*dpr}px "IBM Plex Mono",monospace`,expLabs=[];ctx.font=pkFont;
   for(const p of S.peaks){const xv=mode==="d"?p.d:mode==="tt"?p.tt:mode==="q"?p.q:p.r;if(xv<lo||xv>hi)continue;
     let k=0,bd=Infinity;for(let i=0;i<X.length;i++){const dd=Math.abs(X[i]-xv);if(dd<bd){bd=dd;k=i;}}
@@ -1083,10 +1100,10 @@ function drawChart(target,tdpr){
   }
   { /* legend: the experimental curve, then every shown phase */
     const ent=[{c:acc,t:expLegend(),curve:true}].concat($("cSticks").checked?S.phases.filter(phVisible).map(phs=>({c:phs.color,t:phLeg(phs)+(phs.show?"":"  (preview)")})):[]);
-    ctx.globalAlpha=1;ctx.font=`${11*dpr}px "IBM Plex Sans",sans-serif`;ctx.textAlign="right";ctx.textBaseline="top";
-    ent.forEach((e,i)=>{const y=T+40*dpr+i*16*dpr,tw=ctx.measureText(e.t).width;ctx.fillStyle=css.getPropertyValue("--panel").trim();ctx.globalAlpha=.85;ctx.fillRect(L+pw-tw-26*dpr,y-2*dpr,tw+24*dpr,15*dpr);ctx.globalAlpha=1;
-      if(e.curve){ctx.strokeStyle=e.c;ctx.lineWidth=2*dpr;ctx.beginPath();ctx.moveTo(L+pw-tw-22*dpr,y+5*dpr);ctx.lineTo(L+pw-tw-10*dpr,y+5*dpr);ctx.stroke();}
-      else{ctx.fillStyle=e.c;ctx.fillRect(L+pw-tw-22*dpr,y+3*dpr,12*dpr,4*dpr);}ctx.fillStyle=ink;ctx.fillText(e.t,L+pw-4*dpr,y);});}
+    const PF=(+$("pkLgFs").value||11)*dpr;ctx.globalAlpha=1;ctx.font=`${PF}px "IBM Plex Sans",sans-serif`;ctx.textAlign="right";ctx.textBaseline="top";
+    {const mw=Math.max(...ent.map(e=>ctx.measureText(e.t).width));mvB(ctx,dpr,"lg",[L+pw-mw-26*dpr,T+38*dpr,L+pw,T+40*dpr+ent.length*PF*TSc()*1.45],()=>{ent.forEach((e,i)=>{const y=T+40*dpr+i*PF*TSc()*1.45,tw=ctx.measureText(e.t).width;ctx.fillStyle=css.getPropertyValue("--panel").trim();ctx.globalAlpha=.85;ctx.fillRect(L+pw-tw-26*dpr,y-2*dpr,tw+24*dpr,PF*TSc()*1.35);ctx.globalAlpha=1;
+      if(e.curve){ctx.strokeStyle=e.c;ctx.lineWidth=2*dpr;ctx.beginPath();ctx.moveTo(L+pw-tw-22*dpr,y+PF*TSc()*0.5);ctx.lineTo(L+pw-tw-10*dpr,y+PF*TSc()*0.5);ctx.stroke();}
+      else{ctx.fillStyle=e.c;ctx.fillRect(L+pw-tw-22*dpr,y+PF*TSc()*0.35,12*dpr,4*dpr);}ctx.fillStyle=ink;ctx.fillText(e.t,L+pw-4*dpr,y);});});}}
   for(const sl of S.sels){const xv=rToX(sl.r,mode);if(xv>=lo&&xv<=hi){const col=sl.color==="#ffffff"?muted:sl.color;ctx.strokeStyle=col;ctx.lineWidth=2*dpr;ctx.setLineDash([6*dpr,4*dpr]);
     ctx.beginPath();ctx.moveTo(sx(xv),T);ctx.lineTo(sx(xv),T+ph);ctx.stroke();ctx.setLineDash([]);
     if(sl.peak==null){const lab=sl.short.startsWith("spot")||!sl.short.includes("(")?(sl.spot?"spot ":"")+"d "+sl.d.toFixed(3)+" Å":sl.short;ctx.font=`600 ${11*dpr}px "IBM Plex Mono",monospace`;const tw=ctx.measureText(lab).width;
@@ -1643,8 +1660,8 @@ function v3Project(cv,RR,ZM,PN){cv=cv||cv3;const W=cv.width,H=cv.height,R=RR||V3
 function shade(hex,k){const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,m=v=>Math.round(k>=0?v+(255-v)*k:v*(1+k));return `rgb(${m(r)},${m(g)},${m(b)})`;}
 function v3Draw(target,O){O=O||{};const cv=target||cv3;if(!target){if(!$("v3on").checked)return;sizeCanvas(cv3);}
   const ctx=cv.getContext("2d"),W=cv.width,H=cv.height,css=getComputedStyle(document.documentElement),dpr=O.dpr||W/Math.max(1,cv.getBoundingClientRect().width||W);
-  if(O.transparent)ctx.clearRect(0,0,W,H);else{ctx.fillStyle=$("v3white").checked?"#ffffff":css.getPropertyValue("--panel").trim()||"#111";ctx.fillRect(0,0,W,H);}
-  if(!V3.ph||!V3.atoms.length)return;const P=v3Project(cv,O.R,O.zoom,O.pan),A=V3.atoms,rs=+$("v3size").value||0.5,ink=O.ink||($("v3white").checked?"#222":css.getPropertyValue("--ink").trim());
+  if(O.transparent||window.CP_NOBG)ctx.clearRect(0,0,W,H);else{ctx.fillStyle=((typeof pbModeV!=="function"||pbModeV("v3")==="theme")&&$("v3white").checked)?"#ffffff":css.getPropertyValue("--panel").trim()||"#111";ctx.fillRect(0,0,W,H);}
+  if(!V3.ph||!V3.atoms.length)return;const P=v3Project(cv,O.R,O.zoom,O.pan),A=V3.atoms,rs=+$("v3size").value||0.5,ink=O.ink||(((typeof pbModeV!=="function"||pbModeV("v3")==="theme")&&$("v3white").checked)?"#222":css.getPropertyValue("--ink").trim());
   const pr=A.map(a=>P(a.p));const items=[];
   A.forEach((a,i)=>items.push({z:pr[i][2],t:0,i}));
   const adj=A.map(()=>[]);if($("v3bond").checked)V3.bonds.forEach(([i,j])=>{adj[i].push(j);adj[j].push(i);});
@@ -1669,7 +1686,7 @@ function v3Draw(target,O){O=O||{};const cv=target||cv3;if(!target){if(!$("v3on")
     if(labels&&r>(O.labels?3:6)*dpr){const dark=(()=>{const n=parseInt(e.c.slice(1),16);return (0.299*(n>>16)+0.587*(n>>8&255)+0.114*(n&255))/255<0.5;})();
       const fz=O.labels?Math.max(9,Math.min(14,r/dpr*0.8)):Math.min(14,r/dpr*0.8);ctx.font=`600 ${fz*dpr}px "IBM Plex Sans",sans-serif`;ctx.textAlign="center";ctx.textBaseline="middle";
       if(O.labels&&fz>r/dpr*0.8){ctx.lineWidth=2.5*dpr;ctx.strokeStyle=dark?"#000":"#fff";ctx.lineJoin="round";ctx.strokeText(a.el,p[0],p[1]);}ctx.fillStyle=dark?"#fff":"#000";ctx.fillText(a.el,p[0],p[1]);}}
-  if(O.key){const els=[...new Set(A.map(a=>a.el))];const fs=13*dpr;ctx.font=`600 ${fs}px "IBM Plex Mono",monospace`;ctx.textAlign="left";ctx.textBaseline="middle";
+  if(O.key){const els=[...new Set(A.map(a=>a.el))];const fs=(+$("v3KeyFs").value||13)*dpr;ctx.font=`600 ${fs}px "IBM Plex Mono",monospace`;ctx.textAlign="left";ctx.textBaseline="middle";
     els.forEach((el,k)=>{const y=12*dpr+fs*0.7+k*fs*1.5,x=W-12*dpr-ctx.measureText(el).width-fs*1.4;ctx.fillStyle=elInfo(el).c;ctx.beginPath();ctx.arc(x+fs*0.45,y,fs*0.45,0,2*Math.PI);ctx.fill();ctx.strokeStyle="#0006";ctx.lineWidth=1;ctx.stroke();ctx.fillStyle=ink;ctx.fillText(el,x+fs*1.2,y);});}
   if(!O.transparent||O.info){ /* phase info box (bottom left): name, ICSD, space group, cell */
     const ph=V3.ph,c=ph.cell,wb=$("v3white").checked,ls=[compactFormula(ph.formula||ph.label)+(ph.mineral?` (${ph.mineral})`:""),
@@ -2091,7 +2108,7 @@ function gradCol(t){const n=GRAD.length-1,i=Math.min(n-1,Math.floor(t*n)),f=t*n-
   const m=(s)=>Math.round(((a>>s)&255)*(1-f)+((b>>s)&255)*f);return `rgb(${m(16)},${m(8)},${m(0)})`;}
 function cmpOrder(){const k=$("cmpSort").value,L=S.cmp.slice();if(k==="custom"){}else if(k==="temp")L.sort(byTemp);else if(k==="name")L.sort((a,b)=>a.rel.localeCompare(b.rel,undefined,{numeric:true}));
   else L.sort((a,b)=>((isFinite(a.ms)?a.ms:Infinity)-(isFinite(b.ms)?b.ms:Infinity))||a.rel.localeCompare(b.rel,undefined,{numeric:true}));if($("cmpRev").checked)L.reverse();return L;}
-function cmpColor(e){const L=cmpOrder().filter(x=>x.show&&x.prof);if($("cmpCol").value==="grad"&&L.length>1){const i=L.indexOf(e);return gradCol(i<0?0:i/(L.length-1));}return e.color;}
+function cmpColor(e){if($("cmpCol").value==="one")return $("cmpOneCol").value;const L=cmpOrder().filter(x=>x.show&&x.prof);if($("cmpCol").value==="grad"&&L.length>1){const i=L.indexOf(e);return gradCol(i<0?0:i/(L.length-1));}return e.color;}
 function cmpLabel(e){const parts=[["clName","name"],["clType","type"],["clDate","date"],["clTime","time"],["clTs","tset"],["clT","temp"],["clP","pres"],["clGas","gas"]].filter(([id])=>$(id).checked).map(x=>x[1]),out=[];
   for(const k of parts){if(k==="name")out.push(e.rel);else if(k==="type")out.push(e.kind==="diff"?"SAED":"FFT");else if(k==="time"||k==="date"){const a=acqSel(e.acq,x=>x===k);if(a)out.push(a);}
     else if(k==="temp"||k==="tset"){const r=S.tlog&&e.acq?tempAt(e.acq):null,v=r&&!r.err?(k==="tset"?r.set:r.meas):NaN;if(isFinite(v))out.push(k==="tset"?`set ${fmtT(v)}`:`${v.toFixed(1)} °C`);}
@@ -2165,7 +2182,7 @@ function cmpSeries(){const mode=$("cmpXm").value,bgs=$("cmpBg").checked,nm=$("cm
 function drawCmp(target,tdpr){const exp=target instanceof HTMLCanvasElement,cv=exp?target:cvK;if(!exp){if($("cmpPanel").hidden)return;sizeCanvas(cvK);}
   const ctx=cv.getContext("2d"),cw=cv.width,ch=cv.height,dpr=exp?tdpr:cw/Math.max(1,cvK.getBoundingClientRect().width);
   const css=getComputedStyle(document.documentElement),ink=css.getPropertyValue("--ink").trim(),muted=css.getPropertyValue("--muted").trim(),line=css.getPropertyValue("--line").trim(),panel=css.getPropertyValue("--panel").trim();
-  ctx.fillStyle=panel||"#fff";ctx.fillRect(0,0,cw,ch);const {mode,lo,hi,out}=cmpSeries();
+  if(!window.CP_NOBG){ctx.fillStyle=panel||"#fff";ctx.fillRect(0,0,cw,ch);}else ctx.clearRect(0,0,cw,ch);const {mode,lo,hi,out}=cmpSeries();
   if(!out.length||!(hi>lo)){ctx.fillStyle=muted;ctx.font=`${13*dpr}px "IBM Plex Sans",sans-serif`;ctx.textAlign="center";ctx.fillText("No profiles yet: tick images in “Browse folder” and press “Compare ticked”.",cw/2,ch/2);cmpGeom=null;return;}
   const stacked=$("cmpLay").value==="stack",off=+$("cmpOff").value||0;
   let gmax=0;for(const s of out)for(let i=0;i<s.X.length;i++)if(s.X[i]>=lo&&s.X[i]<=hi&&isFinite(s.Y[i]))gmax=Math.max(gmax,s.Y[i]);
@@ -2173,19 +2190,27 @@ function drawCmp(target,tdpr){const exp=target instanceof HTMLCanvasElement,cv=e
   let ymin=Infinity,ymax=-Infinity;out.forEach((s,k)=>{for(let i=0;i<s.X.length;i++){if(s.X[i]<lo||s.X[i]>hi)continue;const v=s.Y[i]+k*step;if(v<ymin)ymin=v;if(v>ymax)ymax=v;}});
   if(!(ymax>ymin)){ymin=0;ymax=1;}const pad=(ymax-ymin)*0.04;ymin-=pad;ymax+=pad;
   /* hkl / d labels get their own band above the plot, so they never sit on the curves */
-  let labBand=0,cmpLabQ=null;if($("cmpSticks").checked&&($("cLab").checked||$("cLabD").checked)&&typeof phVisible==="function"){const sV=phaseScale(),cmV=+$("cmin").value||0;
-    ctx.font=`600 ${(+$("cLabSize").value||10)*dpr}px "IBM Plex Mono",monospace`;
+  /* room on the right for the stacked labels: just as wide as the longest label */
+  const cmpLabWidth=()=>{if(!stacked)return 0;ctx.save();ctx.font=`${(+$("cmpFs").value||11)*dpr}px "IBM Plex Sans",sans-serif`;let m=0;for(const s of out)m=Math.max(m,ctx.measureText(cmpLabel(s.e)).width);ctx.restore();return Math.min(m+16*dpr,cw*0.4);};
+  /* hkl / d labels: horizontal, packed in as few rows as possible in a band above the plot (strongest lines first) */
+  let labBand=0,cmpLabQ=null,LABP=[];if($("cmpSticks").checked&&($("cLab").checked||$("cLabD").checked)&&typeof phVisible==="function"){const sV=phaseScale(),cmV=+$("cmin").value||0,lfs=(+$("cLabSize").value||10)*dpr;
+    ctx.font=`600 ${lfs}px "IBM Plex Mono",monospace`;
+    const labW0=cmpLabWidth(),pw0=cw-LMX(dpr)-(14*dpr+labW0),xs=v=>LMX(dpr)+(v-lo)/(hi-lo)*pw0,C=[];
     for(const phs of S.phases.filter(phVisible))for(const ln of phs.lines){if(ln.I<cmV)continue;const d=ln.d*sV,xv=mode==="d"?d:mode==="q"?10/d:2*Math.asin(Math.min(1,lambdaA(+$("kv").value||300)/(2*d)))*180/Math.PI;if(xv<lo||xv>hi)continue;
-      labBand=Math.max(labBand,ctx.measureText(labTxt(ln)).width);}
-    if(labBand)labBand=Math.min(labBand+10*dpr,ch*0.35);}
-  const labW=stacked?Math.min(260*dpr,cw*0.25):0,Lm=64*dpr,Rm=14*dpr+labW,T=14*dpr+labBand,B=40*dpr,pw=cw-Lm-Rm,ph=ch-T-B;
+      C.push({key:phs.id+"|"+ln.d,x:xs(xv),txt:labTxt(ln),c:phs.color,I:ln.I+(phs.id===S.focus?1000:0)});}
+    C.sort((a,b)=>b.I-a.I);const rows=[],MAXR=4;
+    for(const L of C){if(!L.txt)continue;const w=ctx.measureText(L.txt).width,cx=Math.max(LMX(dpr)+w/2,Math.min(LMX(dpr)+pw0-w/2,L.x));let r=0;
+      for(;r<MAXR;r++){const Rw=rows[r]||(rows[r]=[]);if(!Rw.some(q=>cx+w/2+12*dpr>q[0]&&cx-w/2-12*dpr<q[1])){Rw.push([cx-w/2,cx+w/2]);break;}}
+      if(r<MAXR)LABP.push(Object.assign(L,{cx,w,row:r}));}
+    const nr=LABP.length?Math.max(...LABP.map(l=>l.row))+1:0;labBand=nr?nr*lfs*TSc()*1.5+8*dpr:0;}
+  const labW=cmpLabWidth(),Lm=LMX(dpr),Rm=14*dpr+labW,T=14*dpr+labBand,B=40*dpr*Math.max(1,TSc()),pw=cw-Lm-Rm,ph=ch-T-B;
   const sx=v=>Lm+(v-lo)/(hi-lo)*pw,sy=v=>T+ph-(v-ymin)/(ymax-ymin)*ph;cmpGeom={L:Lm,pw,T,ph,lo,hi,mode,dpr};
   ctx.font=`${11*dpr}px "IBM Plex Mono",monospace`;ctx.fillStyle=muted;ctx.strokeStyle=line;ctx.lineWidth=1*dpr;ctx.textAlign="center";ctx.textBaseline="top";
   for(const v of niceTicks(lo,hi,8)){const x=sx(v);ctx.beginPath();ctx.moveTo(x,T);ctx.lineTo(x,T+ph);ctx.stroke();ctx.fillText(String(+v.toPrecision(6)),x,T+ph+6*dpr);}
   ctx.textAlign="right";ctx.textBaseline="middle";if(!stacked)for(const v of niceTicks(ymin,ymax,5)){const y=sy(v);ctx.beginPath();ctx.moveTo(Lm,y);ctx.lineTo(Lm+pw,y);ctx.stroke();ctx.fillText(yTick(v),Lm-6*dpr,y);}
-  ctx.fillStyle=ink;ctx.textAlign="center";ctx.textBaseline="bottom";ctx.font=`${12*dpr}px "IBM Plex Sans",sans-serif`;ctx.fillText({d:"d (Å)",tt:"2θ (°)",q:"q (nm⁻¹)"}[mode],Lm+pw/2,ch-2*dpr);
-  ctx.save();ctx.translate(5*dpr,T+ph/2);ctx.rotate(-Math.PI/2);ctx.textBaseline="top";
-  ctx.fillText(($("cmpNorm").value!=="none"?"Normalised intensity":"Intensity")+(stacked?" (stacked)":""),0,0);ctx.restore();
+  ctx.fillStyle=ink;ctx.textAlign="center";ctx.textBaseline="bottom";ctx.font=`${12*dpr}px "IBM Plex Sans",sans-serif`;{const t={d:"d (Å)",tt:"2θ (°)",q:"q (nm⁻¹)"}[mode],w=ctx.measureText(t).width,h=12*dpr*TSc();mvB(ctx,dpr,"xt",[Lm+pw/2-w/2,ch-2*dpr-h,Lm+pw/2+w/2,ch-2*dpr],()=>ctx.fillText(t,Lm+pw/2,ch-2*dpr));}
+  {const t=($("cmpNorm").value!=="none"?"Normalised intensity":"Intensity")+(stacked?" (stacked)":""),w=ctx.measureText(t).width,h=12*dpr*TSc();
+   mvB(ctx,dpr,"yt",[5*dpr,T+ph/2-w/2,5*dpr+h,T+ph/2+w/2],()=>{ctx.translate(5*dpr,T+ph/2);ctx.rotate(-Math.PI/2);ctx.textBaseline="top";ctx.fillText(t,0,0);});}
   ctx.save();ctx.beginPath();ctx.rect(Lm,T,pw,ph);ctx.clip();
   if(/^r/.test($("cmpNorm").value)){const n1=+$("cmpNd").value,n2=+$("cmpNd2").value,tx=d=>mode==="d"?d:mode==="q"?10/d:2*Math.asin(Math.min(1,lambdaA(+$("kv").value||300)/(2*d)))*180/Math.PI;
     if(n1>0&&n2>0){const a=sx(tx(n1)),b=sx(tx(n2));ctx.fillStyle=css.getPropertyValue("--accent");ctx.globalAlpha=.08;ctx.fillRect(Math.min(a,b),T,Math.abs(b-a),ph);ctx.globalAlpha=1;}}
@@ -2195,28 +2220,27 @@ function drawCmp(target,tdpr){const exp=target instanceof HTMLCanvasElement,cv=e
       for(const ln of phs.lines){if(ln.I<cmV)continue;const d=ln.d*sV,xv=mode==="d"?d:mode==="q"?10/d:2*Math.asin(Math.min(1,lambdaA(+$("kv").value||300)/(2*d)))*180/Math.PI;if(xv<lo||xv>hi)continue;
         const x=sx(xv),full=$("cmpStFull").checked,h=full?ph:ln.I/100*ph*(+$("cmpStH").value||25)/100;ctx.globalAlpha=full?0.25+0.65*Math.min(1,ln.I/60):.8;
         ctx.beginPath();ctx.moveTo(x,T+ph);ctx.lineTo(x,T+ph-h);ctx.stroke();
-        if(cmpLabOn)cmpLabs.push({x,top:T+ph-h,txt:labTxt(ln),c:phs.color,I:ln.I+(phs.id===S.focus?1000:0)});}}ctx.globalAlpha=1;
+        if(cmpLabOn)cmpLabs.push({key:phs.id+"|"+ln.d,x,top:T+ph-h});}}ctx.globalAlpha=1;
     /* hkl / d labels on the sticks (the “hkl labels” / “d labels” boxes of the CIF section); strongest first, overlapping ones are left out */
-    if(cmpLabOn&&cmpLabs.length)cmpLabQ=()=>{const lfs=(+$("cLabSize").value||10)*dpr,placed=[];ctx.save();ctx.font=`600 ${lfs}px "IBM Plex Mono",monospace`;ctx.textBaseline="middle";ctx.textAlign="left";
-      cmpLabs.sort((a,b)=>b.I-a.I);
-      for(const L of cmpLabs){if(!L.txt)continue;const w=ctx.measureText(L.txt).width,y1=T-4*dpr,y0=y1-w;   // rotated text runs upwards from just above the plot
-        if(placed.some(p=>Math.abs(p.x-L.x)<lfs*1.1&&!(y1<p.y0||y0>p.y1)))continue;placed.push({x:L.x,y0,y1});if(L.top>T+2*dpr){ctx.save();ctx.strokeStyle=L.c;ctx.globalAlpha=.35;ctx.lineWidth=0.8*dpr;ctx.setLineDash([1*dpr,3*dpr]);ctx.beginPath();ctx.moveTo(L.x,L.top);ctx.lineTo(L.x,T);ctx.stroke();ctx.restore();}
-        ctx.save();ctx.translate(L.x,y1);ctx.rotate(-Math.PI/2);ctx.lineWidth=3*dpr;ctx.lineJoin="round";ctx.strokeStyle=css.getPropertyValue("--panel").trim()||"#fff";ctx.strokeText(L.txt,0,0);ctx.fillStyle=L.c;ctx.fillText(L.txt,0,0);ctx.restore();}
+    if(LABP.length)cmpLabQ=()=>{const lfs=(+$("cLabSize").value||10)*dpr,tops=new Map(cmpLabs.map(l=>[l.key,l]));ctx.save();ctx.font=`600 ${lfs}px "IBM Plex Mono",monospace`;ctx.textAlign="center";ctx.textBaseline="middle";
+      for(const L of LABP){const st=tops.get(L.key),x=st?st.x:L.x,top=st?st.top:T,y=T-4*dpr-lfs*TSc()*0.6-L.row*lfs*TSc()*1.5;
+        ctx.save();ctx.strokeStyle=L.c;ctx.globalAlpha=.45;ctx.lineWidth=0.8*dpr;ctx.setLineDash([1*dpr,3*dpr]);ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x,T);ctx.lineTo(L.cx,y+lfs*TSc()*0.55);ctx.stroke();ctx.restore();
+        ctx.lineWidth=3*dpr;ctx.lineJoin="round";ctx.strokeStyle=css.getPropertyValue("--panel").trim()||"#fff";ctx.strokeText(L.txt,L.cx,y);ctx.fillStyle=L.c;ctx.fillText(L.txt,L.cx,y);}
       ctx.restore();};}
   out.forEach((s,k)=>{ctx.strokeStyle=cmpColor(s.e);ctx.lineWidth=(s.e===S.cmpActive?2:1.3)*dpr;ctx.beginPath();let first=true;
     for(let i=0;i<s.X.length;i++){if(s.X[i]<lo||s.X[i]>hi||!isFinite(s.Y[i])){first=true;continue;}const x=sx(s.X[i]),y=sy(s.Y[i]+k*step);if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);}ctx.stroke();});
   if(cmpDrag&&cmpDrag.moved){const a=Math.max(Lm,Math.min(cmpDrag.x0,cmpDrag.x1)),b=Math.min(Lm+pw,Math.max(cmpDrag.x0,cmpDrag.x1));ctx.fillStyle=css.getPropertyValue("--accent");ctx.globalAlpha=.15;ctx.fillRect(a,T,b-a,ph);ctx.globalAlpha=1;}
-  if(cmpHover!=null&&!exp){ctx.strokeStyle=muted;ctx.setLineDash([3*dpr,3*dpr]);ctx.beginPath();ctx.moveTo(cmpHover,T);ctx.lineTo(cmpHover,T+ph);ctx.stroke();ctx.setLineDash([]);
+  if(cmpHover!=null&&!exp&&!(typeof txtMoving==="function"&&txtMoving("cmp"))){ctx.strokeStyle=muted;ctx.setLineDash([3*dpr,3*dpr]);ctx.beginPath();ctx.moveTo(cmpHover,T);ctx.lineTo(cmpHover,T+ph);ctx.stroke();ctx.setLineDash([]);
     const xv=lo+(cmpHover-Lm)/pw*(hi-lo),dd=mode==="d"?xv:mode==="q"?10/xv:(lambdaA(+$("kv").value||300)/(2*Math.sin(xv*Math.PI/360)));ctx.fillStyle=ink;ctx.font=`${11*dpr}px "IBM Plex Mono",monospace`;ctx.textAlign="left";ctx.textBaseline="top";ctx.fillText(`d ${dd.toFixed(4)} Å`,Math.min(cmpHover+6*dpr,Lm+pw-90*dpr),T+4*dpr);}
   ctx.restore();if(cmpLabQ)cmpLabQ();
-  ctx.font=`${11*dpr}px "IBM Plex Sans",sans-serif`;
+  const LF=(+$("cmpFs").value||11)*dpr;ctx.font=`${LF}px "IBM Plex Sans",sans-serif`;
   if(stacked){ctx.textAlign="left";ctx.textBaseline="middle";out.forEach((s,k)=>{let y=null;for(let i=s.X.length-1;i>=0;i--){if(s.X[i]>=lo&&s.X[i]<=hi&&isFinite(s.Y[i])){y=sy(s.Y[i]+k*step);break;}}
       if(y==null)return;ctx.fillStyle=cmpColor(s.e);const t=cmpLabel(s.e);let tt=t;while(ctx.measureText(tt).width>labW-12*dpr&&tt.length>4)tt=tt.slice(0,-2);if(tt!==t)tt+="…";ctx.fillText(tt,Lm+pw+8*dpr,Math.max(T+6*dpr,Math.min(T+ph-6*dpr,y)));});}
   const cifL=$("cmpSticks").checked&&typeof phVisible==="function"?S.phases.filter(phVisible):[];
-  {/* CIF legend: top left inside the plot */ctx.textAlign="left";ctx.textBaseline="top";cifL.forEach((phs,k)=>{const y=T+8*dpr+k*16*dpr,t=phLeg(phs).trim()+(phs.show?"":"  (preview)"),tw=ctx.measureText(t).width;
-      ctx.fillStyle=panel;ctx.globalAlpha=.85;ctx.fillRect(Lm+4*dpr,y-2*dpr,tw+26*dpr,15*dpr);ctx.globalAlpha=1;ctx.fillStyle=phs.color;ctx.fillRect(Lm+8*dpr,y+1*dpr,4*dpr,10*dpr);ctx.fillStyle=ink;ctx.fillText(t,Lm+20*dpr,y);});}
-  if(!stacked){ctx.textAlign="right";ctx.textBaseline="top";out.forEach((s,k)=>{const y=T+8*dpr+k*16*dpr,t=cmpLabel(s.e),tw=ctx.measureText(t).width;ctx.fillStyle=panel;ctx.globalAlpha=.85;ctx.fillRect(Lm+pw-tw-28*dpr,y-2*dpr,tw+26*dpr,15*dpr);ctx.globalAlpha=1;
-      ctx.strokeStyle=cmpColor(s.e);ctx.lineWidth=2*dpr;ctx.beginPath();ctx.moveTo(Lm+pw-tw-24*dpr,y+5*dpr);ctx.lineTo(Lm+pw-tw-10*dpr,y+5*dpr);ctx.stroke();ctx.fillStyle=ink;ctx.fillText(t,Lm+pw-4*dpr,y);});}}
+  {/* CIF legend: top left inside the plot */const CF=(+$("cmpCifFs").value||11)*dpr;ctx.font=`${CF}px "IBM Plex Sans",sans-serif`;ctx.textAlign="left";ctx.textBaseline="top";const cOff=(typeof isCond==="function"&&isCond().length?13*dpr*TSc()*1.6:0),cmw=cifL.length?Math.max(...cifL.map(phs=>ctx.measureText(phLeg(phs).trim()+(phs.show?"":"  (preview)")).width)):0;mvB(ctx,dpr,"cif",cifL.length?[Lm+4*dpr,T+6*dpr+cOff,Lm+30*dpr+cmw,T+8*dpr+cOff+cifL.length*CF*TSc()*1.45]:null,()=>cifL.forEach((phs,k)=>{const y=T+8*dpr+(typeof isCond==="function"&&isCond().length?13*TSc()*dpr*1.6:0)+k*CF*TSc()*1.45,t=phLeg(phs).trim()+(phs.show?"":"  (preview)"),tw=ctx.measureText(t).width;
+      ctx.fillStyle=panel;ctx.globalAlpha=.85;ctx.fillRect(Lm+4*dpr,y-2*dpr,tw+26*dpr,CF*TSc()*1.35);ctx.globalAlpha=1;ctx.fillStyle=phs.color;ctx.fillRect(Lm+8*dpr,y+1*dpr,4*dpr,CF*TSc()*0.9);ctx.fillStyle=ink;ctx.fillText(t,Lm+20*dpr,y);}));}
+  if(!stacked){ctx.font=`${LF}px "IBM Plex Sans",sans-serif`;ctx.textAlign="right";ctx.textBaseline="top";const omw=Math.max(...out.map(s=>ctx.measureText(cmpLabel(s.e)).width));mvB(ctx,dpr,"lg",[Lm+pw-omw-28*dpr,T+6*dpr,Lm+pw,T+8*dpr+out.length*LF*TSc()*1.45],()=>out.forEach((s,k)=>{const y=T+8*dpr+k*LF*TSc()*1.45,t=cmpLabel(s.e),tw=ctx.measureText(t).width;ctx.fillStyle=panel;ctx.globalAlpha=.85;ctx.fillRect(Lm+pw-tw-28*dpr,y-2*dpr,tw+26*dpr,LF*TSc()*1.35);ctx.globalAlpha=1;
+      ctx.strokeStyle=cmpColor(s.e);ctx.lineWidth=2*dpr;ctx.beginPath();ctx.moveTo(Lm+pw-tw-24*dpr,y+LF*TSc()*0.5);ctx.lineTo(Lm+pw-tw-10*dpr,y+LF*TSc()*0.5);ctx.stroke();ctx.fillStyle=ink;ctx.fillText(t,Lm+pw-4*dpr,y);}));}}
 const kPx=e=>e.offsetX*(cvK.width/cvK.getBoundingClientRect().width);
 function cmpRange(a,b){if(!(b>a))return;$("cmpLo").value=+a.toPrecision(6);$("cmpHi").value=+b.toPrecision(6);drawCmp();}
 cvK.addEventListener("pointerdown",e=>{if(!cmpGeom||e.button!==0)return;cmpDrag={x0:kPx(e),x1:kPx(e),moved:false};cvK.setPointerCapture(e.pointerId);});
@@ -2227,7 +2251,7 @@ cvK.addEventListener("wheel",e=>{if(!cmpGeom)return;e.preventDefault();const g=c
 cvK.addEventListener("dblclick",()=>{$("cmpLo").value="";$("cmpHi").value="";drawCmp();});
 $("cmpReset").addEventListener("click",()=>{$("cmpLo").value="";$("cmpHi").value="";drawCmp();});
 $("cmpXm").addEventListener("change",()=>{$("cmpLo").value="";$("cmpHi").value="";drawCmp();});
-for(const id of ["cmpLo","cmpHi","cmpNd","cmpNd2","cmpOff"])$(id).addEventListener("change",drawCmp);
+for(const id of ["cmpLo","cmpHi","cmpNd","cmpNd2","cmpOff"])$(id).addEventListener("change",drawCmp);$("cmpFs").addEventListener("input",()=>drawCmp());
 $("cmpOff").addEventListener("input",drawCmp);
 for(const id of ["cmpBg","cmpSticks","cmpRev","cmpStFull"])$(id).addEventListener("change",()=>{$("cmpStWrap").hidden=!$("cmpSticks").checked;cmpRender();});
 $("cmpStWrap").hidden=!$("cmpSticks").checked;
@@ -2496,6 +2520,10 @@ document.addEventListener("pointerdown",e=>{const t=e.target;if(t&&t.tagName==="
 function cpToast(msg,bad){let t=document.getElementById("cpToast");if(!t){t=document.createElement("div");t.id="cpToast";t.style.cssText="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;padding:8px 14px;border-radius:8px;font:600 13px 'IBM Plex Sans',sans-serif;box-shadow:0 4px 18px rgba(0,0,0,.35);pointer-events:none;transition:opacity .25s";document.body.appendChild(t);}
   t.textContent=msg;t.style.background=bad?"#7a2a22":"#123d33";t.style.color="#fff";t.style.opacity="1";clearTimeout(t._h);t._h=setTimeout(()=>{t.style.opacity="0";},1800);}
 function cpRender(cv){const W=cv.width,H=cv.height,c=document.createElement("canvas");c.width=W;c.height=H;const g=c.getContext("2d"),css=getComputedStyle(document.documentElement);
+  /* plots: re-drawn for the copy with the chosen plot background (or none, with “copy without background”) */
+  if(cv.id==="chart"||cv.id==="cmpChart"||(typeof cv3!=="undefined"&&cv===cv3)){const dpr=W/Math.max(1,cv.getBoundingClientRect().width);window.CP_COPY=true;
+    try{if(cv.id==="chart")drawChart(c,dpr);else if(cv.id==="cmpChart")drawCmp(c,dpr);else v3Draw(c,{info:true,key:true,dpr});}finally{window.CP_COPY=false;}
+    if(cv.id==="chart")drawChart();else if(cv.id==="cmpChart")drawCmp();return c;}
   if(typeof cv3!=="undefined"&&cv===cv3&&typeof v3Draw==="function"&&V3.ph){v3Draw(c,{key:true,dpr:W/Math.max(1,cv3.getBoundingClientRect().width)});return c;}
   g.fillStyle=css.getPropertyValue("--panel").trim()||"#fff";if(cv.id==="tmCv"||cv.id==="main"||cv.id==="rsCv"||cv.id==="gifCv")g.fillStyle="#07090b";
   if(cv.id!=="v3gPrev")g.fillRect(0,0,W,H);g.drawImage(cv,0,0);
@@ -2512,7 +2540,7 @@ function cpNoHover(cv){try{if(cv.id==="cmpChart"&&typeof cmpHover!=="undefined")
   else if(typeof cv3!=="undefined"&&cv===cv3){V3.hover=-1;}}catch(e){}}
 async function cpCopy(cv){cpNoHover(cv);const c=cpRender(cv);
   try{if(!navigator.clipboard||typeof ClipboardItem==="undefined")throw new Error("this browser cannot copy images");
-    const blob=new Promise(res=>c.toBlob(res,"image/png"));await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);cpToast(`Plot copied (${c.width} × ${c.height} px) — paste with Ctrl+V`);}
+    const blob=new Promise(res=>c.toBlob(res,"image/png"));await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);cpToast(`Copied (${c.width} × ${c.height} px${/^(chart|cmpChart|v3d)$/.test(cv.id)&&pbModeV({chart:"pk",cmpChart:"cmp",v3d:"v3"}[cv.id])==="transparent"?", no background":""}) — paste with Ctrl+V`);}
   catch(err){cpToast("Could not copy: "+err.message+" — use the Save button instead",true);}}
 document.querySelectorAll(".cpBtn").forEach(bt=>{const cv=document.getElementById(bt.dataset.cv),src=document.getElementById(bt.dataset.src);
   bt.addEventListener("click",()=>{if(cv)cpCopy(cv);});
@@ -2615,6 +2643,56 @@ cvK.addEventListener("pointerdown",ev=>{const pick=$("cmpNdPick").getAttribute("
   const up=e2=>{mv(e2);cvK.removeEventListener("pointermove",mv,true);cvK.removeEventListener("pointerup",up,true);$("cmpNdPick").setAttribute("aria-pressed","false");
     $("cmpStatus").textContent=`Normalised between d = ${$("cmpNd").value} and ${$("cmpNd2").value} Å (${$("cmpNorm").selectedOptions[0].textContent}).`;if(typeof setSave==="function")setSave();};
   cvK.addEventListener("pointermove",mv,true);cvK.addEventListener("pointerup",up,true);},true);
+/* “one colour” for all profiles */
+{const sync=()=>{$("cmpOneCol").hidden=$("cmpCol").value!=="one";};sync();$("cmpCol").addEventListener("change",sync);
+ $("cmpOneCol").addEventListener("input",()=>{cmpRender();drawCmp();if(typeof tmDraw==="function")tmDraw();});}
+/* ============================================================== plot background (profile, peak and 3D plots; also used by 📋 Copy) */
+const PB_LIGHT={"--ink":"#16212b","--muted":"#5b6876","--line":"#d3dae1","--accent":"#0b7f94"},PB_DARK={"--ink":"#e2e8ed","--muted":"#8e9ba7","--line":"#28323b","--accent":"#36c0d6"};
+const PBK={pk:{wrap:"chartWrap",draw:()=>drawChart()},cmp:{wrap:"cmpWrap",draw:()=>drawCmp()},v3:{wrap:"v3wrap",draw:()=>v3Draw()}};
+function pbModeV(k){const e=document.getElementById("pb_"+(k||"v3"));return e?e.value:"theme";}
+function pbColor(k){const m=pbModeV(k);return m==="white"?"#ffffff":m==="black"?"#000000":m==="custom"?$("pb_"+k+"Col").value:null;}
+const pbLum=h=>{const n=parseInt(String(h).slice(1),16);return (0.299*(n>>16)+0.587*(n>>8&255)+0.114*(n&255))/255;};
+function pbWith(k,fn){const m=pbModeV(k),col=pbColor(k),noBg=m==="transparent";
+  if(m==="theme")return fn();
+  const de=document.documentElement,keep=de.getAttribute("style"),light=col?pbLum(col)>0.5:true,set=light?PB_LIGHT:PB_DARK;
+  for(const q in set)de.style.setProperty(q,set[q]);de.style.setProperty("--panel",col||"#ffffff");
+  const prev=window.CP_NOBG;window.CP_NOBG=noBg;
+  try{return fn();}finally{window.CP_NOBG=prev;keep!=null?de.setAttribute("style",keep):de.removeAttribute("style");}}
+{const _a=drawChart;drawChart=function(t,d){return pbWith("pk",()=>_a(t,d));};}
+{const _b=drawCmp;drawCmp=function(t,d){return pbWith("cmp",()=>_b(t,d));};}
+{const _c=v3Draw;v3Draw=function(t,o){return pbWith("v3",()=>_c(t,o));};}
+function pbApply(k){const m=pbModeV(k),col=pbColor(k),chk="repeating-conic-gradient(#cfd4da 0 25%,#f4f6f8 0 50%) 0 0/16px 16px";$("pb_"+k+"Col").hidden=m!=="custom";
+  const w=document.getElementById(PBK[k].wrap);if(w)w.style.background=m==="theme"?"":m==="transparent"?chk:col;try{PBK[k].draw();}catch(e){}}
+for(const k in PBK){$("pb_"+k).addEventListener("change",()=>pbApply(k));$("pb_"+k+"Col").addEventListener("input",()=>pbApply(k));pbApply(k);}
+$("cmpCifFs").addEventListener("input",()=>drawCmp());
+/* legend font sizes */
+$("pkLgFs").addEventListener("input",()=>{if(S.profile)drawChart();});
+{const ks=()=>{const v=+$("v3KeyFs").value||13;document.getElementById("v3legend").style.fontSize=(v*0.95)+"px";};ks();$("v3KeyFs").addEventListener("input",()=>{ks();v3Draw();});}
+/* plot text controls */
+for(const sel of document.querySelectorAll(".txtFam")){const k=sel.dataset.k;sel.value=TXT[k].fam||"";sel.addEventListener("change",()=>{TXT[k].fam=sel.value;txtSave();txtRedraw(k);});}
+for(const inp of document.querySelectorAll(".txtSc")){const k=inp.dataset.k;inp.value=Math.round((TXT[k].scale||1)*100);inp.addEventListener("input",()=>{const v=+inp.value;if(!(v>=30&&v<=500))return;TXT[k].scale=v/100;txtSave();txtRedraw(k);});}
+function txtRedraw(k){try{k==="pk"?drawChart():drawCmp();}catch(e){}}
+const TXTCV={pk:cvC,cmp:cvK};
+for(const b of document.querySelectorAll(".txtRs"))b.addEventListener("click",()=>{TXT[b.dataset.k].off={};TXT[b.dataset.k].sz={};txtSave();txtSelUI(b.dataset.k);txtRedraw(b.dataset.k);});
+const TXT_NAMES={xt:"x name",yt:"y name",lg:"legend",cif:"CIF legend",cond:"SCCM / T"};
+function txtMoving(k){const b=document.querySelector(`.txtMv[data-k="${k}"]`);return b&&b.getAttribute("aria-pressed")==="true";}
+function txtSelUI(k){const box=document.querySelector(`.txtSel[data-k="${k}"]`),n=TXT_SEL[k];box.hidden=!(n&&txtMoving(k));if(!n)return;box.querySelector(".txtSelN").textContent=TXT_NAMES[n]||n;box.querySelector(".txtSelSz").value=Math.round(((TXT[k].sz||{})[n]||1)*100);}
+for(const box of document.querySelectorAll(".txtSel")){const k=box.dataset.k,inp=box.querySelector(".txtSelSz");inp.addEventListener("input",()=>{const v=+inp.value,n=TXT_SEL[k];if(!n||!(v>=20&&v<=600))return;TXT[k].sz=TXT[k].sz||{};TXT[k].sz[n]=v/100;txtSave();txtRedraw(k);});}
+for(const b of document.querySelectorAll(".txtMv"))b.addEventListener("click",()=>{const on=b.getAttribute("aria-pressed")!=="true";b.setAttribute("aria-pressed",String(on));const cv=TXTCV[b.dataset.k];cv.style.cursor=on?"move":"";if(!on)TXT_SEL[b.dataset.k]=null;txtSelUI(b.dataset.k);txtRedraw(b.dataset.k);});
+for(const k in TXTCV){const cv=TXTCV[k],btn=document.querySelector(`.txtMv[data-k="${k}"]`);
+  cv.addEventListener("pointerdown",ev=>{if(btn.getAttribute("aria-pressed")!=="true"||ev.button!==0)return;const s=cv.width/cv.getBoundingClientRect().width,x=ev.offsetX*s,y=ev.offsetY*s;
+    const h=[...HITS[k]].reverse().find(b=>x>=b.x0-4*s&&x<=b.x1+4*s&&y>=b.y0-4*s&&y<=b.y1+4*s);ev.stopImmediatePropagation();ev.preventDefault();TXT_SEL[k]=h?h.name:null;txtSelUI(k);txtRedraw(k);if(!h)return;
+    const o0=(TXT[k].off[h.name]||[0,0]).slice(),x0=ev.clientX,y0=ev.clientY;cv.setPointerCapture(ev.pointerId);
+    const mv=e2=>{e2.stopImmediatePropagation();TXT[k].off[h.name]=[o0[0]+(e2.clientX-x0),o0[1]+(e2.clientY-y0)];txtRedraw(k);};
+    const up=e2=>{e2.stopImmediatePropagation();cv.removeEventListener("pointermove",mv,true);cv.removeEventListener("pointerup",up,true);txtSave();};
+    cv.addEventListener("pointermove",mv,true);cv.addEventListener("pointerup",up,true);},true);
+  cv.addEventListener("click",ev=>{if(btn.getAttribute("aria-pressed")==="true")ev.stopImmediatePropagation();},true);
+  cv.addEventListener("wheel",ev=>{if(btn.getAttribute("aria-pressed")!=="true")return;const s=cv.width/cv.getBoundingClientRect().width,x=ev.offsetX*s,y=ev.offsetY*s;
+    const h=[...HITS[k]].reverse().find(b=>x>=b.x0-4*s&&x<=b.x1+4*s&&y>=b.y0-4*s&&y<=b.y1+4*s);if(!h)return;ev.preventDefault();ev.stopImmediatePropagation();
+    TXT[k].sz=TXT[k].sz||{};const f=(TXT[k].sz[h.name]||1)*(ev.deltaY<0?1.1:1/1.1);TXT[k].sz[h.name]=Math.max(0.2,Math.min(6,f));TXT_SEL[k]=h.name;txtSave();txtSelUI(k);txtRedraw(k);},{capture:true,passive:false});
+  cv.addEventListener("dblclick",ev=>{if(btn.getAttribute("aria-pressed")==="true")ev.stopImmediatePropagation();},true);}
+{const _a=drawChart;drawChart=function(t,d){return txtWith("pk",()=>_a(t,d),t instanceof HTMLCanvasElement);};}
+{const _b=drawCmp;drawCmp=function(t,d){return txtWith("cmp",()=>_b(t,d),t instanceof HTMLCanvasElement);};}
 </script>
 
 </body></html>
