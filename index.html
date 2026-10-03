@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 </head><body>
-<title>SAED Ring Profiler</title>
+<title>d-Spacing Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -24,6 +24,16 @@
   --accent:#36c0d6; --accent-ink:#04161a; --warn:#e39a5f; --scope:#07090b; --scope-line:#2a333c; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
+#brModal{position:fixed;inset:0;z-index:50;background:rgba(5,8,11,.6);display:flex;align-items:center;justify-content:center;padding:24px}
+.brpanel{background:var(--panel);border:1px solid var(--line);border-radius:12px;width:min(1400px,100%);max-height:100%;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.brhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:12px 14px}.brhead h2{margin:0}
+#brGrid{overflow:auto;padding:4px 14px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.brcard{display:flex;flex-direction:column;gap:6px;text-align:left;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer;color:var(--ink);font:inherit}
+.brcard:hover{border-color:var(--accent)}.brcard.cur{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.brthumb{aspect-ratio:1/1;background:#07090b;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#8e9ba7;font-size:.8rem;overflow:hidden}
+.brthumb canvas{width:100%;height:100%;object-fit:contain;image-rendering:auto}
+.brtxt{display:flex;flex-direction:column;gap:2px;font-size:.75rem;line-height:1.3;min-width:0}.brtxt b{font-size:.78rem;word-break:break-all}
+.brtxt .tm{font-family:var(--f-data)}.brtxt .kd{color:var(--muted)}.brtxt .lg{font-family:var(--f-data);color:var(--ink)}
 #v3legend{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:4px;font:600 .8rem var(--f-data);color:var(--ink);background:color-mix(in srgb,var(--bg) 70%,transparent);padding:6px 8px;border-radius:6px}
 #v3legend:empty{display:none}#v3legend span{display:flex;align-items:center;gap:6px}#v3legend i{display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid #0006}
 html,body{background:var(--bg);color:var(--ink)}
@@ -54,6 +64,8 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
 .scope{position:relative;background:var(--scope);border-radius:var(--r);overflow:hidden}
 .scope canvas{display:block;width:100%;height:100%;touch-action:none}
 #mainWrap{aspect-ratio:1/1;max-width:100%}
+#tempTag{position:absolute;right:8px;top:6px;font-family:var(--f-data);font-size:.78rem;color:#fff;background:rgba(0,0,0,.65);padding:4px 8px;border-radius:6px;text-align:right;pointer-events:none;line-height:1.35}
+#tempTag .sub{color:#b9c5cf;font-size:.7rem}#tempTag .fn{font-weight:600;max-width:60ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #polarWrap{aspect-ratio:5/4;max-width:100%}
 .hud{position:absolute;left:8px;top:6px;right:8px;font-family:var(--f-data);font-size:.74rem;color:#d8e2ea;
   pointer-events:none;text-shadow:0 0 3px #000,0 0 2px #000;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
@@ -121,11 +133,28 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
 
 <div class="wrap">
   <header class="top">
-    <div class="brand"><h1>SAED Ring Profiler</h1><small>centre a ring pattern, get d vs I</small></div>
+    <span class="row2" style="gap:6px"><button class="primary" id="brPick" title="Choose a folder: every image in it (and its sub-folders) is listed with time, temperature and pressure; pick one to analyse">📂 Browse folder…</button><input id="brDir" type="file" webkitdirectory directory multiple hidden>
+      <button id="brShow" hidden title="Reopen the image list">Image list</button>
+      <button id="brPrev" disabled title="Previous image in the list (in the list's order)" aria-label="previous image">◀</button><button id="brNext" disabled title="Next image in the list" aria-label="next image">▶</button></span>
+    <div class="brand"><h1>d-Spacing Studio</h1><small>SAED &amp; FFT ring profiles · d vs I · CIF phase matching</small></div>
     <label class="btn primary" for="file">Open .dm4 / .dm3 / image<input id="file" type="file" accept=".dm4,.dm3,.png,.jpg,.jpeg,.tif,.tiff"></label>
     <label class="row2" title="Auto: DM files calibrated in nm / Å / µm are real-space images (an FFT is computed), 1/nm files are patterns. Plain PNG/JPG/TIF are treated as patterns unless you choose “real-space image”.">file is
       <select id="ftype" style="width:auto"><option value="auto">auto-detect</option><option value="diff">a diffraction pattern / FFT</option><option value="real">a real-space image → compute FFT</option></select></label>
     <div class="fileinfo" id="fileinfo"></div>
+    <div class="row2" style="gap:6px 10px;flex-wrap:wrap">
+      <label class="btn" for="tIn" title="Heater / temperature log with a Time column and T set / T measured columns (.xlsx or .csv). Each image is matched to the log entry nearest its acquisition time.">Load temperature log…<input id="tIn" type="file" accept=".xlsx,.csv,.txt"></label>
+      <label for="tOff" title="Add this many seconds to the image time before looking it up in the log (if the two computers' clocks differ)">clock offset</label><input id="tOff" type="number" step="1" value="0" style="width:4.5rem"><span class="keys">s</span>
+      <label for="tTol" title="Largest allowed gap between the image time and the nearest log entry">max gap</label><input id="tTol" type="number" step="1" min="1" value="10" style="width:4rem"><span class="keys">s</span>
+      <button id="tClear" title="Forget the log">clear</button>
+      <span class="keys" id="tStatus">no log loaded</span>
+    </div>
+    <div class="row2" style="gap:6px 10px;flex-wrap:wrap">
+      <label class="btn" for="pIn" title="Pressure log (.txt / .csv / .xlsx) with a Time column and one column per gauge (e.g. MC1, MC2); values may carry units such as “3.80E-04 Pa”">Load pressure log…<input id="pIn" type="file" accept=".txt,.csv,.tsv,.log,.xlsx"></label>
+      <button id="pClear" title="Forget the pressure log">clear</button>
+      <span class="keys" id="pStatus">no pressure log loaded</span>
+      <label for="showInfo" style="margin-left:12px">show on image</label>
+      <select id="showInfo" style="width:auto"><option value="both">temperature + pressure</option><option value="temp">temperature</option><option value="pres">pressure</option><option value="none">nothing (time only)</option></select>
+    </div>
   </header>
 
   <section class="panel" id="rsPanel" hidden style="display:grid;gap:10px">
@@ -142,6 +171,8 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
     </div>
     <div id="rsWrap" style="position:relative;height:clamp(300px,42vh,520px);min-height:200px;resize:vertical;overflow:hidden;border:1px solid var(--line);border-radius:var(--r)">
       <canvas id="rsCv" aria-label="Real-space image; drag to place the FFT region" style="display:block;width:100%;height:100%;cursor:crosshair;touch-action:none"></canvas></div>
+    <div class="row2" style="justify-content:flex-end;gap:12px"><label title="Also draw the yellow FFT region square on the saved image"><input id="rsSaveRoi" type="checkbox"> with FFT region</label>
+      <button id="rsSave" title="Saves the real-space image (up to 2048 px) with scale bar, acquisition time and temperature">Save image (.png)</button></div>
     <div class="keys"><kbd>click</kbd> or <kbd>drag</kbd> on the image to place the square FFT region (yellow) · the FFT amplitude |F| is shown below as the pattern, centred at zero frequency, and everything else (centre, profile, peaks, CIF matching) works on it as on an SAED pattern · calibration = 1 / (FFT size × pixel size). <span id="rsStatus" style="color:var(--ink)"></span></div>
   </section>
 
@@ -150,11 +181,13 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <div class="scope" id="mainWrap">
         <canvas id="main" tabindex="0" aria-label="Diffraction pattern. Click to set the centre (or, when the centre is locked, to measure a spot), wheel to zoom, drag to pan, arrow keys to move the centre."></canvas>
         <div class="hud" hidden><span id="hudC"></span><span id="hudZ"></span></div>
+        <div id="tempTag" hidden></div>
         <div class="hud bottom"><span id="hudCursor">hover the pattern: r and d at the cursor</span></div>
       </div>
       <div class="row2" style="justify-content:space-between">
         <label title="When locked, clicks and arrow keys no longer move the centre; a click measures the spot under the cursor instead"><input id="lock" type="checkbox"> Lock centre <span class="keys">(on after Compute; then click a spot to see its d)</span></label>
-        <button id="svimg" disabled title="Saves the pattern as currently shown, with guide circles and selected rings">Save image with rings (.png)</button>
+        <span class="row2" style="gap:8px"><button id="fullView" title="Show the whole pattern (h)">Full view</button>
+        <button id="svimg" disabled title="Saves the pattern as currently shown, with guide circles and selected rings">Save image with rings (.png)</button></span>
       </div>
     </div>
 
@@ -180,7 +213,6 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
             </div>
             <div style="display:grid;gap:6px">
               <button id="refine" title="Searches nearby positions for the sharpest rings">Auto-refine</button>
-              <button id="fullView" title="Full view (h)">Full view</button>
               <button id="autoC" title="Find the diffraction centre automatically (the same estimate used when a file is opened for the first time)">Auto-centre</button>
               <button id="geoC" title="Put the centre at the geometric centre of the image (for an FFT: the zero-frequency pixel)">Image centre</button>
             </div>
@@ -219,14 +251,14 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
     <div class="chartbar">
       <h2>Profile</h2>
       <button class="primary" id="compute">Compute profile (Enter)</button>
-      <label title="Recompute the profile automatically whenever the centre, calibration, bin or mask changes (the centre is then not locked automatically)"><input id="profAuto" type="checkbox"> auto update</label>
+      <label title="Recompute the profile automatically whenever the centre, calibration, bin or mask changes (the centre is then not locked automatically)"><input id="profAuto" type="checkbox" checked> auto update</label>
       <button id="pkAddBtn" aria-pressed="false" title="While on, clicking the plot adds a peak at that position (right-click also adds; right-click a peak removes it)">+ Add peaks</button>
       <button id="pkDelSel" disabled title="Delete the selected peaks (click a peak, shift+click for more), or press Delete">Delete selected</button>
       <button id="pkUndo" title="Forget all added and removed peaks">Undo peak edits</button>
       <div class="row2"><label for="xmode">x axis</label>
         <select id="xmode" style="width:auto"><option value="d">d (Å)</option><option value="tt">2θ (°)</option><option value="q">q (nm⁻¹)</option><option value="r">r (px)</option></select></div>
       <div class="row2"><label for="xlo">from</label><input id="xlo" type="number" step="any"><label for="xhi">to</label><input id="xhi" type="number" step="any"><button id="zreset" title="Back to the full range (or double-click the plot)">Reset zoom</button></div>
-      <div class="row2"><label title="Vertical line at each detected peak; it turns green when a shown CIF line is within ±1 % in d"><input id="pkLines" type="checkbox"> peak lines</label><label title="On: the peak line runs down to the baseline. Off: it stops at the peak marker, so CIF sticks underneath stay clear"><input id="pkFull" type="checkbox" checked> full height</label><label><input id="logy" type="checkbox"> log I</label><label><input id="bgsub" type="checkbox"> subtract background</label></div>
+      <div class="row2"><label title="Vertical line at each detected peak; it turns green when a shown CIF line is within ±1 % in d"><input id="pkLines" type="checkbox"> peak lines</label><label title="On: the peak line runs down to the baseline. Off: it stops at the peak marker, so CIF sticks underneath stay clear"><input id="pkFull" type="checkbox" checked> full height</label><label><input id="logy" type="checkbox"> log I</label><label><input id="bgsub" type="checkbox" checked> subtract background</label></div>
       <div class="row2"><label for="sens">peak sensitivity</label><input id="sens" type="range" min="2" max="20" step="0.5" value="6" style="width:7rem"></div>
       <span class="spacer"></span>
       <span class="status" id="status"></span>
@@ -256,7 +288,8 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <span class="row2" style="gap:4px"><button id="cBest" disabled title="Rank the phases in the chosen folder against the current peak list and highlight the best one">★ Best fit</button><button id="cBestPrev" disabled title="Previous (better) fit" aria-label="Previous fit">◀</button><button id="cBestNext" disabled title="Next (worse) fit" aria-label="Next fit">▶</button><label for="cBestIn">in</label><select id="cBestIn" style="width:auto;min-width:8rem;max-width:14rem" disabled title="Which folder box to search"><option value="">all folders</option></select></span>
       <div class="row2"><label for="cs">calibration factor s</label><input id="cs" type="range" min="0.95" max="1.05" step="0.0005" value="1" style="width:9rem"><input id="csN" type="number" step="0.0005" value="1" style="width:5.6rem"></div>
       <div class="row2"><label for="cmin">lines ≥</label><input id="cmin" type="number" min="0" max="100" step="1" value="5" style="width:4rem"><label>% I</label></div>
-      <div class="row2"><label><input id="cRings" type="checkbox" checked> rings on SAED</label><label><input id="cSticks" type="checkbox" checked> sticks on profile</label><label><input id="cLab" type="checkbox" checked> hkl labels</label><label title="d × s, where the ring and stick are drawn"><input id="cLabD" type="checkbox" checked> d labels</label><label for="cLabSize">size</label><input id="cLabSize" type="number" min="6" max="30" step="1" value="10" style="width:3.6rem"></div>
+      <div class="row2"><label><input id="cRings" type="checkbox" checked> rings on SAED</label><label><input id="cSticks" type="checkbox" checked> sticks on profile</label><label><input id="cLab" type="checkbox"> hkl labels</label><label title="d × s, where the ring and stick are drawn"><input id="cLabD" type="checkbox" checked> d labels</label><label for="cLabSize">size</label><input id="cLabSize" type="number" min="6" max="30" step="1" value="10" style="width:3.6rem"></div>
+      <span class="row2" style="gap:4px"><label for="cSearch">search</label><input id="cSearch" type="search" placeholder="ICSD no., formula or file" style="width:13rem" title="Type an ICSD / COD number (or part of a formula / file name) to show only matching phases; Enter highlights the first match"><button id="cSearchX" title="Clear the search" aria-label="clear search">✕</button></span>
       <span class="spacer"></span>
       <button id="cClear" disabled>Remove all</button>
     </div>
@@ -289,6 +322,16 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <div class="keys" id="v3info"></div>
     </div>
   </section>
+</div>
+<div id="brModal" hidden role="dialog" aria-modal="true" aria-label="Image list">
+  <div class="brpanel">
+    <div class="brhead"><h2 id="brTitle">Images</h2><span class="spacer"></span>
+      <label for="brSort">sort</label><select id="brSort" style="width:auto"><option value="time">by acquisition time</option><option value="name">by name</option></select>
+      <label for="brKind">show</label><select id="brKind" style="width:auto"><option value="all">all</option><option value="diff">diffraction / FFT</option><option value="real">real-space images</option></select>
+      <button id="brClose" title="Close (Esc)">✕ Close</button></div>
+    <div class="keys" style="padding:0 14px 8px">Click an image to open it; the list closes and you keep working on the main page. Temperature and pressure come from the loaded logs (matched to each image's acquisition time). ◀ ▶ next to “Browse folder” step through this list.</div>
+    <div id="brGrid"></div>
+  </div>
 </div>
 <div id="drop" hidden>Drop a .dm4 / .dm3 pattern or .cif files</div>
 
@@ -378,7 +421,7 @@ function pct(arr,ps){const s=Float32Array.from(arr).sort();return ps.map(p=>s[Ma
 function sample(arr,n){const step=Math.max(1,Math.floor(arr.length/n));const out=new Float32Array(Math.ceil(arr.length/step));for(let i=0,j=0;i<arr.length;i+=step,j++)out[j]=arr[i];return out;}
 
 /* ============================================================== load an image */
-function setImage(W,H,data,meta){if(!meta.fromReal){S.real=null;S.realROI=null;const rp=document.getElementById("rsPanel");if(rp)rp.hidden=true;}if(UNDO){UNDO.past=[];UNDO.future=[];UNDO.lastKind="";}
+function setImage(W,H,data,meta){S.acqStr=meta.acq||"";if(!meta.fromReal){S.real=null;S.realROI=null;const rp=document.getElementById("rsPanel");if(rp)rp.hidden=true;}if(UNDO){UNDO.past=[];UNDO.future=[];UNDO.lastKind="";}
   S.W=W;S.H=H;S.img=data;S.name=meta.name;S.example=!!meta.example;S.profile=null;S.peaks=[];
   const smp=sample(data,400000); const [p1,pmax]=pct(smp,[1,100]);
   let mx=-Infinity; for(let i=0;i<data.length;i+=1){if(data[i]>mx)mx=data[i];}
@@ -476,7 +519,7 @@ function refreshInfo(meta){
   const add=(k,v)=>{const s=document.createElement("span");s.innerHTML=k+" <b></b>";s.querySelector("b").textContent=v;fi.appendChild(s);};
   if(S.example){const c=document.createElement("span");c.className="chip example";c.textContent="Synthetic example pattern";fi.appendChild(c);}
   if(S.isFFT){const c=document.createElement("span");c.className="chip";c.textContent=(S.realROI?"FFT computed from the real-space image":"FFT")+" · amplitude shown · centre at zero frequency";fi.appendChild(c);}
-  add("file",S.name);if(meta.acq||(S.real&&S.real.acq))add("acquired",meta.acq||S.real.acq); add("size",S.W+" × "+S.H);
+  add("file",S.name);if(meta.acq||(S.real&&S.real.acq))add("acquired",meta.acq||S.real.acq); add("size",S.W+" × "+S.H);setTimeout(()=>{if(typeof tempShow==="function")tempShow();},0);
   add("calib",$("scale").value?($("scale").value+" nm⁻¹/px"+(meta.units?" ("+meta.units+")":"")):"not in file: enter scale");
   add("mask",(100*S.maskFrac).toFixed(1)+"% of image");
 }
@@ -880,7 +923,7 @@ function drawChart(target,tdpr){
   const pkLines=$("pkLines").checked,pkFull=$("pkFull").checked,MATCH="#2fbf71",cmV=+$("cmin").value||0,sV=phaseScale();
   const cifD=S.phases.filter(phVisible).flatMap(ph=>ph.lines.filter(x=>x.I>=cmV).map(x=>x.d*sV));
   { /* keep labels out of the legend box (top right) */
-    const lt=[`Experimental (${S.name||"pattern"})`].concat($("cSticks").checked?S.phases.filter(phVisible).map(phs=>(phs.legend||phs.label)+(phs.show?"":"  (preview)")):[]);
+    const lt=[`Experimental (${S.name||"pattern"}) · T 000.0 °C`].concat($("cSticks").checked?S.phases.filter(phVisible).map(phs=>(phs.legend||phs.label)+(phs.show?"":"  (preview)")):[]);
     ctx.font=`${11*dpr}px "IBM Plex Sans",sans-serif`;const lw=Math.max(...lt.map(t=>ctx.measureText(t).width));placed.push({x0:L+pw-lw-30*dpr,x1:L+pw,y0:T+36*dpr,y1:T+40*dpr+lt.length*16*dpr});}
   const pkFont=`600 ${11*dpr}px "IBM Plex Mono",monospace`,expLabs=[];ctx.font=pkFont;
   for(const p of S.peaks){const xv=mode==="d"?p.d:mode==="tt"?p.tt:mode==="q"?p.q:p.r;if(xv<lo||xv>hi)continue;
@@ -900,7 +943,8 @@ function drawChart(target,tdpr){
       ctx.save();ctx.fillStyle=c.color;ctx.translate(pos.ax,pos.ay);ctx.rotate(-Math.PI/2);ctx.textAlign="left";ctx.textBaseline="middle";ctx.fillText(c.txt,0,0);ctx.restore();}
   }
   { /* legend: the experimental curve, then every shown phase */
-    const ent=[{c:acc,t:`Experimental (${S.name||"pattern"})`,curve:true}].concat($("cSticks").checked?S.phases.filter(phVisible).map(phs=>({c:phs.color,t:(phs.legend||phs.label)+(phs.show?"":"  (preview)")})):[]);
+    const tt0=(()=>{if(!/both|temp/.test($("showInfo").value))return "";const r=tempAt(S.acqStr||(S.real&&S.real.acq)||"");return r&&!r.err&&isFinite(r.meas)?` · T ${fmtT(r.meas,true)}`:"";})();
+    const ent=[{c:acc,t:`Experimental (${S.name||"pattern"})${tt0}`,curve:true}].concat($("cSticks").checked?S.phases.filter(phVisible).map(phs=>({c:phs.color,t:(phs.legend||phs.label)+(phs.show?"":"  (preview)")})):[]);
     ctx.globalAlpha=1;ctx.font=`${11*dpr}px "IBM Plex Sans",sans-serif`;ctx.textAlign="right";ctx.textBaseline="top";
     ent.forEach((e,i)=>{const y=T+40*dpr+i*16*dpr,tw=ctx.measureText(e.t).width;ctx.fillStyle=css.getPropertyValue("--panel").trim();ctx.globalAlpha=.85;ctx.fillRect(L+pw-tw-26*dpr,y-2*dpr,tw+24*dpr,15*dpr);ctx.globalAlpha=1;
       if(e.curve){ctx.strokeStyle=e.c;ctx.lineWidth=2*dpr;ctx.beginPath();ctx.moveTo(L+pw-tw-22*dpr,y+5*dpr);ctx.lineTo(L+pw-tw-10*dpr,y+5*dpr);ctx.stroke();}
@@ -978,6 +1022,7 @@ const fmt=(v,n)=>Number(v).toFixed(n);
 $("svpolar").addEventListener("click",async()=>{if(!S.img)return;drawPolar();const dpr=cvP.width/cvP.getBoundingClientRect().width,cap=22*dpr;
   const c=document.createElement("canvas");c.width=cvP.width;c.height=cvP.height+cap;const g=c.getContext("2d");g.fillStyle="#07090b";g.fillRect(0,0,c.width,c.height);g.drawImage(cvP,0,0);
   g.fillStyle="#d7dee4";g.font=`${11*dpr}px "IBM Plex Mono",monospace`;g.textBaseline="middle";
+  {const acq=S.acqStr||(S.real&&S.real.acq)||"",tt=infoPlain(acq,false).join(" · ");if(tt){g.textAlign="right";g.fillText(tt,c.width-8*dpr,cvP.height+cap/2);g.textAlign="left";}}
   g.fillText(`${S.name} · polar unwrap · centre (${S.cx.toFixed(2)}, ${S.cy.toFixed(2)}) px · ${$("hudP").textContent.replace(" · wheel to zoom","")}`,8*dpr,cvP.height+cap/2);
   const blob=await new Promise(res=>c.toBlob(res,"image/png"));saveFile(base()+"_polar.png",blob);});
 $("svimg").addEventListener("click",async()=>{
@@ -987,6 +1032,7 @@ $("svimg").addEventListener("click",async()=>{
   drawPattern(pic,S.zoom*k,S.ox,S.oy,lw);
   // caption strip with file, centre, calibration and the selected rings in their colours
   const lines=[`${S.name}   centre (${S.cx.toFixed(2)}, ${S.cy.toFixed(2)}) px   ${$("scale").value||"?"} nm⁻¹/px   ${$("kv").value} kV`];
+  {const acq=S.acqStr||(S.real&&S.real.acq)||"",tt=infoPlain(acq,true);if(acq||tt.length)lines.push([acq?"acquired "+acq:""].concat(tt).filter(Boolean).join("   "));}
   const P=S.profile, fs=Math.round(N/75), pad=Math.round(fs*0.8), lh=Math.round(fs*1.5);
   const ringTxt=S.sels.map(sl=>({c:sl.color,t:`${sl.peak!=null?"#"+(sl.peak+1)+" ":""}d ${sl.d.toFixed(4)} Å  2θ ${sl.tt.toFixed(4)}°  r ${sl.r.toFixed(1)} px`}));
   for(const ph of S.phases)if(ringsOn(ph))ringTxt.push({c:ph.color,t:`${ph.legend||ph.label} (rings, s = ${phaseScale().toFixed(4)})`});
@@ -1003,6 +1049,7 @@ $("svimg").addEventListener("click",async()=>{
 const Iout=i=>{const P=S.profile;return $("bgsub").checked?P.I[i]-P.bg[i]:P.I[i];};
 const bgTag=()=>$("bgsub").checked?"_bgsub":"";
 function updSaveLabels(){const b=$("bgsub").checked;$("sv2t").textContent=b?"2θ vs I − background (.txt)":"2θ vs I (.txt)";$("svd").textContent=b?"d vs I − background (.txt)":"d vs I (.txt)";}
+updSaveLabels();
 $("svplot").addEventListener("click",async()=>{if(!S.profile)return;
   const r=cvC.getBoundingClientRect(),k=Math.max(2,2400/Math.max(1,r.width)),c=document.createElement("canvas");c.width=Math.round(r.width*k);c.height=Math.round(r.height*k);
   drawChart(c,k);const blob=await new Promise(res=>c.toBlob(res,"image/png"));
@@ -1202,13 +1249,18 @@ const groupsOf=()=>{const order=[],m=new Map();for(const ph of S.phases){const g
 const STAR_G="★ Starred",starKey=ph=>"saed-star:"+ph.file+"|"+(ph.code||ph.block||"");
 const starLoad=ph=>{try{return localStorage.getItem(starKey(ph))==="1";}catch(e){return false;}};
 const starSave=ph=>{try{ph.star?localStorage.setItem(starKey(ph),"1"):localStorage.removeItem(starKey(ph));}catch(e){}};
-const viewGroups=()=>{const st=S.phases.filter(p=>p.star);return (st.length?[[STAR_G,st,true]]:[]).concat(groupsOf());};
+/* search: digits match the ICSD/COD number, anything else matches formula, label or file name */
+const phMatch=ph=>{const q=($("cSearch")?$("cSearch").value:"").trim().toLowerCase();if(!q)return true;
+  if(/^\d+$/.test(q))return String(ph.code||"").includes(q)||(ph.file||"").toLowerCase().includes(q);
+  const hay=[ph.code,ph.label,ph.legend,ph.formula,ph.file,ph.mineral].filter(Boolean).join(" ").toLowerCase().replace(/\s+/g," ");return q.split(/\s+/).every(w=>hay.includes(w)||hay.replace(/ /g,"").includes(w));};
+const viewGroups=()=>{const st=S.phases.filter(p=>p.star&&phMatch(p));return (st.length?[[STAR_G,st,true]]:[]).concat(groupsOf().map(([g,L])=>[g,L.filter(phMatch)]).filter(([,L])=>L.length));};
 const displayOrder=()=>{const seen=new Set();return viewGroups().flatMap(([g,L])=>S.collapsed&&S.collapsed.has(g)?[]:L).filter(p=>!seen.has(p.id)&&seen.add(p.id));};
 function renderPhases(){
   const box=$("phaseGroups");box.textContent="";$("cClear").disabled=!S.phases.length;for(const b of ["cBest","cBestPrev","cBestNext","cBestIn"])$(b).disabled=!S.phases.length;
   {const sel=$("cBestIn"),keep=sel.value,gs=viewGroups().map(x=>x[0]);sel.textContent="";const o0=document.createElement("option");o0.value="";o0.textContent="all folders";sel.appendChild(o0);
    for(const g of gs){const o=document.createElement("option");o.value=g;o.textContent=g;sel.appendChild(o);}sel.value=gs.includes(keep)?keep:"";}S.collapsed=S.collapsed||new Set();
   if(!S.phases.length){box.innerHTML='<div class="keys" style="padding:12px;text-align:center">no CIF loaded</div>';renderLines();renderPhaseCaption();return;}
+  if(!viewGroups().length){box.innerHTML=`<div class="keys" style="padding:12px;text-align:center">no phase matches “${($("cSearch").value||"").replace(/[<>&]/g,"")}”</div>`;renderLines();renderPhaseCaption();return;}
   for(const [g,list,isStar] of viewGroups()){
     const grp=document.createElement("div");grp.className="pgroup"+(isStar?" star":"");const closed=S.collapsed.has(g);
     const head=document.createElement("div");head.className="pghead";
@@ -1299,6 +1351,10 @@ $("cBest").addEventListener("click",()=>bestGo(0));
 $("cBestNext").addEventListener("click",()=>bestGo(1));
 $("cBestPrev").addEventListener("click",()=>bestGo(-1));
 $("cBestIn").addEventListener("change",()=>bestGo(0));
+$("cSearch").addEventListener("input",()=>{renderPhases();const n=displayOrder().length,q=$("cSearch").value.trim();$("cifStatus").textContent=q?`${n} phase${n!==1?"s":""} match “${q}”.`:"";});
+$("cSearch").addEventListener("keydown",e=>{if(e.key==="Enter"){const L=displayOrder();if(L.length){focusPhase(L[0].id);$("phaseBox").focus({preventScroll:true});}e.preventDefault();}
+  else if(e.key==="Escape"){$("cSearch").value="";$("cSearch").dispatchEvent(new Event("input"));e.stopPropagation();}});
+$("cSearchX").addEventListener("click",()=>{$("cSearch").value="";$("cSearch").dispatchEvent(new Event("input"));});
 $("cClear").addEventListener("click",()=>{S.phases=[];S.focus=null;renderPhases();redrawAll();drawChart();});
 const phaseRefresh=()=>{renderPhases();redrawAll();drawChart();};
 $("cs").addEventListener("input",()=>{$("csN").value=$("cs").value;phaseRefresh();});
@@ -1479,7 +1535,8 @@ function rsDraw(){if(!S.real||!RS.prev)return;sizeCanvas(cvR);const ctx=cvR.getC
   ctx.fillStyle="#ffd23f";ctx.font=`600 ${12*dpr}px "IBM Plex Mono",monospace`;ctx.textBaseline="top";
   const pix=+$("rsPix").value,rt=`FFT region ${N}×${N}`,rw=ctx.measureText(rt).width;
   ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(ox+x0*k+3*dpr,oy+y0*k+3*dpr,rw+8*dpr,17*dpr);ctx.fillStyle="#ffd23f";ctx.fillText(rt,ox+x0*k+7*dpr,oy+y0*k+6*dpr);
-  if(R.acq){const at="Acquired "+R.acq,aw=ctx.measureText(at).width;ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(ox+R.W*k-aw-14*dpr,oy+3*dpr,aw+11*dpr,17*dpr);ctx.fillStyle="#fff";ctx.textBaseline="top";ctx.fillText(at,ox+R.W*k-aw-9*dpr,oy+6*dpr);}
+  {const ls=[R.name].concat(R.acq?["Acquired "+R.acq]:[],R.acq&&typeof infoLines==="function"?infoLines(R.acq).map(l=>l.txt):[]),aw=Math.max(...ls.map(t=>ctx.measureText(t).width));
+    ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(ox+R.W*k-aw-14*dpr,oy+3*dpr,aw+11*dpr,(4+15*ls.length)*dpr);ctx.fillStyle="#fff";ctx.textBaseline="top";ls.forEach((t,i)=>ctx.fillText(t,ox+R.W*k-aw-9*dpr,oy+(6+15*i)*dpr));}
   if(pix>0){/* scale bar */const nice=[1,2,5,10,20,50,100,200,500,1000,2000,5000];const tgt=R.W*pix*0.2,L=nice.reduce((a,b)=>Math.abs(b-tgt)<Math.abs(a-tgt)?b:a),lp=L/pix*k;
     ctx.fillStyle="#fff";ctx.fillRect(ox+12*dpr,oy+R.H*k-18*dpr,lp,4*dpr);ctx.textBaseline="bottom";ctx.fillText(L+" nm",ox+12*dpr,oy+R.H*k-22*dpr);}}
 function rsClampROI(cx,cy){const R=S.real,N=+$("rsN").value;R.cxr=cx;R.cyr=cy;R.x0=Math.round(Math.max(0,Math.min(R.W-N,cx-N/2)));R.y0=Math.round(Math.max(0,Math.min(R.H-N,cy-N/2)));}
@@ -1504,12 +1561,235 @@ cvR.addEventListener("pointerdown",e=>{if(!S.real)return;RS.drag=true;cvR.setPoi
 cvR.addEventListener("pointermove",e=>{if(!RS.drag)return;const [x,y]=rsPt(e);rsClampROI(x,y);rsDraw();});
 cvR.addEventListener("pointerup",()=>{if(!RS.drag)return;RS.drag=false;if($("rsAuto").checked)rsCompute();});
 $("rsGo").addEventListener("click",rsCompute);
+$("rsSave").addEventListener("click",async()=>{const R=S.real;if(!R)return;const f=Math.max(1,Math.ceil(Math.max(R.W,R.H)/2048)),w=Math.floor(R.W/f),h=Math.floor(R.H/f),d=new Float32Array(w*h);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){let s=0;for(let j=0;j<f;j++)for(let i=0;i<f;i++)s+=R.data[(y*f+j)*R.W+x*f+i];d[y*w+x]=s;}
+  const [lo,hi]=pct(sample(d,300000),[0.5,99.5]),g=new Uint8ClampedArray(w*h*4);
+  for(let i=0;i<w*h;i++){const v=Math.max(0,Math.min(255,(d[i]-lo)/(hi-lo||1)*255));g[4*i]=g[4*i+1]=g[4*i+2]=v;g[4*i+3]=255;}
+  const c=document.createElement("canvas");c.width=w;c.height=h;const x=c.getContext("2d");x.putImageData(new ImageData(g,w,h),0,0);
+  const u=w/1000,fs=Math.max(12,Math.round(18*u)),k=1/f;x.font=`600 ${fs}px "IBM Plex Mono",monospace`;x.textBaseline="top";
+  if($("rsSaveRoi").checked){const N=+$("rsN").value;x.strokeStyle="#ffd23f";x.lineWidth=Math.max(2,3*u);x.strokeRect(R.x0*k,R.y0*k,N*k,N*k);}
+  const ls=[R.name,R.acq?"Acquired "+R.acq:""].concat(R.acq?infoPlain(R.acq,true):[]).filter(Boolean);
+  if(ls.length){const aw=Math.max(...ls.map(t=>x.measureText(t).width)),pad=fs*0.4,lh=fs*1.25;x.fillStyle="rgba(0,0,0,.65)";x.fillRect(w-aw-3*pad,pad,aw+2*pad,lh*ls.length+pad);
+    x.fillStyle="#fff";ls.forEach((t,i)=>x.fillText(t,w-aw-2*pad,pad*1.5+i*lh));}
+  const pix=+$("rsPix").value;if(pix>0){const nice=[1,2,5,10,20,50,100,200,500,1000,2000,5000],tgt=R.W*pix*0.2,L=nice.reduce((a,b)=>Math.abs(b-tgt)<Math.abs(a-tgt)?b:a),lp=L/pix*k,bx=fs,by=h-fs*1.6;
+    x.fillStyle="rgba(0,0,0,.55)";x.fillRect(bx-fs*0.5,by-fs*1.7,Math.max(lp,x.measureText(L+" nm").width)+fs,fs*2.6);x.fillStyle="#fff";x.fillRect(bx,by,lp,Math.max(3,fs*0.3));x.textBaseline="bottom";x.fillText(L+" nm",bx,by-fs*0.25);}
+  const blob=await new Promise(r=>c.toBlob(r,"image/png"));saveFile(R.name.replace(/\.[^.]+$/,"")+".png",blob);$("rsStatus").textContent=`Image saved (${w} × ${h} px).`;});
 $("rsN").addEventListener("change",()=>{const R=S.real;if(!R)return;rsClampROI(R.cxr,R.cyr);rsDraw();if($("rsAuto").checked)rsCompute();});
 $("rsHann").addEventListener("change",()=>{if(S.real&&$("rsAuto").checked)rsCompute();});
 $("rsPix").addEventListener("change",()=>{rsDraw();if(S.real&&S.isFFT&&S.realROI){const p=+$("rsPix").value;if(p>0){$("scale").value=+(1/(S.realROI.N*p)).toPrecision(8);$("scale").dispatchEvent(new Event("change"));refreshInfo({units:"1/nm"});drawMain();}}});
 $("rsFull").addEventListener("click",()=>{const R=S.real;if(!R)return;const ns=rsSizes();$("rsN").value=String(ns[ns.length-1]);rsClampROI(R.W/2,R.H/2);rsDraw();rsCompute();});
 new ResizeObserver(()=>rsDraw()).observe($("rsWrap"));
 $("ftype").addEventListener("change",()=>{if(S.lastFile)openFile(S.lastFile);});
+
+/* ============================================================== temperature log (.xlsx / .csv): T set and T measured at the image's acquisition time */
+S.tlog=null;S.acqStr="";
+/* naive (wall-clock) time in ms, so the microscope and the heater log compare without time-zone shifts */
+function acqToMs(str){if(!str)return NaN;const s=String(str).trim();let Y,Mo,D;
+  let m=s.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);if(m){Y=+m[1];Mo=+m[2];D=+m[3];}
+  else if((m=s.match(/(\d{1,2})\.(\d{1,2})\.(\d{2,4})/))){D=+m[1];Mo=+m[2];Y=+m[3];}
+  else if((m=s.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/))){Mo=+m[1];D=+m[2];Y=+m[3];if(Mo>12&&D<=12){const t=Mo;Mo=D;D=t;}}   // m/d/yyyy (US), or d/m/yyyy when the first number cannot be a month
+  else return NaN;if(Y<100)Y+=2000;
+  const t=s.slice(s.indexOf(m[0])+m[0].length).match(/(\d{1,2}):(\d{2})(?::(\d{2})(?:[.,](\d+))?)?\s*([AaPp][Mm])?/)||s.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([AaPp][Mm])?/);
+  if(!t)return NaN;let h=+t[1];const ap=(t[5]||t[4]||"").toLowerCase();if(ap==="pm"&&h<12)h+=12;if(ap==="am"&&h===12)h=0;
+  return Date.UTC(Y,Mo-1,D,h,+t[2],+(t[3]||0));}
+async function unzipEntries(buf){const dv=new DataView(buf),u8=new Uint8Array(buf);let e=-1;for(let i=u8.length-22;i>=Math.max(0,u8.length-70000);i--)if(dv.getUint32(i,true)===0x06054b50){e=i;break;}
+  if(e<0)throw new Error("not a zip / xlsx file");const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const out={};const td=new TextDecoder();
+  for(let k=0;k<n;k++){if(dv.getUint32(p,true)!==0x02014b50)break;const meth=dv.getUint16(p+10,true),cs=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),xl=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true);
+    const name=td.decode(u8.subarray(p+46,p+46+nl));const ds=lo+30+dv.getUint16(lo+26,true)+dv.getUint16(lo+28,true);
+    out[name]={meth,data:u8.subarray(ds,ds+cs)};p+=46+nl+xl+cl;}
+  return {list:Object.keys(out),text:async name=>{const z=out[name];if(!z)return null;if(z.meth===0)return td.decode(z.data);
+    return await new Response(new Blob([z.data]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();}};}
+const xmlUnesc=s=>s.replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,"&");
+async function readXLSX(buf){const z=await unzipEntries(buf);const wb=await z.text("xl/workbook.xml")||"";const d1904=/date1904="(1|true)"/.test(wb);
+  let sheet="xl/worksheets/sheet1.xml";const rid=(wb.match(/<sheet [^>]*r:id="([^"]+)"/)||[])[1],rels=await z.text("xl/_rels/workbook.xml.rels");
+  if(rid&&rels){const m=rels.match(new RegExp(`<Relationship [^>]*Id="${rid}"[^>]*Target="([^"]+)"`))||rels.match(new RegExp(`<Relationship [^>]*Target="([^"]+)"[^>]*Id="${rid}"`));if(m)sheet="xl/"+m[1].replace(/^\/?xl\//,"");}
+  const ssx=await z.text("xl/sharedStrings.xml")||"",ss=[];for(const m of ssx.matchAll(/<si>([\s\S]*?)<\/si>/g))ss.push(xmlUnesc([...m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(x=>x[1]).join("")));
+  const sx=await z.text(sheet);if(!sx)throw new Error("worksheet not found");const rows=[];
+  const colIdx=c=>{let n=0;for(const ch of c)n=n*26+ch.charCodeAt(0)-64;return n-1;};
+  for(const rm of sx.matchAll(/<row[^>]*>([\s\S]*?)<\/row>/g)){const row=[];
+    for(const cm of rm[1].matchAll(/<c r="([A-Z]+)\d+"([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)){const t=(cm[2].match(/t="([^"]+)"/)||[])[1],body=cm[3]||"";let v=(body.match(/<v>([\s\S]*?)<\/v>/)||[])[1];
+      if(t==="s")v=ss[+v];else if(t==="inlineStr")v=xmlUnesc((body.match(/<t[^>]*>([\s\S]*?)<\/t>/)||[])[1]||"");else if(t==="str"||t==="e")v=v!=null?xmlUnesc(v):"";else if(v!=null)v=+v;
+      row[colIdx(cm[1])]=v;}
+    rows.push(row);}
+  return {rows,serialToMs:x=>Math.round((x+(d1904?1462:0)-25569)*86400000)};}
+function readCSV(text){const lines=text.replace(/\r/g,"").split("\n").filter(l=>l.trim());const d=[";","\t",","].find(c=>lines[0].includes(c))||",";
+  return {rows:lines.map(l=>l.split(d).map(x=>{x=x.trim().replace(/^"|"$/g,"");const n=Number(x.replace(",","."));return x!==""&&isFinite(n)&&!/[:\-\/]/.test(x)?n:x;})),serialToMs:x=>Math.round((x-25569)*86400000)};}
+async function loadTempLog(f){const st=$("tStatus");st.textContent="Reading "+f.name+"…";
+  try{const ext=f.name.split(".").pop().toLowerCase();const T=ext==="xlsx"?await readXLSX(await f.arrayBuffer()):readCSV(await f.text());
+    const hi=T.rows.findIndex(r=>r&&r.some(c=>typeof c==="string"&&/time|zeit|date/i.test(c)));if(hi<0)throw new Error("no header row with a Time column");
+    const H=T.rows[hi].map(c=>String(c||""));const find=re=>H.findIndex(h=>re.test(h));
+    const it=find(/time|zeit|date/i),is=find(/t\s*set|set\s*t|soll/i),im=find(/t\s*meas|meas|ist\b/i);
+    if(it<0||(is<0&&im<0))throw new Error("could not find the Time / T set / T measured columns");
+    const ts=[],sv=[],mv=[];for(const r of T.rows.slice(hi+1)){if(!r)continue;const tv=r[it];const ms=typeof tv==="number"?T.serialToMs(tv):acqToMs(tv);if(!isFinite(ms))continue;
+      const num=v=>typeof v==="number"?v:NaN;ts.push(ms);sv.push(is>=0?num(r[is]):NaN);mv.push(im>=0?num(r[im]):NaN);}
+    if(!ts.length)throw new Error("no time stamps found");
+    const o=ts.map((_,i)=>i).sort((a,b)=>ts[a]-ts[b]);
+    S.tlog={name:f.name,t:Float64Array.from(o.map(i=>ts[i])),set:Float32Array.from(o.map(i=>sv[i])),meas:Float32Array.from(o.map(i=>mv[i])),hSet:is>=0?H[is]:"",hMeas:im>=0?H[im]:""};
+    PICK_DB.set("saed-templog",S.tlog);tempShow();}
+  catch(err){st.textContent="Could not read the log: "+err.message;}}
+const fmtWall=ms=>{const d=new Date(ms);const p=n=>String(n).padStart(2,"0");return `${d.getUTCFullYear()}-${p(d.getUTCMonth()+1)}-${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())}`;};
+function tempAt(acq){const L=S.tlog;if(!L||!acq)return null;const t=acqToMs(acq);if(!isFinite(t))return {err:"acquisition time not readable"};
+  const q=t+(+$("tOff").value||0)*1000;let lo=0,hi=L.t.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(L.t[m]<q)lo=m;else hi=m;}
+  const i=Math.abs(L.t[lo]-q)<=Math.abs(L.t[hi]-q)?lo:hi,dt=(L.t[i]-q)/1000;
+  if(Math.abs(dt)>(+$("tTol").value||10))return {err:`no log entry within ±${+$("tTol").value||10} s (log covers ${fmtWall(L.t[0])} – ${fmtWall(L.t[L.t.length-1])})`};
+  return {set:L.set[i],meas:L.meas[i],dt,at:fmtWall(L.t[i])};}
+const fmtT=(v,fix)=>isFinite(v)?(fix?v.toFixed(1):String(+v.toFixed(1)))+" °C":"—";
+function logText(acq){const r=tempAt(acq);if(!r||r.err)return "";return `Log ${r.at}`+(Math.abs(r.dt)>0.5?` (Δt ${r.dt>0?"+":""}${r.dt.toFixed(0)} s)`:"");}
+function tempText(acq){const r=tempAt(acq);if(!r)return "";if(r.err)return "T: "+r.err;return `T set ${fmtT(r.set)} · T measured ${fmtT(r.meas,true)}`;}
+/* ---------- pressure log: Time + one column per gauge (MC1, MC2, …) */
+S.plog=null;
+const numUnit=x=>{if(typeof x==="number")return {v:x,u:""};const m=String(x??"").trim().match(/^([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)\s*(.*)$/);return m?{v:+m[1],u:m[2].trim()}:{v:NaN,u:""};};
+async function loadPresLog(f){const st=$("pStatus");st.textContent="Reading "+f.name+"…";
+  try{const ext=f.name.split(".").pop().toLowerCase();let rows,toMs;
+    if(ext==="xlsx"){const X=await readXLSX(await f.arrayBuffer());rows=X.rows;toMs=X.serialToMs;}
+    else{const lines=(await f.text()).replace(/\r/g,"").split("\n").filter(l=>l.trim()&&!/^[=\-_\s]+$/.test(l));const d=lines[0].includes("\t")?"\t":lines[0].includes(";")?";":",";
+      rows=lines.map(l=>l.split(d).map(x=>x.trim()));toMs=x=>Math.round((x-25569)*86400000);}
+    const hi=rows.findIndex(r=>r&&r.some(c=>typeof c==="string"&&/time|zeit|date/i.test(c)));if(hi<0)throw new Error("no header row with a Time column");
+    const H=rows[hi].map(c=>String(c??"").trim()),it=H.findIndex(h=>/time|zeit|date/i.test(h));
+    const cols=H.map((h,i)=>({h,i})).filter(o=>o.i!==it&&o.h);const ts=[],V=cols.map(()=>[]),U=cols.map(()=>"");
+    for(const r of rows.slice(hi+1)){if(!r)continue;const tv=r[it];const ms=typeof tv==="number"?toMs(tv):acqToMs(tv);if(!isFinite(ms))continue;ts.push(ms);
+      cols.forEach((c,k)=>{const q=numUnit(r[c.i]);V[k].push(q.v);if(q.u&&!U[k])U[k]=q.u;});}
+    if(!ts.length)throw new Error("no time stamps found");
+    const keep=cols.map((c,k)=>V[k].some(isFinite)?k:-1).filter(k=>k>=0);if(!keep.length)throw new Error("no numeric gauge columns");
+    const o=ts.map((_,i)=>i).sort((a,b)=>ts[a]-ts[b]);
+    S.plog={name:f.name,t:Float64Array.from(o.map(i=>ts[i])),cols:keep.map(k=>({name:cols[k].h.replace(/\s*\[.*\]$/,""),unit:U[k]||((cols[k].h.match(/\[(.*)\]/)||[])[1]||""),v:Float64Array.from(o.map(i=>V[k][i]))}))};
+    PICK_DB.set("saed-preslog",S.plog);tempShow();}
+  catch(err){st.textContent="Could not read the pressure log: "+err.message;}}
+function logAt(L,acq){if(!L||!acq)return null;const t=acqToMs(acq);if(!isFinite(t))return {err:"acquisition time not readable"};
+  const q=t+(+$("tOff").value||0)*1000,tol=+$("tTol").value||10;let lo=0,hi=L.t.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(L.t[m]<q)lo=m;else hi=m;}
+  const i=Math.abs(L.t[lo]-q)<=Math.abs(L.t[hi]-q)?lo:hi,dt=(L.t[i]-q)/1000;
+  if(Math.abs(dt)>tol)return {err:`no log entry within ±${tol} s`};return {i,dt,at:fmtWall(L.t[i])};}
+const fmtP=v=>isFinite(v)?v.toExponential(2).toUpperCase().replace(/E([+-])(\d)$/,"E$10$2"):"—";
+const atTxt=(lab,r)=>`${lab} log ${r.at}`+(Math.abs(r.dt)>0.5?` (Δt ${r.dt>0?"+":""}${r.dt.toFixed(0)} s)`:"");
+/* lines to show with the image, as chosen in “show on image”: {txt, sub (log time), err} */
+function infoLines(acq){const sel=$("showInfo").value,out=[];if(!acq||sel==="none")return out;
+  if((sel==="both"||sel==="temp")&&S.tlog){const r=tempAt(acq);if(r&&r.err)out.push({txt:"T: "+r.err,err:true});else if(r){out.push({txt:`T set ${fmtT(r.set)} · T measured ${fmtT(r.meas,true)}`});out.push({txt:atTxt("T",r),sub:true});}}
+  if((sel==="both"||sel==="pres")&&S.plog){const r=logAt(S.plog,acq);if(r&&r.err)out.push({txt:"P: "+r.err,err:true});
+    else if(r){out.push({txt:S.plog.cols.map(c=>`${c.name} ${fmtP(c.v[r.i])}${c.unit?" "+c.unit:""}`).join(" · ")});out.push({txt:atTxt("P",r),sub:true});}}
+  return out;}
+const infoPlain=(acq,withSub)=>infoLines(acq).filter(l=>!l.err&&(withSub||!l.sub)).map(l=>l.txt);
+function tempShow(){const st=$("tStatus"),L=S.tlog,P=S.plog;
+  if(L)st.textContent=`${L.name} · ${L.t.length} entries · ${fmtWall(L.t[0])} – ${fmtWall(L.t[L.t.length-1])}`;
+  if(P)$("pStatus").textContent=`${P.name} · ${P.cols.map(c=>c.name).join(", ")} · ${P.t.length} entries · ${fmtWall(P.t[0])} – ${fmtWall(P.t[P.t.length-1])}`;
+  const acq=S.acqStr||(S.real&&S.real.acq)||"",tag=$("tempTag"),ls=infoLines(acq);
+  tag.hidden=!S.img;tag.innerHTML="";
+  if(S.img){const n=document.createElement("div");n.className="fn";n.textContent=S.realROI&&S.real?`${S.real.name} · FFT ${S.realROI.N}×${S.realROI.N}`:S.name;tag.appendChild(n);}
+  if(acq){const a=document.createElement("div");a.textContent="Acquired "+acq;tag.appendChild(a);}
+  for(const l of ls){const d=document.createElement("div");d.textContent=l.txt;if(l.sub)d.className="sub";if(l.err)d.style.color="#ffb4a8";tag.appendChild(d);}
+  if(typeof rsDraw==="function")rsDraw();if(S.profile)drawChart();
+  const fi=$("fileinfo");fi.querySelectorAll(".tchip").forEach(x=>x.remove());
+  for(const t of infoPlain(acq,false)){const c=document.createElement("span");c.className="chip tchip";c.textContent=t;fi.appendChild(c);}}
+$("pIn").addEventListener("change",e=>{const f=e.target.files[0];if(f)loadPresLog(f);e.target.value="";});
+$("pClear").addEventListener("click",()=>{S.plog=null;PICK_DB.set("saed-preslog",null);$("pStatus").textContent="no pressure log loaded";tempShow();});
+$("showInfo").addEventListener("change",()=>{try{localStorage.setItem("saed-showinfo",$("showInfo").value);}catch(e){}tempShow();});
+try{const v=localStorage.getItem("saed-showinfo");if(v)$("showInfo").value=v;}catch(e){}
+(async()=>{const L=await PICK_DB.get("saed-preslog");if(L&&L.t&&L.t.length){S.plog=L;tempShow();}})();
+$("tIn").addEventListener("change",e=>{const f=e.target.files[0];if(f)loadTempLog(f);e.target.value="";});
+$("tOff").addEventListener("change",tempShow);$("tTol").addEventListener("change",tempShow);
+$("tClear").addEventListener("click",()=>{S.tlog=null;PICK_DB.set("saed-templog",null);$("tStatus").textContent="no log loaded";tempShow();});
+(async()=>{const L=await PICK_DB.get("saed-templog");if(L&&L.t&&L.t.length){S.tlog=L;tempShow();}})();
+
+/* ============================================================== image browser: pick a folder, see every image with time / T / P, choose one */
+/* fast DM3/DM4 scan: reads only the tag tree (skipping pixel arrays) plus a few sampled rows for the thumbnail, so a 67 MB file costs ~1–3 MB of reading */
+async function scanDM(file){
+  const BS=1<<18,cache=new Map();
+  const blk=async b=>{let u=cache.get(b);if(!u){u=new Uint8Array(await file.slice(b*BS,Math.min(file.size,(b+1)*BS)).arrayBuffer());cache.set(b,u);if(cache.size>24)cache.delete(cache.keys().next().value);}return u;};
+  const bytes=async(pos,len)=>{const b0=Math.floor(pos/BS),b1=Math.floor((pos+len-1)/BS);if(b0===b1){const u=await blk(b0);return new DataView(u.buffer,u.byteOffset+pos-b0*BS,len);}
+    const out=new Uint8Array(len);let o=0;for(let b=b0;b<=b1;b++){const u=await blk(b),s=b===b0?pos-b0*BS:0,e=b===b1?pos+len-b1*BS:u.length;out.set(u.subarray(s,e),o);o+=e-s;}return new DataView(out.buffer);};
+  let p=0;const h=await bytes(0,24),ver=h.getUint32(0,false);if(ver!==3&&ver!==4)throw new Error("not DM3/DM4");const dm4=ver===4;p=4+(dm4?8:4);const le=h.getUint32(p,false)===1;p+=4;
+  const SZ={2:2,3:4,4:2,5:4,6:4,7:8,8:1,9:1,10:1,11:8,12:8};
+  const rdLen=async()=>{if(dm4){const v=Number((await bytes(p,8)).getBigUint64(0,false));p+=8;return v;}const v=(await bytes(p,4)).getUint32(0,false);p+=4;return v;};
+  const simple=(dv,o,t)=>{switch(t){case 2:return dv.getInt16(o,le);case 3:return dv.getInt32(o,le);case 4:return dv.getUint16(o,le);case 5:return dv.getUint32(o,le);case 6:return dv.getFloat32(o,le);case 7:return dv.getFloat64(o,le);case 8:return dv.getUint8(o)!==0;case 9:return dv.getInt8(o);case 10:return dv.getUint8(o);case 11:return Number(dv.getBigInt64(o,le));case 12:return Number(dv.getBigUint64(o,le));}return null;};
+  async function readData(){p+=4;const n=await rdLen(),info=[];for(let i=0;i<n;i++)info.push(await rdLen());const t=info[0];
+    if(SZ[t]){const v=simple(await bytes(p,SZ[t]),0,t);p+=SZ[t];return v;}
+    if(t===18){const ln=info[1];const dv=await bytes(p,ln||1);let s="";for(let j=0;j<ln;j++)s+=String.fromCharCode(dv.getUint8(j));p+=ln;return s;}
+    if(t===15){const nf=info[2],out=[];for(let f=0;f<nf;f++){const ft=info[4+2*f];out.push(simple(await bytes(p,SZ[ft]),0,ft));p+=SZ[ft];}return out;}
+    if(t===20){const et=info[1];
+      if(SZ[et]){const cnt=info[2],a={arr:true,type:et,off:p,count:cnt};if(cnt*SZ[et]<=1024){const dv=await bytes(p,cnt*SZ[et]||1);a.vals=[];for(let j=0;j<cnt;j++)a.vals.push(simple(dv,j*SZ[et],et));}p+=cnt*SZ[et];return a;}
+      if(et===15){const nf=info[3],fts=[];let rs=0;for(let f=0;f<nf;f++){fts.push(info[5+2*f]);rs+=SZ[info[5+2*f]];}const cnt=info[info.length-1];const a={sarr:true,fts,off:p,count:cnt,rs};p+=cnt*rs;return a;}}
+    throw new Error("unsupported tag");}
+  async function readGroup(depth){p+=2;const n=await rdLen(),out=[];
+    for(let i=0;i<n;i++){const hd=await bytes(p,3);const typ=hd.getUint8(0),ll=hd.getUint16(1,false);p+=3;const lb=await bytes(p,ll||1);let label="";for(let j=0;j<ll;j++)label+=String.fromCharCode(lb.getUint8(j));p+=ll;
+      let end=null;if(dm4){end=p+8+Number((await bytes(p,8)).getBigUint64(0,false));p+=8;}
+      try{if(typ===20)out.push([label,await readGroup(depth+1)]);else if(typ===21)out.push([label,await readData()]);else if(typ===0)break;else throw new Error("bad tag");}
+      catch(e){if(end===null)throw e;p=end;}}
+    return out;}
+  const root=await readGroup(0);
+  const get=(g,...path)=>{for(const k of path){if(!Array.isArray(g))return undefined;const e=g.find(x=>x[0]===k);g=e?e[1]:undefined;}return g;};
+  const isGrp=g=>Array.isArray(g)&&g.every(e=>Array.isArray(e)&&e.length===2&&typeof e[0]==="string");
+  const find=(g,name,d)=>{if(!isGrp(g)||d>8)return undefined;for(const [k,v] of g)if(k===name)return v;for(const [,v] of g){const r=find(v,name,d+1);if(r!==undefined)return r;}return undefined;};
+  const str=v=>typeof v==="string"?v:v&&v.vals?String.fromCharCode(...v.vals):typeof v==="number"?String(v):"";
+  let best=null;for(const [,im] of (get(root,"ImageList")||[])){const d=get(im,"ImageData","Data");if(d&&(d.arr||d.sarr)&&(!best||d.count>best.d.count))best={im,d};}
+  if(!best)throw new Error("no image");
+  const {im,d}=best,dims=(get(im,"ImageData","Dimensions")||[]).map(x=>x[1]),W=dims[0],H=Math.floor(d.count/W);
+  const cal=get(im,"ImageData","Calibrations","Dimension");let scale=null,units="";if(Array.isArray(cal)&&cal.length){scale=get(cal[0][1],"Scale");units=str(get(cal[0][1],"Units")).trim();}
+  const tags=get(im,"ImageTags"),acq=[str(find(tags,"Acquisition Date",0)).trim(),str(find(tags,"Acquisition Time",0)).trim()].filter(Boolean).join("  ");
+  const v=get(im,"ImageTags","Microscope Info","Voltage"),kv=typeof v==="number"&&v>0?v/1000:null;
+  /* thumbnail: sample ~200 rows directly from the file */
+  const T=200,step=Math.max(1,Math.ceil(Math.max(W,H)/T)),tw=Math.floor(W/step),th=Math.floor(H/step),thumb=new Float32Array(tw*th),cx=!!d.sarr,es=cx?d.rs:SZ[d.type];
+  for(let y=0;y<th;y++){const row=new DataView(await file.slice(d.off+(y*step)*W*es,d.off+(y*step+1)*W*es).arrayBuffer());
+    for(let x=0;x<tw;x++){let sum=0;for(let j=0;j<step;j++){const o=(x*step+j)*es;sum+=cx?Math.hypot(simple(row,o,d.fts[0]),simple(row,o+SZ[d.fts[0]],d.fts[1])):simple(row,o,d.type);}thumb[y*tw+x]=sum/step;}}
+  return {W,H,scale,units,acq,kv,complex:cx,thumb,tw,th};}
+const BR={items:[],dir:"",gen:0,cur:-1};
+const IMG_EXT=/\.(dm4|dm3|tif|tiff|png|jpe?g)$/i;
+function thumbCanvas(it){const c=document.createElement("canvas");c.width=it.tw||1;c.height=it.th||1;if(!it.thumb)return c;
+  const d=it.thumb,n=d.length,smp=Array.from(d).sort((a,b)=>a-b),q=f=>smp[Math.min(n-1,Math.floor(f*(n-1)))];const g=new Uint8ClampedArray(n*4);
+  if(it.kind==="diff"||it.kind==="fft"){const p1=q(0.01),L=Array.from(d,v=>Math.log1p(Math.max(0,v-p1))),Ls=L.slice().sort((a,b)=>a-b),lo=Ls[Math.floor(0.5*(n-1))],hi=Ls[Math.floor(0.9995*(n-1))];
+    for(let i=0;i<n;i++){const t=Math.max(0,Math.min(255,(L[i]-lo)/(hi-lo||1)*255));g[4*i]=g[4*i+1]=g[4*i+2]=t;g[4*i+3]=255;}}
+  else{const lo=q(0.005),hi=q(0.995);for(let i=0;i<n;i++){const t=Math.max(0,Math.min(255,(d[i]-lo)/(hi-lo||1)*255));g[4*i]=g[4*i+1]=g[4*i+2]=t;g[4*i+3]=255;}}
+  c.getContext("2d").putImageData(new ImageData(g,it.tw,it.th),0,0);return c;}
+async function scanItem(it){const f=it.file;
+  try{if(/\.dm[34]$/i.test(f.name)){const r=await scanDM(f);Object.assign(it,r);const ru=REAL_UNITS[r.units.replace(/\s/g,"")];it.kind=r.complex?"fft":ru?"real":"diff";
+      it.cal=r.scale?(ru?`${(+r.scale*ru).toPrecision(4)} nm/px`:`${(+r.scale).toPrecision(4)} ${r.units}/px`):"";}
+    else{let W,H,d;if(/\.tiff?$/i.test(f.name)){const t=readTIFF(await f.arrayBuffer());W=t.W;H=t.H;d=t.data;}
+      else{const bmp=await createImageBitmap(f);const k=Math.min(1,256/Math.max(bmp.width,bmp.height)),c=document.createElement("canvas");c.width=Math.max(1,Math.round(bmp.width*k));c.height=Math.max(1,Math.round(bmp.height*k));
+        const g=c.getContext("2d");g.drawImage(bmp,0,0,c.width,c.height);const px=g.getImageData(0,0,c.width,c.height).data;W=c.width;H=c.height;d=new Float32Array(W*H);for(let i=0;i<W*H;i++)d[i]=(px[4*i]+px[4*i+1]+px[4*i+2])/3;it.W=bmp.width;it.H=bmp.height;}
+      const step=Math.max(1,Math.ceil(Math.max(W,H)/200));it.tw=Math.floor(W/step);it.th=Math.floor(H/step);it.thumb=new Float32Array(it.tw*it.th);
+      for(let y=0;y<it.th;y++)for(let x=0;x<it.tw;x++)it.thumb[y*it.tw+x]=d[y*step*W+x*step];it.W=it.W||W;it.H=it.H||H;
+      it.kind=$("ftype").value==="real"?"real":"diff";it.acq=fmtWall(f.lastModified-new Date(f.lastModified).getTimezoneOffset()*60000);it.acqFromFile=true;}
+    it.ms=acqToMs(it.acq);}
+  catch(err){it.err=err.message;it.ms=NaN;}
+  it.done=true;}
+function brInfo(it){const out=[];if(!it.acq)return out;
+  if(S.tlog){const r=tempAt(it.acq);if(r&&!r.err)out.push(`T set ${fmtT(r.set)} · T meas ${fmtT(r.meas,true)}`);}
+  if(S.plog){const r=logAt(S.plog,it.acq);if(r&&!r.err)out.push(S.plog.cols.map(c=>`${c.name} ${fmtP(c.v[r.i])}`).join(" · ")+(S.plog.cols[0]&&S.plog.cols[0].unit?" "+S.plog.cols[0].unit:""));}
+  return out;}
+function brOrder(){const k=$("brSort").value,L=BR.items.slice();
+  if(k==="name")L.sort((a,b)=>a.rel.localeCompare(b.rel,undefined,{numeric:true}));else L.sort((a,b)=>((isFinite(a.ms)?a.ms:Infinity)-(isFinite(b.ms)?b.ms:Infinity))||a.rel.localeCompare(b.rel,undefined,{numeric:true}));
+  const kind=$("brKind").value;return L.filter(it=>kind==="all"||!it.done||it.kind===kind||(kind==="diff"&&it.kind==="fft"));}
+function brRender(){const grid=$("brGrid");grid.textContent="";const L=brOrder();
+  $("brTitle").textContent=`${BR.dir||"Images"} · ${BR.items.length} file${BR.items.length!==1?"s":""}`+(BR.items.some(i=>!i.done)?` · reading ${BR.items.filter(i=>i.done).length}/${BR.items.length}…`:"");
+  for(const it of L){const card=document.createElement("button");card.className="brcard"+(it.file===S.lastFile?" cur":"");card.type="button";
+    const box=document.createElement("div");box.className="brthumb";if(it.done&&it.thumb){box.appendChild(thumbCanvas(it));}else box.textContent=it.err?"⚠ "+it.err:"reading…";card.appendChild(box);
+    const t=document.createElement("div");t.className="brtxt";
+    const kindTxt={diff:"diffraction",fft:"FFT",real:"image → FFT"}[it.kind]||"";
+    t.innerHTML=`<b></b><span class="tm"></span><span class="kd"></span>`;t.querySelector("b").textContent=it.rel;
+    t.querySelector(".tm").textContent=it.acq?(it.acqFromFile?"file time ":"")+it.acq:"";t.querySelector(".kd").textContent=[kindTxt,it.W?`${it.W}×${it.H}`:"",it.cal||""].filter(Boolean).join(" · ");
+    for(const l of brInfo(it)){const s=document.createElement("span");s.className="lg";s.textContent=l;t.appendChild(s);}
+    card.appendChild(t);card.addEventListener("click",()=>brOpen(it));grid.appendChild(card);}
+  $("brPrev").disabled=$("brNext").disabled=!BR.items.length;$("brShow").hidden=!BR.items.length;$("brShow").textContent=`Image list (${BR.items.length})`;}
+function brOpen(it){$("brModal").hidden=true;openFile(it.file);setTimeout(()=>{brRender();},50);}
+function brStep(k){const L=brOrder().filter(i=>i.done&&!i.err);if(!L.length)return;let i=L.findIndex(x=>x.file===S.lastFile);i=i<0?0:(i+k+L.length)%L.length;openFile(L[i].file);
+  setStatus(`Image ${i+1} of ${L.length} (${$("brSort").value==="name"?"by name":"by time"}): ${L[i].rel}`);}
+async function brLoad(entries,dirName){const gen=++BR.gen;BR.dir=dirName;BR.items=entries.filter(e=>IMG_EXT.test(e.file.name)).map(e=>({file:e.file,rel:e.rel,done:false}));
+  $("brModal").hidden=false;brRender();if(!BR.items.length){$("brTitle").textContent=`No images (.dm4 .dm3 .tif .png .jpg) in “${dirName}”`;return;}
+  let last=0;for(const it of BR.items){if(gen!==BR.gen)return;await scanItem(it);if(performance.now()-last>400){brRender();last=performance.now();}}
+  if(gen===BR.gen)brRender();}
+async function brWalk(dir,path,out){for await(const [name,h] of dir.entries()){if(h.kind==="directory")await brWalk(h,path.concat(name),out);else if(IMG_EXT.test(name))out.push({file:await h.getFile(),rel:path.concat(name).join("/")});}}
+$("brPick").addEventListener("click",async e=>{e.preventDefault();
+  if(FSA){try{const d=await pickWithMemory("saed-imgdir",o=>window.showDirectoryPicker(o),{mode:"read"});const out=[];await brWalk(d,[],out);brLoad(out,d.name);return;}catch(err){if(err&&err.name==="AbortError")return;}}
+  $("brDir").click();});
+$("brDir").addEventListener("change",e=>{const fs=[...e.target.files];const root=(fs[0]&&fs[0].webkitRelativePath||"").split("/")[0];
+  brLoad(fs.map(f=>({file:f,rel:(f.webkitRelativePath||f.name).split("/").slice(1).join("/")||f.name})),root||"folder");e.target.value="";});
+$("brShow").addEventListener("click",()=>{$("brModal").hidden=false;brRender();});
+$("brClose").addEventListener("click",()=>{$("brModal").hidden=true;});
+$("brModal").addEventListener("click",e=>{if(e.target===$("brModal"))$("brModal").hidden=true;});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("brModal").hidden){$("brModal").hidden=true;e.stopPropagation();}},true);
+/* Esc un-highlights the highlighted CIF phase (before anything else uses Esc) */
+document.addEventListener("keydown",e=>{if(e.key!=="Escape"||S.focus==null||!$("brModal").hidden)return;const tag=(e.target.tagName||"").toLowerCase();if(tag==="input"&&/text|number|search/.test(e.target.type)||tag==="textarea")return;
+  S.focus=null;renderPhases();redrawAll();drawChart();e.preventDefault();e.stopPropagation();},true);
+$("brSort").addEventListener("change",brRender);$("brKind").addEventListener("change",brRender);
+$("brPrev").addEventListener("click",()=>brStep(-1));$("brNext").addEventListener("click",()=>brStep(1));
 
 </script>
 
