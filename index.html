@@ -144,7 +144,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
   <header class="top">
     <span class="row2" style="gap:6px"><button class="primary" id="brPick" title="Choose a folder: every image in it (and its sub-folders) is listed with time, temperature and pressure; pick one to analyse">📂 Browse folder…</button><input id="brDir" type="file" webkitdirectory directory multiple hidden>
       <button id="brShow" hidden title="Reopen the image list">Image list</button>
-      <select id="imgSel" class="imgsel" disabled style="width:auto;max-width:34rem" title="Jump to another image: the images in the comparison (or, before comparing, all images of the browsed folder)"><option>— no images —</option></select></span>
+      </span>
     <div class="brand"><h1>d-Spacing Compare</h1><small>compare ring profiles of several SAED patterns / FFTs</small></div>
     <label class="btn primary" for="file">Open .dm4 / .dm3 / image<input id="file" type="file" accept=".dm4,.dm3,.png,.jpg,.jpeg,.tif,.tiff"></label>
     <label class="row2" title="Auto: DM files calibrated in nm / Å / µm are real-space images (an FFT is computed), 1/nm files are patterns. Plain PNG/JPG/TIF are treated as patterns unless you choose “real-space image”.">file is
@@ -161,8 +161,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <label class="btn" for="pIn" title="Pressure log (.txt / .csv / .xlsx) with a Time column and one column per gauge (e.g. MC1, MC2); values may carry units such as “3.80E-04 Pa”">Load pressure log…<input id="pIn" type="file" accept=".txt,.csv,.tsv,.log,.xlsx"></label>
       <button id="pClear" title="Forget the pressure log">clear</button>
       <span class="keys" id="pStatus">no pressure log loaded</span>
-      <label for="showInfo" style="margin-left:12px">show on image</label>
-      <select id="showInfo" style="width:auto"><option value="both">temperature + pressure</option><option value="temp">temperature</option><option value="pres">pressure</option><option value="none">nothing (time only)</option></select>
+      <select id="showInfo" hidden style="width:auto"><option value="both">temperature + pressure</option><option value="temp">temperature</option><option value="pres">pressure</option><option value="none">nothing (time only)</option></select>
     </div>
   </header>
 
@@ -179,9 +178,13 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <button id="rsFull" title="Largest square, centred">Whole image</button>
       <button class="primary" id="rsGo">Compute FFT</button>
     </div>
+    <div class="chartbar" id="rsBC"><span class="row2"><label for="rsBri">brightness</label><input id="rsBri" type="range" min="-100" max="100" step="1" value="0" style="width:9rem"><input id="rsBriN" type="number" min="-100" max="100" step="1" value="0" style="width:4.2rem"></span>
+      <span class="row2"><label for="rsCon">contrast</label><input id="rsCon" type="range" min="-100" max="100" step="1" value="0" style="width:9rem"><input id="rsConN" type="number" min="-100" max="100" step="1" value="0" style="width:4.2rem"></span>
+      <button id="rsBCReset" title="Brightness 0, contrast 0">↺ reset</button><span class="keys">display only — the FFT always uses the raw data; Save image uses these settings</span></div>
     <div id="rsWrap" style="position:relative;height:clamp(300px,42vh,520px);min-height:200px;resize:vertical;overflow:hidden;border:1px solid var(--line);border-radius:var(--r)">
       <canvas id="rsCv" aria-label="Real-space image; drag to place the FFT region" style="display:block;width:100%;height:100%;cursor:crosshair;touch-action:none"></canvas></div>
     <div class="row2" style="justify-content:flex-end;gap:12px"><label title="Also draw the yellow FFT region square on the saved image"><input id="rsSaveRoi" type="checkbox"> with FFT region</label>
+<span class="row2 infoSel" style="gap:6px" title="What the information box on the images shows"><span class="keys">on image:</span><label><input type="checkbox" data-k="name" checked> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date" checked> date</label><label><input type="checkbox" data-k="time" checked> time</label><label><input type="checkbox" data-k="Ts" checked> T set</label><label><input type="checkbox" data-k="T" checked> T meas</label><label><input type="checkbox" data-k="P" checked> pressure</label><label><input type="checkbox" data-k="log" checked> log times</label></span><span class="spacer"></span>
       <button id="rsSave" title="Saves the real-space image (up to 2048 px) with scale bar, acquisition time and temperature">Save image (.png)</button></div>
     <div class="keys"><kbd>click</kbd> or <kbd>drag</kbd> on the image to place the square FFT region (yellow) · the FFT amplitude |F| is shown below as the pattern, centred at zero frequency, and everything else (centre, profile, peaks, CIF matching) works on it as on an SAED pattern · calibration = 1 / (FFT size × pixel size). <span id="rsStatus" style="color:var(--ink)"></span></div>
   </section>
@@ -196,6 +199,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
         <div class="hud bottom"><span id="hudCursor">hover the pattern: r and d at the cursor</span></div>
       </div>
       <div class="row2" style="justify-content:space-between">
+<span class="row2 infoSel" style="gap:6px" title="What the information box on the images shows"><span class="keys">on image:</span><label><input type="checkbox" data-k="name" checked> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date" checked> date</label><label><input type="checkbox" data-k="time" checked> time</label><label><input type="checkbox" data-k="Ts" checked> T set</label><label><input type="checkbox" data-k="T" checked> T meas</label><label><input type="checkbox" data-k="P" checked> pressure</label><label><input type="checkbox" data-k="log" checked> log times</label></span>
         <label title="When locked, clicks and arrow keys no longer move the centre; a click measures the spot under the cursor instead"><input id="lock" type="checkbox"> Lock centre <span class="keys">(on after Compute; then click a spot to see its d)</span></label>
         <span class="row2" style="gap:8px"><button id="fullView" title="Show the whole pattern (h)">Full view</button>
         <button id="svimg" disabled title="Saves the pattern as currently shown, with guide circles and selected rings">Save image with rings (.png)</button></span>
@@ -279,7 +283,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
         <select id="xmode" style="width:auto"><option value="d">d (Å)</option><option value="tt">2θ (°)</option><option value="q">q (nm⁻¹)</option><option value="r">r (px)</option></select></div><div class="row2"><label for="xlo">from</label><input id="xlo" type="number" step="any"><label for="xhi">to</label><input id="xhi" type="number" step="any"><button id="zreset" title="Back to the full range (or double-click the plot)">Reset zoom</button></div></div>
     <div class="chartbar"><div class="row2"><label title="Vertical line at each detected peak; it turns green when a shown CIF line is within ±1 % in d"><input id="pkLines" type="checkbox"> peak lines</label><label title="On: the peak line runs down to the baseline. Off: it stops at the peak marker, so CIF sticks underneath stay clear"><input id="pkFull" type="checkbox" checked> full height</label>
         <label><input id="logy" type="checkbox"> log I</label><label><input id="bgsub" type="checkbox" checked> subtract background</label></div><div class="row2"><label for="sens">peak sensitivity</label><input id="sens" type="range" min="2" max="20" step="0.5" value="6" style="width:7rem"><label for="pkMin" title="Ignore detected peaks lower than this % of the strongest peak (peaks you add by hand are always kept)">min height</label><input id="pkMin" type="number" min="0" max="100" step="0.5" value="2" style="width:4.5rem"><span class="keys">%</span></div></div>
-    <div class="chartbar"><span class="row2" style="gap:6px" title="What the legend shows for the experimental profile"><button id="lgEditBtn" title="Edit the legend texts of this plot" style="padding:2px 9px">✎ edit legend</button><span class="keys">legend:</span><label><input id="lgName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="lgType" type="checkbox"> type</label><label><input id="lgTime" type="checkbox"> time</label><label><input id="lgT" type="checkbox" checked> T</label><label><input id="lgP" type="checkbox"> pressure</label></span></div>
+    <div class="chartbar"><span class="row2" style="gap:6px" title="What the legend shows for the experimental profile"><button id="lgEditBtn" title="Edit the legend texts of this plot" style="padding:2px 9px">✎ edit legend</button><span class="keys">legend:</span><label><input id="lgName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="lgType" type="checkbox"> type</label><label><input id="lgDate" type="checkbox"> date</label><label><input id="lgTime" type="checkbox"> time</label><label><input id="lgTs" type="checkbox"> T set</label><label><input id="lgT" type="checkbox" checked> T meas</label><label><input id="lgP" type="checkbox"> pressure</label></span></div>
     <div id="lgEdit" class="lgedit" hidden></div>
     <div class="bench" style="grid-template-columns:minmax(0,1fr)">
       <div id="chartWrap" title="Drag the bottom-right corner to change the plot height"><canvas id="chart" aria-label="Intensity profile"></canvas>
@@ -322,13 +326,32 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <button id="cmpClear" title="Empty the comparison">Clear list</button>
     </div>
     <div class="chartbar">
-      <span class="row2" style="gap:6px" title="What each profile's label shows (legend, or the labels beside the stacked curves)"><span class="keys">label by:</span><label><input id="clName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="clType" type="checkbox"> type</label><label><input id="clTime" type="checkbox"> time</label><label><input id="clT" type="checkbox"> T</label><label><input id="clP" type="checkbox"> pressure</label></span>
+      <span class="row2" style="gap:6px" title="What each profile's label shows (legend, or the labels beside the stacked curves)"><span class="keys">label by:</span><label><input id="clName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="clType" type="checkbox"> type</label><label><input id="clDate" type="checkbox"> date</label><label><input id="clTime" type="checkbox"> time</label><label><input id="clTs" type="checkbox"> T set</label><label><input id="clT" type="checkbox"> T meas</label><label><input id="clP" type="checkbox"> pressure</label></span>
     </div>
     <div id="cmpLgEdit" class="lgedit" hidden></div>
     <div id="cmpWrap" style="position:relative;height:clamp(420px,60vh,820px);min-height:260px;resize:vertical;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)"><canvas id="cmpChart" style="display:block;width:100%;height:100%;cursor:crosshair" aria-label="Profile comparison"></canvas></div>
     <div class="keys">zoom: <kbd>wheel</kbd> or <kbd>drag</kbd> across a range, <kbd>double-click</kbd> to reset · FFTs use the zero-frequency centre automatically; SAED patterns start from an automatic centre (⚠) — press <b>open</b>, set the centre on the pattern above, and the profile updates here. <span id="cmpStatus" style="color:var(--ink)"></span></div>
     <div class="tablebox" style="max-height:300px"><table><thead><tr><th title="Drag a row to change the order">order</th><th>show</th><th></th><th style="text-align:left">image</th><th>acquired</th><th>T set / meas</th><th>pressure</th><th>type</th><th>centre</th><th></th></tr></thead><tbody id="cmpRows"></tbody></table></div>
   </section>
+  <section class="panel" id="gifPanel" hidden style="display:grid;gap:10px">
+    <div class="chartbar">
+      <button id="gifCollapse" title="Collapse / expand this section" aria-label="collapse" style="padding:2px 9px">▾</button>
+      <h2>Animation (GIF)</h2>
+      <span class="row2"><label for="gifMode">frames</label><select id="gifMode" style="width:auto" title="Images as loaded, or the diffraction pattern / FFT used for each profile (a real-space image becomes its FFT)"><option value="img">images as loaded</option><option value="pat">FFT / diffraction patterns</option></select></span>
+      <span class="row2" id="gifZoomBox"><label for="gifZoom">zoom</label><select id="gifZoom" style="width:auto" title="Magnification around the pattern centre"><option value="1">1×</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option><option value="4">4×</option></select></span>
+      <span class="row2"><label for="gifBri">brightness</label><input id="gifBri" type="range" min="-100" max="100" step="1" value="0" style="width:6rem"></span>
+      <span class="row2"><label for="gifCon">contrast</label><input id="gifCon" type="range" min="-100" max="100" step="1" value="0" style="width:6rem"></span><button id="gifBCReset" title="Brightness 0, contrast 0" style="padding:2px 8px">↺</button>
+      <span class="row2"><label for="gifSize">size</label><select id="gifSize" style="width:auto"><option value="384">384 px</option><option value="512" selected>512 px</option><option value="768">768 px</option><option value="1024">1024 px</option></select></span>
+      <span class="row2"><label for="gifDt">frame time</label><input id="gifDt" type="range" min="0.05" max="3" step="0.05" value="0.5" style="width:8rem"><input id="gifDtN" type="number" min="0.02" step="0.05" value="0.5" style="width:4.5rem"><span class="keys">s</span></span>
+      <button class="primary" id="gifMake" title="Builds the frames from the shown images, in the comparison order">Make GIF</button>
+      <span class="spacer"></span>
+      <button id="gifSave" disabled>Download GIF</button>
+    </div>
+    <div class="chartbar gifTxt"><span class="keys">on GIF:</span><label><input type="checkbox" data-k="name"> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date"> date</label><label><input type="checkbox" data-k="time"> time</label><label><input type="checkbox" data-k="Ts"> T set</label><label><input type="checkbox" data-k="T"> T meas</label><label><input type="checkbox" data-k="P"> pressure</label><label><input type="checkbox" data-k="log"> log times</label><label><input type="checkbox" data-k="count"> frame number</label></div>
+    <div class="chartbar"><button id="gifPrev" aria-label="previous frame">◀</button><button id="gifPause" aria-pressed="false">❚❚ pause</button><button id="gifNext" aria-label="next frame">▶</button><span class="keys" id="gifFrame"></span><span class="spacer"></span><span class="status" id="gifStatus">Uses the images shown in Compare profiles, in their order (drag rows to reorder). Tick “on GIF” items to add text to the frames.</span></div>
+    <div style="display:flex;justify-content:center;background:#07090b;border:1px solid var(--line);border-radius:var(--r);padding:8px"><canvas id="gifCv" width="512" height="512" style="max-width:100%;height:auto;image-rendering:auto"></canvas></div>
+  </section>
+
   <section class="panel" id="phasePanel" style="display:grid;gap:10px">
     <div class="chartbar">
       <h2>Phases from CIF</h2>
@@ -952,14 +975,16 @@ let hoverX=null, chartGeom=null;
 function rToX(r,mode){const P=S.profile,q=r*P.sc,d=10/q;return mode==="d"?d:mode==="q"?q:mode==="tt"?2*Math.asin(Math.min(1,P.lam/(2*d)))*180/Math.PI:r;}
 function xToR(v,mode){const P=S.profile;const d=mode==="d"?v:mode==="q"?10/v:mode==="tt"?P.lam/(2*Math.sin(v*Math.PI/360)):null;return mode==="r"?v:10/d/P.sc;}
 /* legend text of the experimental profile, from the "legend:" check boxes */
+/* acquisition date and/or time, as chosen by flag function F(k) for k = "date" / "time" */
+function acqSel(acq,F){F=F||(typeof IF==="function"?IF:()=>true);if(!acq)return "";const m=String(acq).trim().split(/\s+/),d=m[0]||"",t=m.slice(1).join(" ");return [F("date")?d:"",F("time")?t:""].filter(Boolean).join(" ");}
 function expLegend(){const acq=S.acqStr||(S.real&&S.real.acq)||"",parts=[];
   if($("lgName").checked)parts.push(S.realROI&&S.real?S.real.name:(S.name||"pattern"));
   if($("lgType").checked&&S.img)parts.push(S.isFFT?"FFT":"SAED");
-  if($("lgTime").checked&&acq)parts.push(acq.replace(/\s+/g," "));
-  if($("lgT").checked&&S.tlog&&acq){const r=tempAt(acq);if(r&&!r.err&&isFinite(r.meas))parts.push(`T ${fmtT(r.meas,true)}`);}
+  {const a=acqSel(acq,k=>$(k==="date"?"lgDate":"lgTime").checked);if(a)parts.push(a);}
+  if(($("lgTs").checked||$("lgT").checked)&&S.tlog&&acq){const r=tempAt(acq);if(r&&!r.err){if($("lgTs").checked&&isFinite(r.set))parts.push(`T set ${fmtT(r.set)}`);if($("lgT").checked&&isFinite(r.meas))parts.push(`T meas ${fmtT(r.meas,true)}`);}}
   if($("lgP").checked&&S.plog&&acq){const r=logAt(S.plog,acq);if(r&&!r.err)parts.push(S.plog.cols.map(c=>`${c.name} ${fmtP(c.v[r.i])}`).join(" ")+(S.plog.cols[0]&&S.plog.cols[0].unit?" "+S.plog.cols[0].unit:""));}
   return parts.length?`Experimental (${parts.join(" · ")})`:"Experimental";}
-for(const id of ["lgName","lgType","lgTime","lgT","lgP"])document.getElementById(id).addEventListener("change",()=>drawChart());
+for(const id of ["lgName","lgType","lgDate","lgTime","lgTs","lgT","lgP"])document.getElementById(id).addEventListener("change",()=>drawChart());
 function drawChart(target,tdpr){
   const exp=target instanceof HTMLCanvasElement,cv=exp?target:cvC;/* target is an Event when used as an event handler */const ctx=cv.getContext("2d");if(!exp)sizeCanvas(cvC);const cw=cv.width,ch=cv.height,dpr=exp?tdpr:cw/Math.max(1,cvC.getBoundingClientRect().width);
   ctx.clearRect(0,0,cw,ch); const P=S.profile; if(!P)return;
@@ -1106,7 +1131,7 @@ $("svimg").addEventListener("click",async()=>{
   drawPattern(pic,S.zoom*k,S.ox,S.oy,lw);
   // caption strip with file, centre, calibration and the selected rings in their colours
   const lines=[`${S.name}   centre (${S.cx.toFixed(2)}, ${S.cy.toFixed(2)}) px   ${$("scale").value||"?"} nm⁻¹/px   ${$("kv").value} kV`];
-  {const acq=S.acqStr||(S.real&&S.real.acq)||"",tt=infoPlain(acq,true);if(acq||tt.length)lines.push([acq?"acquired "+acq:""].concat(tt).filter(Boolean).join("   "));}
+  {const acq=S.acqStr||(S.real&&S.real.acq)||"",tt=infoPlain(acq,true),as=acqSel(acq);if(as||tt.length)lines.push([as?"acquired "+as:""].concat(tt).filter(Boolean).join("   "));}
   const P=S.profile, fs=Math.round(N/75), pad=Math.round(fs*0.8), lh=Math.round(fs*1.5);
   const ringTxt=S.sels.map(sl=>({c:sl.color,t:`${sl.peak!=null?"#"+(sl.peak+1)+" ":""}d ${sl.d.toFixed(4)} Å  2θ ${sl.tt.toFixed(4)}°  r ${sl.r.toFixed(1)} px`}));
   for(const ph of S.phases)if(ringsOn(ph))ringTxt.push({c:ph.color,t:`${phLeg(ph)} (rings, s = ${phaseScale().toFixed(4)})`});
@@ -1627,12 +1652,14 @@ async function fft2amp(src,N,progress){const re=new Float32Array(N*N),im=new Flo
   for(let y=0;y<N;y++){const ys=((y+h)%N)*N;for(let x=0;x<N;x++){const i=y*N+x;amp[ys+((x+h)%N)]=Math.sqrt(re[i]*re[i]+im[i]*im[i]);}}
   return amp;}
 const RS={prev:null,pw:0,ph:0,k:1,drag:false};
+/* grey value with the brightness / contrast sliders: contrast c ∈ [-100,100] → gain 2^(c/33), brightness b shifts by b % of the range */
+function rsGrey(v,lo,hi){const b=+$("rsBri").value||0,c=+$("rsCon").value||0,t=(v-lo)/(hi-lo||1),g=Math.pow(2,c/33);return Math.max(0,Math.min(255,((t-0.5)*g+0.5+b/100)*255));}
+function rsPaint(){const d=RS.d,w=RS.w,h=RS.h,g=new Uint8ClampedArray(w*h*4);for(let i=0;i<w*h;i++){const v=rsGrey(d[i],RS.lo,RS.hi);g[4*i]=g[4*i+1]=g[4*i+2]=v;g[4*i+3]=255;}
+  const c=RS.prev&&RS.prev.width===w&&RS.prev.height===h?RS.prev:document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").putImageData(new ImageData(g,w,h),0,0);RS.prev=c;}
 const cvR=$("rsCv");
 function rsPrepare(){const R=S.real,f=Math.max(1,Math.ceil(Math.max(R.W,R.H)/1400)),w=Math.floor(R.W/f),h=Math.floor(R.H/f),d=new Float32Array(w*h);
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){let s=0;for(let j=0;j<f;j++)for(let i=0;i<f;i++)s+=R.data[(y*f+j)*R.W+x*f+i];d[y*w+x]=s;}
-  const [lo,hi]=pct(sample(d,200000),[0.5,99.5]),g=new Uint8ClampedArray(w*h*4);
-  for(let i=0;i<w*h;i++){const v=Math.max(0,Math.min(255,(d[i]-lo)/(hi-lo||1)*255));g[4*i]=g[4*i+1]=g[4*i+2]=v;g[4*i+3]=255;}
-  const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").putImageData(new ImageData(g,w,h),0,0);RS.prev=c;RS.f=f;}
+  const [lo,hi]=pct(sample(d,200000),[0.5,99.5]);RS.d=d;RS.w=w;RS.h=h;RS.lo=lo;RS.hi=hi;RS.prev=null;rsPaint();RS.f=f;}
 function rsSizes(){const R=S.real,m=Math.min(R.W,R.H),out=[];for(let n=128;n<=Math.min(4096,m);n*=2)out.push(n);return out;}
 function rsDraw(){if(!S.real||!RS.prev)return;sizeCanvas(cvR);const ctx=cvR.getContext("2d"),W=cvR.width,H=cvR.height,R=S.real,dpr=W/cvR.getBoundingClientRect().width;
   ctx.fillStyle="#07090b";ctx.fillRect(0,0,W,H);const k=Math.min(W/R.W,H/R.H),ox=(W-R.W*k)/2,oy=(H-R.H*k)/2;RS.k=k;RS.ox=ox;RS.oy=oy;
@@ -1643,8 +1670,8 @@ function rsDraw(){if(!S.real||!RS.prev)return;sizeCanvas(cvR);const ctx=cvR.getC
   ctx.fillStyle="#ffd23f";ctx.font=`600 ${12*dpr}px "IBM Plex Mono",monospace`;ctx.textBaseline="top";
   const pix=+$("rsPix").value,rt=`FFT region ${N}×${N}`,rw=ctx.measureText(rt).width;
   ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(ox+x0*k+3*dpr,oy+y0*k+3*dpr,rw+8*dpr,17*dpr);ctx.fillStyle="#ffd23f";ctx.fillText(rt,ox+x0*k+7*dpr,oy+y0*k+6*dpr);
-  {const ls=[R.name].concat(R.acq?["Acquired "+R.acq]:[],R.acq&&typeof infoLines==="function"?infoLines(R.acq).map(l=>l.txt):[]),aw=Math.max(...ls.map(t=>ctx.measureText(t).width));
-    ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(ox+R.W*k-aw-14*dpr,oy+3*dpr,aw+11*dpr,(4+15*ls.length)*dpr);ctx.fillStyle="#fff";ctx.textBaseline="top";ls.forEach((t,i)=>ctx.fillText(t,ox+R.W*k-aw-9*dpr,oy+(6+15*i)*dpr));}
+  {const ls=[[IF("name")?R.name:"",IF("type")?"real-space image":""].filter(Boolean).join(" · ")].filter(Boolean).concat(acqSel(R.acq)?["Acquired "+acqSel(R.acq)]:[],R.acq&&typeof infoLines==="function"?infoLines(R.acq).map(l=>l.txt):[]),aw=Math.max(0,...ls.map(t=>ctx.measureText(t).width));
+    if(ls.length){ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(ox+R.W*k-aw-14*dpr,oy+3*dpr,aw+11*dpr,(4+15*ls.length)*dpr);ctx.fillStyle="#fff";ctx.textBaseline="top";ls.forEach((t,i)=>ctx.fillText(t,ox+R.W*k-aw-9*dpr,oy+(6+15*i)*dpr));}}
   if(pix>0){/* scale bar */const nice=[1,2,5,10,20,50,100,200,500,1000,2000,5000];const tgt=R.W*pix*0.2,L=nice.reduce((a,b)=>Math.abs(b-tgt)<Math.abs(a-tgt)?b:a),lp=L/pix*k;
     ctx.fillStyle="#fff";ctx.fillRect(ox+12*dpr,oy+R.H*k-18*dpr,lp,4*dpr);ctx.textBaseline="bottom";ctx.fillText(L+" nm",ox+12*dpr,oy+R.H*k-22*dpr);}}
 function rsClampROI(cx,cy){const R=S.real,N=+$("rsN").value;R.cxr=cx;R.cyr=cy;R.x0=Math.round(Math.max(0,Math.min(R.W-N,cx-N/2)));R.y0=Math.round(Math.max(0,Math.min(R.H-N,cy-N/2)));}
@@ -1672,16 +1699,19 @@ $("rsGo").addEventListener("click",rsCompute);
 $("rsSave").addEventListener("click",async()=>{const R=S.real;if(!R)return;const f=Math.max(1,Math.ceil(Math.max(R.W,R.H)/2048)),w=Math.floor(R.W/f),h=Math.floor(R.H/f),d=new Float32Array(w*h);
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){let s=0;for(let j=0;j<f;j++)for(let i=0;i<f;i++)s+=R.data[(y*f+j)*R.W+x*f+i];d[y*w+x]=s;}
   const [lo,hi]=pct(sample(d,300000),[0.5,99.5]),g=new Uint8ClampedArray(w*h*4);
-  for(let i=0;i<w*h;i++){const v=Math.max(0,Math.min(255,(d[i]-lo)/(hi-lo||1)*255));g[4*i]=g[4*i+1]=g[4*i+2]=v;g[4*i+3]=255;}
+  for(let i=0;i<w*h;i++){const v=rsGrey(d[i],lo,hi);g[4*i]=g[4*i+1]=g[4*i+2]=v;g[4*i+3]=255;}
   const c=document.createElement("canvas");c.width=w;c.height=h;const x=c.getContext("2d");x.putImageData(new ImageData(g,w,h),0,0);
   const u=w/1000,fs=Math.max(12,Math.round(18*u)),k=1/f;x.font=`600 ${fs}px "IBM Plex Mono",monospace`;x.textBaseline="top";
   if($("rsSaveRoi").checked){const N=+$("rsN").value;x.strokeStyle="#ffd23f";x.lineWidth=Math.max(2,3*u);x.strokeRect(R.x0*k,R.y0*k,N*k,N*k);}
-  const ls=[R.name,R.acq?"Acquired "+R.acq:""].concat(R.acq?infoPlain(R.acq,true):[]).filter(Boolean);
+  const ls=[[IF("name")?R.name:"",IF("type")?"real-space image":""].filter(Boolean).join(" · "),acqSel(R.acq)?"Acquired "+acqSel(R.acq):""].concat(R.acq?infoPlain(R.acq,true):[]).filter(Boolean);
   if(ls.length){const aw=Math.max(...ls.map(t=>x.measureText(t).width)),pad=fs*0.4,lh=fs*1.25;x.fillStyle="rgba(0,0,0,.65)";x.fillRect(w-aw-3*pad,pad,aw+2*pad,lh*ls.length+pad);
     x.fillStyle="#fff";ls.forEach((t,i)=>x.fillText(t,w-aw-2*pad,pad*1.5+i*lh));}
   const pix=+$("rsPix").value;if(pix>0){const nice=[1,2,5,10,20,50,100,200,500,1000,2000,5000],tgt=R.W*pix*0.2,L=nice.reduce((a,b)=>Math.abs(b-tgt)<Math.abs(a-tgt)?b:a),lp=L/pix*k,bx=fs,by=h-fs*1.6;
     x.fillStyle="rgba(0,0,0,.55)";x.fillRect(bx-fs*0.5,by-fs*1.7,Math.max(lp,x.measureText(L+" nm").width)+fs,fs*2.6);x.fillStyle="#fff";x.fillRect(bx,by,lp,Math.max(3,fs*0.3));x.textBaseline="bottom";x.fillText(L+" nm",bx,by-fs*0.25);}
   const blob=await new Promise(r=>c.toBlob(r,"image/png"));saveFile(R.name.replace(/\.[^.]+$/,"")+".png",blob);$("rsStatus").textContent=`Image saved (${w} × ${h} px).`;});
+{let raf=0;const upd=()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;if(S.real&&RS.d){rsPaint();rsDraw();}});};
+  for(const [a,b] of [["rsBri","rsBriN"],["rsCon","rsConN"]]){$(a).addEventListener("input",()=>{$(b).value=$(a).value;upd();});$(b).addEventListener("change",()=>{$(a).value=Math.max(-100,Math.min(100,+$(b).value||0));$(b).value=$(a).value;upd();});}
+  $("rsBCReset").addEventListener("click",()=>{for(const id of ["rsBri","rsBriN","rsCon","rsConN"])$(id).value=0;upd();});}
 $("rsN").addEventListener("change",()=>{const R=S.real;if(!R)return;rsClampROI(R.cxr,R.cyr);rsDraw();if($("rsAuto").checked)rsCompute();});
 $("rsHann").addEventListener("change",()=>{if(S.real&&$("rsAuto").checked)rsCompute();});
 $("rsPix").addEventListener("change",()=>{rsDraw();if(S.real&&S.isFFT&&S.realROI){const p=+$("rsPix").value;if(p>0){$("scale").value=+(1/(S.realROI.N*p)).toPrecision(8);$("scale").dispatchEvent(new Event("change"));refreshInfo({units:"1/nm"});drawMain();}}});
@@ -1770,19 +1800,24 @@ function logAt(L,acq){if(!L||!acq)return null;const t=acqToMs(acq);if(!isFinite(
 const fmtP=v=>isFinite(v)?v.toExponential(2).toUpperCase().replace(/E([+-])(\d)$/,"E$10$2"):"—";
 const atTxt=(lab,r)=>`${lab} log ${r.at}`+(Math.abs(r.dt)>0.5?` (Δt ${r.dt>0?"+":""}${r.dt.toFixed(0)} s)`:"");
 /* lines to show with the image, as chosen in “show on image”: {txt, sub (log time), err} */
-function infoLines(acq){const sel=$("showInfo").value,out=[];if(!acq||sel==="none")return out;
-  if((sel==="both"||sel==="temp")&&S.tlog){const r=tempAt(acq);if(r&&r.err)out.push({txt:"T: "+r.err,err:true});else if(r){out.push({txt:`T set ${fmtT(r.set)} · T measured ${fmtT(r.meas,true)}`});out.push({txt:atTxt("T",r),sub:true});}}
-  if((sel==="both"||sel==="pres")&&S.plog){const r=logAt(S.plog,acq);if(r&&r.err)out.push({txt:"P: "+r.err,err:true});
-    else if(r){out.push({txt:S.plog.cols.map(c=>`${c.name} ${fmtP(c.v[r.i])}${c.unit?" "+c.unit:""}`).join(" · ")});out.push({txt:atTxt("P",r),sub:true});}}
+/* "on image" check boxes (several copies, kept in sync) */
+const IF=k=>{const c=document.querySelector(`.infoSel input[data-k="${k}"]`);return c?c.checked:true;};
+function infoLines(acq,F){F=F||IF;const out=[];if(!acq)return out;const lg=F("log");
+  if((F("Ts")||F("T"))&&S.tlog){const r=tempAt(acq);if(r&&r.err)out.push({txt:"T: "+r.err,err:true});else if(r){out.push({txt:[F("Ts")?`T set ${fmtT(r.set)}`:"",F("T")?`T measured ${fmtT(r.meas,true)}`:""].filter(Boolean).join(" · ")});if(lg)out.push({txt:atTxt("T",r),sub:true});}}
+  if(F("P")&&S.plog){const r=logAt(S.plog,acq);if(r&&r.err)out.push({txt:"P: "+r.err,err:true});
+    else if(r){out.push({txt:S.plog.cols.map(c=>`${c.name} ${fmtP(c.v[r.i])}${c.unit?" "+c.unit:""}`).join(" · ")});if(lg)out.push({txt:atTxt("P",r),sub:true});}}
   return out;}
+document.querySelectorAll(".infoSel input").forEach(c=>c.addEventListener("change",()=>{document.querySelectorAll(`.infoSel input[data-k="${c.dataset.k}"]`).forEach(x=>x.checked=c.checked);
+  try{localStorage.setItem("saed-infosel",JSON.stringify([...document.querySelectorAll(".infoSel input")].filter((x,i,a)=>a.findIndex(y=>y.dataset.k===x.dataset.k)===i).map(x=>[x.dataset.k,x.checked])));}catch(e){}tempShow();}));
+try{const v=JSON.parse(localStorage.getItem("saed-infosel")||"null");if(v)for(const [k,on] of v)document.querySelectorAll(`.infoSel input[data-k="${k}"]`).forEach(x=>x.checked=on);}catch(e){}
 const infoPlain=(acq,withSub)=>infoLines(acq).filter(l=>!l.err&&(withSub||!l.sub)).map(l=>l.txt);
 function tempShow(){const st=$("tStatus"),L=S.tlog,P=S.plog;
   if(L)st.textContent=`${L.name} · ${L.t.length} entries · ${fmtWall(L.t[0])} – ${fmtWall(L.t[L.t.length-1])}`;
   if(P)$("pStatus").textContent=`${P.name} · ${P.cols.map(c=>c.name).join(", ")} · ${P.t.length} entries · ${fmtWall(P.t[0])} – ${fmtWall(P.t[P.t.length-1])}`;
   const acq=S.acqStr||(S.real&&S.real.acq)||"",tag=$("tempTag"),ls=infoLines(acq);
   tag.hidden=!S.img;tag.innerHTML="";
-  if(S.img){const n=document.createElement("div");n.className="fn";n.textContent=S.realROI&&S.real?`${S.real.name} · FFT ${S.realROI.N}×${S.realROI.N}`:S.name;tag.appendChild(n);}
-  if(acq){const a=document.createElement("div");a.textContent="Acquired "+acq;tag.appendChild(a);}
+  if(S.img&&(IF("name")||IF("type"))){const n=document.createElement("div");n.className="fn";n.textContent=[IF("name")?(S.realROI&&S.real?S.real.name:S.name):"",IF("type")?(S.isFFT?(S.realROI?`FFT ${S.realROI.N}×${S.realROI.N}`:"FFT"):"SAED"):""].filter(Boolean).join(" · ");tag.appendChild(n);}
+  if(acqSel(acq)){const a=document.createElement("div");a.textContent="Acquired "+acqSel(acq);tag.appendChild(a);}
   for(const l of ls){const d=document.createElement("div");d.textContent=l.txt;if(l.sub)d.className="sub";if(l.err)d.style.color="#ffb4a8";tag.appendChild(d);}
   if(typeof rsDraw==="function")rsDraw();if(S.profile)drawChart();
   const fi=$("fileinfo");fi.querySelectorAll(".tchip").forEach(x=>x.remove());
@@ -1799,7 +1834,7 @@ $("tClear").addEventListener("click",()=>{S.tlog=null;PICK_DB.set("saed-templog"
 
 /* ============================================================== image browser: pick a folder, see every image with time / T / P, choose one */
 /* fast DM3/DM4 scan: reads only the tag tree (skipping pixel arrays) plus a few sampled rows for the thumbnail, so a 67 MB file costs ~1–3 MB of reading */
-async function scanDM(file){
+async function scanDM(file,TT){
   const BS=1<<18,cache=new Map();
   const blk=async b=>{let u=cache.get(b);if(!u){u=new Uint8Array(await file.slice(b*BS,Math.min(file.size,(b+1)*BS)).arrayBuffer());cache.set(b,u);if(cache.size>24)cache.delete(cache.keys().next().value);}return u;};
   const bytes=async(pos,len)=>{const b0=Math.floor(pos/BS),b1=Math.floor((pos+len-1)/BS);if(b0===b1){const u=await blk(b0);return new DataView(u.buffer,u.byteOffset+pos-b0*BS,len);}
@@ -1834,7 +1869,7 @@ async function scanDM(file){
   const tags=get(im,"ImageTags"),acq=[str(find(tags,"Acquisition Date",0)).trim(),str(find(tags,"Acquisition Time",0)).trim()].filter(Boolean).join("  ");
   const v=get(im,"ImageTags","Microscope Info","Voltage"),kv=typeof v==="number"&&v>0?v/1000:null;
   /* thumbnail: sample ~200 rows directly from the file */
-  const T=200,step=Math.max(1,Math.ceil(Math.max(W,H)/T)),tw=Math.floor(W/step),th=Math.floor(H/step),thumb=new Float32Array(tw*th),cx=!!d.sarr,es=cx?d.rs:SZ[d.type];
+  const T=TT||200,step=Math.max(1,Math.ceil(Math.max(W,H)/T)),tw=Math.floor(W/step),th=Math.floor(H/step),thumb=new Float32Array(tw*th),cx=!!d.sarr,es=cx?d.rs:SZ[d.type];
   for(let y=0;y<th;y++){const row=new DataView(await file.slice(d.off+(y*step)*W*es,d.off+(y*step+1)*W*es).arrayBuffer());
     for(let x=0;x<tw;x++){let sum=0;for(let j=0;j<step;j++){const o=(x*step+j)*es;sum+=cx?Math.hypot(simple(row,o,d.fts[0]),simple(row,o+SZ[d.fts[0]],d.fts[1])):simple(row,o,d.type);}thumb[y*tw+x]=sum/step;}}
   return {W,H,scale,units,acq,kv,complex:cx,thumb,tw,th};}
@@ -1902,7 +1937,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("brModal").hidde
 /* Esc un-highlights the highlighted CIF phase (before anything else uses Esc) */
 document.addEventListener("keydown",e=>{if(e.key!=="Escape"||S.focus==null||!$("brModal").hidden)return;const tag=(e.target.tagName||"").toLowerCase();if(tag==="input"&&/text|number|search/.test(e.target.type)||tag==="textarea")return;
   S.focus=null;renderPhases();redrawAll();drawChart();e.preventDefault();e.stopPropagation();},true);
-function brTickCount(){const n=BR.items.filter(i=>i.tick).length;$("brCompare").textContent=n===1?"Open ticked (1)":`Compare ticked (${n})`;$("brCompare").disabled=!n;}
+function brTickCount(){const n=BR.items.filter(i=>i.tick).length;if(typeof imgSelRender==="function"&&!(S.cmp&&S.cmp.length))imgSelRender();$("brCompare").textContent=n===1?"Open ticked (1)":`Compare ticked (${n})`;$("brCompare").disabled=!n;}
 $("brTickAll").addEventListener("click",()=>{for(const it of brOrder())it.tick=true;brRender();});
 $("brTickNone").addEventListener("click",()=>{for(const it of BR.items)it.tick=false;brRender();});
 $("brCompare").addEventListener("click",async()=>{const L=BR.items.filter(i=>i.tick&&i.done&&!i.err);$("brModal").hidden=true;
@@ -1912,12 +1947,13 @@ $("brSort").addEventListener("change",brRender);$("brKind").addEventListener("ch
 /* image drop-down (top left): the comparison images, or all images of the browsed folder before any comparison */
 let IMGSEL=[];
 function imgSelRender(){const sels=[...document.querySelectorAll("select.imgsel")];if(!sels.length)return;const useCmp=S.cmp&&S.cmp.length;
-  IMGSEL=useCmp?cmpOrder().map(e=>({file:e.file,rel:e.rel,acq:e.acq,e})):brOrder().filter(i=>i.done&&!i.err).map(i=>({file:i.file,rel:i.rel,acq:i.acq}));
+  /* only the images chosen for comparison (or, before pressing Compare, the ticked ones) */
+  IMGSEL=useCmp?cmpOrder().map(e=>({file:e.file,rel:e.rel,acq:e.acq,e})):brOrder().filter(i=>i.done&&!i.err&&i.tick).map(i=>({file:i.file,rel:i.rel,acq:i.acq}));
   const opts=[];let cur=-1;
   IMGSEL.forEach((it,k)=>{const T=S.tlog&&it.acq?tempAt(it.acq):null;
     opts.push([String(k),`${k+1}. ${it.rel}`+(it.acq?`  ·  ${it.acq}`:"")+(T&&!T.err&&isFinite(T.meas)?`  ·  ${T.meas.toFixed(1)} °C`:"")+(it.e&&it.e.cen==="auto"&&it.e.prof?"  ⚠":"")]);if(it.file===S.lastFile)cur=k;});
   if(IMGSEL.length&&cur<0)opts.unshift(["",useCmp?"— choose an image to compare —":"— choose an image —"]);
-  for(const sel of sels){sel.textContent="";if(!IMGSEL.length){const o=document.createElement("option");o.textContent="— no images —";sel.appendChild(o);sel.disabled=true;continue;}
+  for(const sel of sels){sel.textContent="";if(!IMGSEL.length){const o=document.createElement("option");o.textContent=BR.items.length?"— tick images in Browse folder —":"— no images —";sel.appendChild(o);sel.disabled=true;continue;}
     sel.disabled=false;for(const [v,t] of opts){const o=document.createElement("option");o.value=v;o.textContent=t;sel.appendChild(o);}sel.value=cur<0?"":String(cur);}}
 for(const sel of document.querySelectorAll("select.imgsel"))sel.addEventListener("change",async()=>{const it=IMGSEL[+sel.value];if(sel.value===""||!it)return;
   /* all image menus move together at once, before the image has finished loading */
@@ -1934,9 +1970,9 @@ function gradCol(t){const n=GRAD.length-1,i=Math.min(n-1,Math.floor(t*n)),f=t*n-
 function cmpOrder(){const k=$("cmpSort").value,L=S.cmp.slice();if(k==="custom"){}else if(k==="temp")L.sort(byTemp);else if(k==="name")L.sort((a,b)=>a.rel.localeCompare(b.rel,undefined,{numeric:true}));
   else L.sort((a,b)=>((isFinite(a.ms)?a.ms:Infinity)-(isFinite(b.ms)?b.ms:Infinity))||a.rel.localeCompare(b.rel,undefined,{numeric:true}));if($("cmpRev").checked)L.reverse();return L;}
 function cmpColor(e){const L=cmpOrder().filter(x=>x.show&&x.prof);if($("cmpCol").value==="grad"&&L.length>1){const i=L.indexOf(e);return gradCol(i<0?0:i/(L.length-1));}return e.color;}
-function cmpLabel(e){const parts=[["clName","name"],["clType","type"],["clTime","time"],["clT","temp"],["clP","pres"]].filter(([id])=>$(id).checked).map(x=>x[1]),out=[];
-  for(const k of parts){if(k==="name")out.push(e.rel);else if(k==="type")out.push(e.kind==="diff"?"SAED":"FFT");else if(k==="time"){if(e.acq)out.push(e.acq.replace(/\s+/g," "));}
-    else if(k==="temp"){const r=S.tlog&&e.acq?tempAt(e.acq):null;if(r&&!r.err&&isFinite(r.meas))out.push(`${r.meas.toFixed(1)} °C`);}
+function cmpLabel(e){const parts=[["clName","name"],["clType","type"],["clDate","date"],["clTime","time"],["clTs","tset"],["clT","temp"],["clP","pres"]].filter(([id])=>$(id).checked).map(x=>x[1]),out=[];
+  for(const k of parts){if(k==="name")out.push(e.rel);else if(k==="type")out.push(e.kind==="diff"?"SAED":"FFT");else if(k==="time"||k==="date"){const a=acqSel(e.acq,x=>x===k);if(a)out.push(a);}
+    else if(k==="temp"||k==="tset"){const r=S.tlog&&e.acq?tempAt(e.acq):null,v=r&&!r.err?(k==="tset"?r.set:r.meas):NaN;if(isFinite(v))out.push(k==="tset"?`set ${fmtT(v)}`:`${v.toFixed(1)} °C`);}
     else if(k==="pres"){const r=S.plog&&e.acq?logAt(S.plog,e.acq):null;if(r&&!r.err)out.push(S.plog.cols.map(c=>`${c.name} ${fmtP(c.v[r.i])}`).join(" ")+(S.plog.cols[0]&&S.plog.cols[0].unit?" "+S.plog.cols[0].unit:""));}}
   return out.length?out.join(" · "):e.rel;}
 function cmpSet(items){const keep=new Set(items.map(i=>i.file));S.cmp=S.cmp.filter(e=>keep.has(e.file));if(S.cmpActive&&!keep.has(S.cmpActive.file))S.cmpActive=null;return cmpAdd(items);}
@@ -1948,7 +1984,9 @@ function cmpAdd(items){let n=0;for(const it of items){if(S.cmp.some(e=>e.file===
 function cmpCapture(manual){const e=S.cmp.find(x=>x.file===S.lastFile);if(!e||!S.profile)return;const P=S.profile;
   e.prof={D:Float64Array.from(P.D),TT:Float64Array.from(P.TT),Q:Float64Array.from(P.Q),I:Float64Array.from(P.I),bg:Float64Array.from(P.bg)};e.cx=P.cx;e.cy=P.cy;e.sc=P.sc;
   if(S.isFFT)e.cen="fft";else if(!S.cmpBatch&&(manual||S.centreTouched))e.cen="set";e.err="";
-  S.cmpActive=e;cmpRender();}
+  try{let L=S.pyr[0];for(const l of S.pyr){L=l;if(l.w<=2048&&l.h<=2048)break;}const g=new Uint8Array(L.w*L.h);for(let i=0;i<g.length;i++)g[i]=LUT[L.d[i]];
+    e.pat={g,w:L.w,h:L.h,cx:S.cx/L.f,cy:S.cy/L.f,fft:!!S.isFFT};}catch(err){}
+  S.cmpActive=e;cmpRender();if(typeof gifModeNote==="function")gifModeNote();}
 async function cmpOpen(e,batch){S.cmpActive=e;S.centreTouched=false;await openFile(e.file);
   if(!S.img||S.lastFile!==e.file)throw new Error("could not open");
   if(batch&&!S.isFFT&&e.kind==="diff"&&!recall()&&!e.prof){$("lock").checked=false;await refine();}   // first time for an SAED: auto-centre + auto-refine as a starting point
@@ -2051,7 +2089,7 @@ for(const id of ["cmpLo","cmpHi","cmpNd","cmpNd2","cmpOff"])$(id).addEventListen
 $("cmpOff").addEventListener("input",drawCmp);
 for(const id of ["cmpBg","cmpSticks","cmpRev","cmpStFull"])$(id).addEventListener("change",()=>{$("cmpStWrap").hidden=!$("cmpSticks").checked;cmpRender();});
 $("cmpStH").addEventListener("input",()=>{$("cmpStHv").textContent=$("cmpStH").value+" %";drawCmp();});
-for(const id of ["clName","clType","clTime","clT","clP"])$(id).addEventListener("change",()=>cmpRender());
+for(const id of ["clName","clType","clDate","clTime","clTs","clT","clP"])$(id).addEventListener("change",()=>cmpRender());
 for(const id of ["cmpLay","cmpNorm","cmpCol","cmpSort"])$(id).addEventListener("change",()=>{$("cmpOffWrap").hidden=$("cmpLay").value!=="stack";$("cmpNdWrap").hidden=!/^r/.test($("cmpNorm").value);cmpRender();});
 $("cmpRun").addEventListener("click",()=>cmpRunAll(false));
 $("cmpClear").addEventListener("click",()=>{S.cmp=[];S.cmpActive=null;for(const i of BR.items)i.tick=false;cmpVis();cmpRender();});
@@ -2155,6 +2193,81 @@ async function mpRun(){const peaks=S.peaks||[];const st=$("mpRows");
 $("mpOpen").addEventListener("click",()=>{const b=$("mpBox");b.hidden=!b.hidden;if(!b.hidden){const g=$("cBestIn").value;$("mpScope").textContent=`candidates: ${g?g:"all folders"} (${mpCandidates().length} phases) · ${(S.peaks||[]).length} peaks`;}});
 $("mpClose").addEventListener("click",()=>{$("mpBox").hidden=true;});
 $("mpRun").addEventListener("click",mpRun);
+
+/* ============================================================== animated GIF of the compared images */
+/* minimal GIF89a encoder: 8-bit palette, LZW, per-frame delay, infinite loop */
+function gifEncode(frames,W,H,palette,delayCs,loop){const out=[];const b=v=>out.push(v&255),w16=v=>{b(v);b(v>>8);};const str=s=>{for(const c of s)b(c.charCodeAt(0));};
+  str("GIF89a");w16(W);w16(H);b(0xF7);b(0);b(0);                     // global colour table 256
+  for(let i=0;i<256;i++){const c=palette[i]||[0,0,0];b(c[0]);b(c[1]);b(c[2]);}
+  if(loop){b(0x21);b(0xFF);b(11);str("NETSCAPE2.0");b(3);b(1);w16(0);b(0);}
+  for(const px of frames){b(0x21);b(0xF9);b(4);b(0);w16(delayCs);b(0);b(0);
+    b(0x2C);w16(0);w16(0);w16(W);w16(H);b(0);
+    const minCode=8;b(minCode);let bytes=[],cur=0,nb=0;const emit=(code,size)=>{cur|=code<<nb;nb+=size;while(nb>=8){bytes.push(cur&255);cur>>=8;nb-=8;}};
+    const clear=256,eoi=257;let dict=new Map(),next=258,size=9;emit(clear,size);let prefix=px[0];
+    for(let i=1;i<px.length;i++){const k=px[i],key=prefix*256+k;const v=dict.get(key);
+      if(v!==undefined){prefix=v;continue;}
+      emit(prefix,size);if(next<4096){dict.set(key,next++);if(next>(1<<size)&&size<12)size++;}else{emit(clear,size);dict=new Map();next=258;size=9;}
+      prefix=k;}
+    emit(prefix,size);emit(eoi,size);if(nb>0)bytes.push(cur&255);
+    for(let i=0;i<bytes.length;i+=255){const n=Math.min(255,bytes.length-i);b(n);for(let j=0;j<n;j++)b(bytes[i+j]);}b(0);}
+  b(0x3B);return new Uint8Array(out);}
+const GIF={frames:[],base:[],ents:[],canv:[],timer:null,k:0,size:0};
+async function gifFrameSource(e,T){const f=e.file;
+  if(/\.dm[34]$/i.test(f.name)){const r=await scanDM(f,T);return {thumb:r.thumb,tw:r.tw,th:r.th,kind:r.complex?"fft":(REAL_UNITS[(r.units||"").replace(/\s/g,"")]?"real":"diff")};}
+  const bmp=await createImageBitmap(f),k=Math.min(1,T/Math.max(bmp.width,bmp.height)),c=document.createElement("canvas");c.width=Math.max(1,Math.round(bmp.width*k));c.height=Math.max(1,Math.round(bmp.height*k));
+  const g=c.getContext("2d");g.drawImage(bmp,0,0,c.width,c.height);const p=g.getImageData(0,0,c.width,c.height).data,n=c.width*c.height,t=new Float32Array(n);for(let i=0;i<n;i++)t[i]=(p[4*i]+p[4*i+1]+p[4*i+2])/3;
+  return {thumb:t,tw:c.width,th:c.height,kind:e.kind||"diff"};}
+const GF=k=>{const c=document.querySelector(`.gifTxt input[data-k="${k}"]`);return c?c.checked:false;};
+function gifInfo(e){const L=[];const nm=[GF("name")?e.rel:"",GF("type")?({diff:"SAED",fft:"FFT",real:$("gifMode").value==="pat"?"FFT of real-space image":"real-space image"}[e.kind]||""):""].filter(Boolean).join(" · ");if(nm)L.push(nm);
+  if(acqSel(e.acq,GF))L.push("Acquired "+acqSel(e.acq,GF));if(e.acq)L.push(...infoLines(e.acq,GF).filter(l=>!l.err).map(l=>l.txt));return L;}
+function gifCompose(){const T=GIF.size,n=GIF.base.length;GIF.canv=GIF.base.map((b,k)=>{const e=GIF.ents[k],c=document.createElement("canvas");c.width=T;c.height=T;const g=c.getContext("2d");g.drawImage(gifBC(b),0,0);
+    const info=gifInfo(e);if(info.length){const fs=Math.max(10,Math.round(T/42)),lh=Math.round(fs*1.3);g.font=`600 ${fs}px "IBM Plex Mono",monospace`;g.textBaseline="top";
+      const tw=Math.max(...info.map(t=>g.measureText(t).width)),bw=Math.min(T-8,tw+12),bh=lh*info.length+8;g.fillStyle="rgba(0,0,0,.7)";g.fillRect(T-bw-4,4,bw,bh);g.fillStyle="#fff";info.forEach((t,i)=>g.fillText(t,T-bw+2,8+i*lh,bw-10));}
+    if(GF("count")){const fs=Math.max(10,Math.round(T/40));g.font=`600 ${fs}px "IBM Plex Mono",monospace`;g.textBaseline="bottom";const t=`${k+1} / ${n}`;const tw=g.measureText(t).width;g.fillStyle="rgba(0,0,0,.7)";g.fillRect(4,T-fs-12,tw+12,fs+8);g.fillStyle="#fff";g.fillText(t,10,T-8);}
+    return c;});}
+function gifPatSource(e,T){const P=e.pat;if(!P)throw new Error("no pattern yet — compute its profile first");const z=+$("gifZoom").value||1,side=Math.min(P.w,P.h)/z;
+  const c=document.createElement("canvas");c.width=P.w;c.height=P.h;const id=new ImageData(P.w,P.h);for(let i=0;i<P.g.length;i++){const v=P.g[i];id.data[4*i]=id.data[4*i+1]=id.data[4*i+2]=v;id.data[4*i+3]=255;}
+  c.getContext("2d").putImageData(id,0,0);return {canvas:c,sx:P.cx-side/2,sy:P.cy-side/2,side};}
+function gifModeNote(){const pm=$("gifMode").value==="pat";$("gifZoomBox").style.display=pm?"":"none";
+  if(pm){const L=cmpOrder().filter(x=>x.show),miss=L.filter(e=>!e.pat).length;if(miss)$("gifStatus").textContent=`${miss} shown image${miss>1?"s have":" has"} no pattern yet — press Compare (or open them) so their FFT / pattern is computed.`;}}
+function gifBC(c){const b=+$("gifBri").value||0,k=+$("gifCon").value||0;if(!b&&!k)return c;const g=Math.pow(2,k/33),o=c.getContext("2d"),d=o.getImageData(0,0,c.width,c.height),a=d.data;
+  const lut=new Uint8ClampedArray(256);for(let v=0;v<256;v++)lut[v]=((v/255-0.5)*g+0.5+b/100)*255;for(let i=0;i<a.length;i+=4){a[i]=lut[a[i]];a[i+1]=lut[a[i+1]];a[i+2]=lut[a[i+2]];}
+  const n=document.createElement("canvas");n.width=c.width;n.height=c.height;n.getContext("2d").putImageData(d,0,0);return n;}
+async function gifBuild(){const L=cmpOrder().filter(x=>x.show);if(L.length<2){$("gifStatus").textContent="Show at least two images in the comparison.";return;}
+  const T=+$("gifSize").value,st=$("gifStatus");$("gifMake").disabled=true;gifStop();GIF.base=[];GIF.ents=[];GIF.canv=[];GIF.size=T;
+  for(let k=0;k<L.length;k++){const e=L[k];st.textContent=`Reading frame ${k+1} / ${L.length}: ${e.rel}…`;await new Promise(r=>setTimeout(r,0));
+    const c=document.createElement("canvas");c.width=T;c.height=T;const g=c.getContext("2d");g.fillStyle="#000";g.fillRect(0,0,T,T);g.imageSmoothingEnabled=true;
+    try{if($("gifMode").value==="pat"){const P=gifPatSource(e,T);g.drawImage(P.canvas,P.sx,P.sy,P.side,P.side,0,0,T,T);}
+      else{const src=await gifFrameSource(e,T),tc=thumbCanvas(src),sc=Math.min(T/src.tw,T/src.th),w=src.tw*sc,h=src.th*sc;g.drawImage(tc,(T-w)/2,(T-h)/2,w,h);}}
+    catch(err){st.textContent=`Could not use ${e.rel}: ${err.message}`;await new Promise(r=>setTimeout(r,600));continue;}
+    GIF.base.push(c);GIF.ents.push(e);}
+  gifCompose();
+  $("gifMake").disabled=false;$("gifSave").disabled=!GIF.canv.length;st.textContent=`${GIF.canv.length} frames ready (${T} × ${T} px). Change the frame time or the “on GIF” text to preview; Download writes the GIF.`;gifPlay();}
+{let raf=0;const upd=()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;if(GIF.base.length){gifCompose();gifPlay();}});};
+  $("gifBri").addEventListener("input",upd);$("gifCon").addEventListener("input",upd);$("gifBCReset").addEventListener("click",()=>{$("gifBri").value=0;$("gifCon").value=0;upd();});}
+$("gifMode").addEventListener("change",()=>{gifModeNote();if(GIF.base.length)gifBuild();});$("gifZoom").addEventListener("change",()=>{if(GIF.base.length&&$("gifMode").value==="pat")gifBuild();});
+setTimeout(gifModeNote,0);
+document.querySelectorAll(".gifTxt input").forEach(c=>c.addEventListener("change",()=>{if(GIF.base.length){gifCompose();gifPlay();}}));
+function gifDelay(){return Math.max(0.02,+$("gifDt").value||0.5);}
+function gifPlay(){gifStop();if(!GIF.canv.length)return;const cv=$("gifCv"),g=cv.getContext("2d");cv.width=GIF.size;cv.height=GIF.size;
+  const show=()=>{g.drawImage(GIF.canv[GIF.k%GIF.canv.length],0,0);$("gifFrame").textContent=`frame ${GIF.k%GIF.canv.length+1} / ${GIF.canv.length}`;};show();
+  if($("gifPause").getAttribute("aria-pressed")==="true")return;GIF.timer=setInterval(()=>{GIF.k=(GIF.k+1)%GIF.canv.length;show();},gifDelay()*1000);}
+function gifStop(){if(GIF.timer){clearInterval(GIF.timer);GIF.timer=null;}}
+async function gifSave(){if(!GIF.canv.length)return;const st=$("gifStatus");st.textContent="Encoding GIF…";await new Promise(r=>setTimeout(r,20));
+  const T=GIF.size,pal=[];for(let i=0;i<256;i++)pal.push([i,i,i]);
+  const frames=GIF.canv.map(c=>{const d=c.getContext("2d").getImageData(0,0,T,T).data,px=new Uint8Array(T*T);for(let i=0;i<T*T;i++)px[i]=Math.round(0.299*d[4*i]+0.587*d[4*i+1]+0.114*d[4*i+2]);return px;});
+  const bytes=gifEncode(frames,T,T,pal,Math.round(gifDelay()*100),true);const blob=new Blob([bytes],{type:"image/gif"});
+  await saveFile(`comparison_${$("gifMode").value==="pat"?"FFT-patterns":"images"}_${GIF.canv.length}frames_${gifDelay()}s.gif`,blob);st.textContent=`GIF saved (${GIF.canv.length} frames, ${gifDelay()} s per frame, ${(blob.size/1e6).toFixed(1)} MB).`;}
+$("gifMake").addEventListener("click",gifBuild);$("gifSave").addEventListener("click",gifSave);
+$("gifDt").addEventListener("input",()=>{$("gifDtN").value=$("gifDt").value;gifPlay();});$("gifDtN").addEventListener("change",()=>{$("gifDt").value=$("gifDtN").value;gifPlay();});
+$("gifPause").addEventListener("click",()=>{const on=$("gifPause").getAttribute("aria-pressed")!=="true";$("gifPause").setAttribute("aria-pressed",String(on));$("gifPause").textContent=on?"▶ play":"❚❚ pause";gifPlay();});
+$("gifPrev").addEventListener("click",()=>{if(!GIF.canv.length)return;GIF.k=(GIF.k-1+GIF.canv.length)%GIF.canv.length;$("gifPause").setAttribute("aria-pressed","true");$("gifPause").textContent="▶ play";gifPlay();});
+$("gifNext").addEventListener("click",()=>{if(!GIF.canv.length)return;GIF.k=(GIF.k+1)%GIF.canv.length;$("gifPause").setAttribute("aria-pressed","true");$("gifPause").textContent="▶ play";gifPlay();});
+S.gifCollapsed=false;
+function gifApplyCollapse(){const pan=$("gifPanel"),head=pan.firstElementChild;for(const el of pan.children)if(el!==head)el.style.display=S.gifCollapsed?"none":"";
+  for(const el of head.children)if(!["gifCollapse"].includes(el.id)&&el.tagName!=="H2")el.style.display=S.gifCollapsed?"none":"";$("gifCollapse").textContent=S.gifCollapsed?"▸":"▾";}
+$("gifCollapse").addEventListener("click",()=>{S.gifCollapsed=!S.gifCollapsed;gifApplyCollapse();});
+{const _cv=cmpVis;cmpVis=function(){_cv();$("gifPanel").hidden=S.cmp.length<2;};}
 
 </script>
 
