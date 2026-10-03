@@ -24,6 +24,8 @@
   --accent:#36c0d6; --accent-ink:#04161a; --warn:#e39a5f; --scope:#07090b; --scope-line:#2a333c; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
+#v3legend{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:4px;font:600 .8rem var(--f-data);color:var(--ink);background:color-mix(in srgb,var(--bg) 70%,transparent);padding:6px 8px;border-radius:6px}
+#v3legend:empty{display:none}#v3legend span{display:flex;align-items:center;gap:6px}#v3legend i{display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid #0006}
 html,body{background:var(--bg);color:var(--ink)}
 body{font-family:var(--f-body);font-size:14px;line-height:1.45;padding-inline:16px;padding-block:14px 32px;margin:0}
 h1,h2{font-family:var(--f-display);font-weight:600;letter-spacing:.01em;text-wrap:balance;margin:0}
@@ -75,7 +77,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 kbd{font-family:var(--f-data);font-size:.72rem;border:1px solid var(--line);border-bottom-width:2px;border-radius:3px;padding:0 4px;background:var(--bg);color:var(--ink)}
 .bench{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,22rem);gap:14px;align-items:start}
 @media (max-width:980px){.bench{grid-template-columns:minmax(0,1fr)}}
-#chartWrap{position:relative;height:340px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+#chartWrap{position:relative;height:clamp(440px,62vh,820px);min-height:260px;resize:vertical;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
 #chart{display:block;width:100%;height:100%}
 .chartbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:8px}
 .chartbar .row2 input[type=number]{width:5.2rem}
@@ -92,6 +94,8 @@ tbody tr{cursor:pointer}
 .pghead b{font-family:var(--f-display);font-size:.95rem;letter-spacing:.02em}
 .pghead .keys{margin-right:auto}
 .pghead button{padding:2px 8px;font-size:.75rem}
+.pgroup.star{border-color:#e0a800}.pgroup.star .pghead{background:color-mix(in srgb,#e0a800 14%,var(--bg))}
+.starb{border:0;background:none;padding:0 0 0 6px;font-size:1.05rem;line-height:1;color:var(--muted);cursor:pointer;vertical-align:middle}.starb.on{color:#e0a800}.starb:hover{color:#e0a800}
 .pgroup table th{position:sticky;top:0}
 #lineBoxWrap{position:sticky;top:8px}
 #phaseBox{border-radius:var(--r)}
@@ -118,15 +122,34 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
 <div class="wrap">
   <header class="top">
     <div class="brand"><h1>SAED Ring Profiler</h1><small>centre a ring pattern, get d vs I</small></div>
-    <label class="btn primary" for="file">Open .dm4 / .dm3 / image<input id="file" type="file" accept=".dm4,.dm3,.png,.jpg,.jpeg,.tif"></label>
+    <label class="btn primary" for="file">Open .dm4 / .dm3 / image<input id="file" type="file" accept=".dm4,.dm3,.png,.jpg,.jpeg,.tif,.tiff"></label>
+    <label class="row2" title="Auto: DM files calibrated in nm / Å / µm are real-space images (an FFT is computed), 1/nm files are patterns. Plain PNG/JPG/TIF are treated as patterns unless you choose “real-space image”.">file is
+      <select id="ftype" style="width:auto"><option value="auto">auto-detect</option><option value="diff">a diffraction pattern / FFT</option><option value="real">a real-space image → compute FFT</option></select></label>
     <div class="fileinfo" id="fileinfo"></div>
   </header>
+
+  <section class="panel" id="rsPanel" hidden style="display:grid;gap:10px">
+    <div class="chartbar">
+      <h2>Real-space image → FFT</h2>
+      <span class="keys" id="rsName"></span>
+      <span class="spacer"></span>
+      <span class="row2"><label for="rsPix">pixel size</label><input id="rsPix" type="number" step="any" min="0" style="width:7rem"><span class="keys">nm/px</span></span>
+      <span class="row2"><label for="rsN">FFT region</label><select id="rsN" style="width:auto"></select></span>
+      <label title="Tapers the region edges to zero so the edges do not add a bright cross through the FFT"><input id="rsHann" type="checkbox" checked> Hann window</label>
+      <label title="Recompute as soon as the region is moved or resized"><input id="rsAuto" type="checkbox" checked> auto update</label>
+      <button id="rsFull" title="Largest square, centred">Whole image</button>
+      <button class="primary" id="rsGo">Compute FFT</button>
+    </div>
+    <div id="rsWrap" style="position:relative;height:clamp(300px,42vh,520px);min-height:200px;resize:vertical;overflow:hidden;border:1px solid var(--line);border-radius:var(--r)">
+      <canvas id="rsCv" aria-label="Real-space image; drag to place the FFT region" style="display:block;width:100%;height:100%;cursor:crosshair;touch-action:none"></canvas></div>
+    <div class="keys"><kbd>click</kbd> or <kbd>drag</kbd> on the image to place the square FFT region (yellow) · the FFT amplitude |F| is shown below as the pattern, centred at zero frequency, and everything else (centre, profile, peaks, CIF matching) works on it as on an SAED pattern · calibration = 1 / (FFT size × pixel size). <span id="rsStatus" style="color:var(--ink)"></span></div>
+  </section>
 
   <section class="work">
     <div class="side">
       <div class="scope" id="mainWrap">
         <canvas id="main" tabindex="0" aria-label="Diffraction pattern. Click to set the centre (or, when the centre is locked, to measure a spot), wheel to zoom, drag to pan, arrow keys to move the centre."></canvas>
-        <div class="hud"><span id="hudC"></span><span id="hudZ"></span></div>
+        <div class="hud" hidden><span id="hudC"></span><span id="hudZ"></span></div>
         <div class="hud bottom"><span id="hudCursor">hover the pattern: r and d at the cursor</span></div>
       </div>
       <div class="row2" style="justify-content:space-between">
@@ -140,6 +163,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
         <canvas id="polar" aria-label="Polar unwrap: radius across, azimuth up. Rings are straight vertical lines when the centre is right."></canvas>
         <div class="hud"><span>Polar unwrap · rings straight = centre right</span><span id="hudP"></span></div>
       </div>
+      <div style="display:flex;justify-content:flex-end"><button id="svpolar" disabled title="The polar view as shown, with CIF lines and labels">Save polar view (.png)</button></div>
 
       <div class="panel ctrls">
         <fieldset>
@@ -157,6 +181,8 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
             <div style="display:grid;gap:6px">
               <button id="refine" title="Searches nearby positions for the sharpest rings">Auto-refine</button>
               <button id="fullView" title="Full view (h)">Full view</button>
+              <button id="autoC" title="Find the diffraction centre automatically (the same estimate used when a file is opened for the first time)">Auto-centre</button>
+              <button id="geoC" title="Put the centre at the geometric centre of the image (for an FFT: the zero-frequency pixel)">Image centre</button>
             </div>
           </div>
         </fieldset>
@@ -193,21 +219,22 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
     <div class="chartbar">
       <h2>Profile</h2>
       <button class="primary" id="compute">Compute profile (Enter)</button>
+      <label title="Recompute the profile automatically whenever the centre, calibration, bin or mask changes (the centre is then not locked automatically)"><input id="profAuto" type="checkbox"> auto update</label>
       <button id="pkAddBtn" aria-pressed="false" title="While on, clicking the plot adds a peak at that position (right-click also adds; right-click a peak removes it)">+ Add peaks</button>
       <button id="pkDelSel" disabled title="Delete the selected peaks (click a peak, shift+click for more), or press Delete">Delete selected</button>
       <button id="pkUndo" title="Forget all added and removed peaks">Undo peak edits</button>
       <div class="row2"><label for="xmode">x axis</label>
         <select id="xmode" style="width:auto"><option value="d">d (Å)</option><option value="tt">2θ (°)</option><option value="q">q (nm⁻¹)</option><option value="r">r (px)</option></select></div>
       <div class="row2"><label for="xlo">from</label><input id="xlo" type="number" step="any"><label for="xhi">to</label><input id="xhi" type="number" step="any"><button id="zreset" title="Back to the full range (or double-click the plot)">Reset zoom</button></div>
-      <div class="row2"><label title="Vertical line at each detected peak; it turns green when a shown CIF line is within ±1 % in d"><input id="pkLines" type="checkbox" checked> peak lines</label><label title="On: the peak line runs down to the baseline. Off: it stops at the peak marker, so CIF sticks underneath stay clear"><input id="pkFull" type="checkbox" checked> full height</label><label><input id="logy" type="checkbox"> log I</label><label><input id="bgsub" type="checkbox"> subtract background</label></div>
+      <div class="row2"><label title="Vertical line at each detected peak; it turns green when a shown CIF line is within ±1 % in d"><input id="pkLines" type="checkbox"> peak lines</label><label title="On: the peak line runs down to the baseline. Off: it stops at the peak marker, so CIF sticks underneath stay clear"><input id="pkFull" type="checkbox" checked> full height</label><label><input id="logy" type="checkbox"> log I</label><label><input id="bgsub" type="checkbox"> subtract background</label></div>
       <div class="row2"><label for="sens">peak sensitivity</label><input id="sens" type="range" min="2" max="20" step="0.5" value="6" style="width:7rem"></div>
       <span class="spacer"></span>
       <span class="status" id="status"></span>
     </div>
-    <div class="bench">
-      <div id="chartWrap"><canvas id="chart" aria-label="Intensity profile"></canvas>
+    <div class="bench" style="grid-template-columns:minmax(0,1fr)">
+      <div id="chartWrap" title="Drag the bottom-right corner to change the plot height"><canvas id="chart" aria-label="Intensity profile"></canvas>
         <div class="empty" id="chartEmpty" style="position:absolute;inset:0">Set the centre, then press <b>&nbsp;Compute profile&nbsp;</b>. Nothing is saved until you press a Save button.</div></div>
-      <div class="tablebox"><table><thead><tr><th></th><th>#</th><th>d (Å)</th><th>2θ (°)</th><th>q (nm⁻¹)</th><th>r (px)</th><th>I rel %</th></tr></thead><tbody id="peaks"><tr><td colspan="7" style="text-align:center;color:var(--muted)">peaks appear after Compute</td></tr></tbody></table></div>
+      <div class="tablebox" style="max-height:260px"><table><thead><tr><th></th><th>#</th><th>d (Å)</th><th>2θ (°)</th><th>q (nm⁻¹)</th><th>r (px)</th><th>I rel %</th></tr></thead><tbody id="peaks"><tr><td colspan="7" style="text-align:center;color:var(--muted)">peaks appear after Compute</td></tr></tbody></table></div>
     </div>
     <div class="keys" id="selHint">zoom the plot: <kbd>wheel</kbd> or <kbd>drag</kbd> across a range, <kbd>double-click</kbd> to reset · edit peaks: <kbd>right-click</kbd> the plot to add one, <kbd>right-click</kbd> a peak (or × in the table) to delete it · select peaks and press <kbd>Delete</kbd> to delete them all · <kbd>click</kbd> a spot on the pattern (centre locked) to see its d in the plot · <kbd>click</kbd> a peak (plot or table) to show its ring on the pattern · <kbd>shift</kbd>+<kbd>click</kbd> to add or remove more rings, each in its own colour · click elsewhere on the curve for the ring at that position · <kbd>Esc</kbd> hides all. <b id="selCount" style="color:var(--ink);font-weight:500"></b></div>
     <div class="saves">
@@ -238,6 +265,28 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <div id="phaseBox" tabindex="0" aria-label="Phases: arrow keys move the highlight, space ticks"><div id="phaseGroups"><div class="keys" style="padding:12px;text-align:center">no CIF loaded</div></div></div>
       <div id="lineBoxWrap"><div class="tablebox"><table><thead><tr><th style="text-align:left">hkl</th><th>d calc</th><th>d × s</th><th>2θ (°)</th><th>I %</th><th>obs peak</th></tr></thead>
         <tbody id="lineRows"><tr><td colspan="6" style="text-align:center;color:var(--muted)">click a phase to list its lines</td></tr></tbody></table></div></div>
+    </div>
+  </section>
+  <section class="panel" id="v3Panel" style="display:grid;gap:10px">
+    <div class="chartbar">
+      <h2>3D structure</h2>
+      <label><input id="v3on" type="checkbox"> show the highlighted phase in 3D</label>
+      <span class="row2" style="gap:4px"><span class="keys">view along</span><button id="v3va">a</button><button id="v3vb">b</button><button id="v3vc">c</button></span>
+      <span class="row2" style="gap:4px"><label>cells</label><input id="v3na" type="number" min="1" max="6" value="1" style="width:3.2rem" aria-label="cells along a"><input id="v3nb" type="number" min="1" max="6" value="1" style="width:3.2rem" aria-label="cells along b"><input id="v3nc" type="number" min="1" max="6" value="1" style="width:3.2rem" aria-label="cells along c"></span>
+      <span class="row2"><label for="v3size">atom size</label><input id="v3size" type="range" min="0.15" max="1.6" step="0.05" value="0.5" style="width:7rem"></span>
+      <span class="row2"><label><input id="v3bond" type="checkbox" checked> bonds</label><label title="Also bond atoms of the same element (e.g. Cr–Cr, O–O)"><input id="v3same" type="checkbox"> same-element</label><label for="v3tol" title="Bond drawn when distance &lt; tolerance × (r_cov,1 + r_cov,2)">tol</label><input id="v3tol" type="number" min="0.8" max="1.6" step="0.05" value="1.15" style="width:4.2rem"></span>
+      <span class="row2"><label><input id="v3cell" type="checkbox" checked> unit cell</label><label title="Also draw atoms on the far faces / edges / corners"><input id="v3edge" type="checkbox" checked> boundary atoms</label><label><input id="v3lab" type="checkbox"> element labels</label><label><input id="v3persp" type="checkbox" checked> perspective</label><label><input id="v3white" type="checkbox"> white background</label></span>
+      <span class="spacer"></span>
+      <button id="v3save">Save view (.png)</button>
+    </div>
+    <div id="v3body" hidden style="display:grid;gap:8px">
+      <div class="keys">Shows the highlighted phase (or the first ticked one). <kbd>drag</kbd> rotate · <kbd>shift</kbd>+<kbd>drag</kbd> or <kbd>right-drag</kbd> pan · <kbd>wheel</kbd> zoom · <kbd>double-click</kbd> reset (view along c) · arrow keys rotate when the view has focus · hover an atom for its site label and coordinates. Radii: covalent (Cordero 2008) × atom size; colours: Jmol. Partially occupied sites are drawn translucent.</div>
+      <div id="v3wrap" style="position:relative;height:clamp(420px,65vh,820px);min-height:260px;resize:vertical;overflow:hidden;border:1px solid var(--line);border-radius:var(--r)">
+        <canvas id="v3d" tabindex="0" aria-label="3D crystal structure" style="display:block;width:100%;height:100%;cursor:grab;touch-action:none"></canvas>
+        <div id="v3legend"></div>
+        <div class="empty" id="v3empty" style="position:absolute;inset:0">Highlight a phase in the CIF list above (click it, or use ★ Best fit).</div>
+      </div>
+      <div class="keys" id="v3info"></div>
     </div>
   </section>
 </div>
@@ -307,7 +356,12 @@ function parseDM(buf){
     const o0=get(d0,"Origin"),o1=cal[1]?get(cal[1][1],"Origin"):undefined;if(typeof o0==="number"&&typeof o1==="number")origin=[o0,o1];
     if(u&&u.arr){for(let j=0;j<u.count;j++){const c=simple(u.type,u.off+j*SZ[u.type]);units+=String.fromCharCode(c);}} else if(typeof u==="string") units=u;}
   let kv=null; const v=get(im,"ImageTags","Microscope Info","Voltage"); if(typeof v==="number"&&v>0) kv=v/1000;
-  return {W,H,data,scale,units:units.trim(),kv,complex,origin};
+  /* acquisition date / time (DataBar tags), searched anywhere in this image's tags */
+  const asStr=v=>{if(typeof v==="string")return v;if(v&&v.arr){let t="";for(let j=0;j<v.count;j++)t+=String.fromCharCode(simple(v.type,v.off+j*SZ[v.type]));return t;}if(typeof v==="number")return String(v);return "";};
+  const isGrp=g=>Array.isArray(g)&&g.every(e=>Array.isArray(e)&&e.length===2&&typeof e[0]==="string");
+  const find=(g,name,depth)=>{if(!isGrp(g)||depth>8)return undefined;for(const [k,v] of g){if(k===name)return v;}for(const [,v] of g){const r=find(v,name,depth+1);if(r!==undefined)return r;}return undefined;};
+  const tags=get(im,"ImageTags");const acqDate=asStr(find(tags,"Acquisition Date",0)).trim(),acqTime=asStr(find(tags,"Acquisition Time",0)).trim();
+  return {W,H,data,scale,units:units.trim(),kv,complex,origin,acq:[acqDate,acqTime].filter(Boolean).join("  ")};
 }
 
 /* ============================================================== state */
@@ -324,7 +378,7 @@ function pct(arr,ps){const s=Float32Array.from(arr).sort();return ps.map(p=>s[Ma
 function sample(arr,n){const step=Math.max(1,Math.floor(arr.length/n));const out=new Float32Array(Math.ceil(arr.length/step));for(let i=0,j=0;i<arr.length;i+=step,j++)out[j]=arr[i];return out;}
 
 /* ============================================================== load an image */
-function setImage(W,H,data,meta){
+function setImage(W,H,data,meta){if(!meta.fromReal){S.real=null;S.realROI=null;const rp=document.getElementById("rsPanel");if(rp)rp.hidden=true;}if(UNDO){UNDO.past=[];UNDO.future=[];UNDO.lastKind="";}
   S.W=W;S.H=H;S.img=data;S.name=meta.name;S.example=!!meta.example;S.profile=null;S.peaks=[];
   const smp=sample(data,400000); const [p1,pmax]=pct(smp,[1,100]);
   let mx=-Infinity; for(let i=0;i<data.length;i+=1){if(data[i]>mx)mx=data[i];}
@@ -344,7 +398,7 @@ function setImage(W,H,data,meta){
   if(!c) c=guessCentre();
   S.cx=c[0];S.cy=c[1];
   const rmaxA=Math.hypot(W,H)/2; $("r0").max=Math.round(rmaxA); $("dr").max=Math.round(rmaxA/2);
-  S.polarR=null; S.pkAdd=[]; S.pkDel=[]; $("lock").checked=false; fitView(); clearProfile(); $("svimg").disabled=false; refreshInfo(meta); redrawAll(); setStatus("");
+  S.polarR=null; S.pkAdd=[]; S.pkDel=[]; $("lock").checked=false; fitView(); clearProfile(); $("svimg").disabled=false;$("svpolar").disabled=false; refreshInfo(meta); redrawAll(); setStatus("");autoProfile();
 }
 function buildPyramid(){
   S.pyr=[{w:S.W,h:S.H,f:1,d:S.d8}];
@@ -421,8 +475,8 @@ function refreshInfo(meta){
   const fi=$("fileinfo"); fi.textContent="";
   const add=(k,v)=>{const s=document.createElement("span");s.innerHTML=k+" <b></b>";s.querySelector("b").textContent=v;fi.appendChild(s);};
   if(S.example){const c=document.createElement("span");c.className="chip example";c.textContent="Synthetic example pattern";fi.appendChild(c);}
-  if(S.isFFT){const c=document.createElement("span");c.className="chip";c.textContent="FFT · amplitude shown · centre at zero frequency";fi.appendChild(c);}
-  add("file",S.name); add("size",S.W+" × "+S.H);
+  if(S.isFFT){const c=document.createElement("span");c.className="chip";c.textContent=(S.realROI?"FFT computed from the real-space image":"FFT")+" · amplitude shown · centre at zero frequency";fi.appendChild(c);}
+  add("file",S.name);if(meta.acq||(S.real&&S.real.acq))add("acquired",meta.acq||S.real.acq); add("size",S.W+" × "+S.H);
   add("calib",$("scale").value?($("scale").value+" nm⁻¹/px"+(meta.units?" ("+meta.units+")":"")):"not in file: enter scale");
   add("mask",(100*S.maskFrac).toFixed(1)+"% of image");
 }
@@ -520,22 +574,58 @@ function drawPolar(){
   ctx.lineWidth=1.2*dpr;
   if($("cRings").checked){ctx.save();for(const phs of S.phases){if(!ringsOn(phs))continue;ctx.strokeStyle=phs.color;
       for(const ln of phaseLines(phs,true)){const rr=phaseR(ln.d);if(!(rr>=r0&&rr<=r1))continue;const x=l+(rr-r0)/(r1-r0)*pw;ctx.globalAlpha=0.35+0.6*Math.min(1,ln.I/60);ctx.lineWidth=(0.8+1.2*Math.min(1,ln.I/50))*dpr;
-        ctx.beginPath();ctx.moveTo(x,t);ctx.lineTo(x,t+ph);ctx.stroke();}}ctx.restore();}
+        ctx.beginPath();ctx.moveTo(x,t);ctx.lineTo(x,t+ph);ctx.stroke();}}ctx.restore();
+    /* labels (hkl and/or d, as set in the CIF panel), strongest lines first, moved down until they overlap no other label */
+    if($("cLab").checked||$("cLabD").checked){const fs=(+$("cLabSize").value||10)*dpr,h=fs*1.25,placed=[],labs=[];
+      for(const phs of S.phases){if(!ringsOn(phs))continue;for(const ln of phaseLines(phs,true)){const rr=phaseR(ln.d);if(!(rr>=r0&&rr<=r1))continue;
+        labs.push({x:l+(rr-r0)/(r1-r0)*pw,txt:labTxt(ln),c:phs.color,I:ln.I+(phs.id===S.focus?1000:0)});}}
+      labs.sort((p,q)=>q.I-p.I);ctx.save();ctx.font=`600 ${fs}px "IBM Plex Mono",monospace`;ctx.textAlign="left";ctx.textBaseline="middle";
+      for(const L of labs){const tw=ctx.measureText(L.txt).width+4*dpr;let done=false;
+        for(let y0=t+4*dpr;!done&&y0+tw<=t+ph;y0+=Math.max(4*dpr,h*0.6))for(const ax of [L.x+h*0.6,L.x-h*0.6]){const bx={x0:ax-h/2,x1:ax+h/2,y0,y1:y0+tw};
+          if(bx.x0<l||bx.x1>l+pw||placed.some(q=>q.x0<bx.x1&&bx.x0<q.x1&&q.y0<bx.y1&&bx.y0<q.y1))continue;placed.push(bx);
+          ctx.save();ctx.translate(ax,y0+tw-2*dpr);ctx.rotate(-Math.PI/2);ctx.fillStyle="rgba(7,9,11,.75)";ctx.fillRect(-2*dpr,-h/2,tw,h);ctx.fillStyle=L.c;ctx.fillText(L.txt,0,0);ctx.restore();done=true;break;}}
+      ctx.restore();}}
   circleRadii().forEach((rr,i)=>{if(rr<r0||rr>r1)return;const x=l+(rr-r0)/(r1-r0)*pw;ctx.strokeStyle=i%2?cb:ca;ctx.beginPath();ctx.moveTo(x,t);ctx.lineTo(x,t+ph);ctx.stroke();});
   for(const sl of S.sels){if(sl.r<r0||sl.r>r1)continue;const x=l+(sl.r-r0)/(r1-r0)*pw;ctx.save();ctx.strokeStyle=sl.color;ctx.lineWidth=2*dpr;ctx.setLineDash([8*dpr,5*dpr]);
     ctx.beginPath();ctx.moveTo(x,t);ctx.lineTo(x,t+ph);ctx.stroke();ctx.restore();}
   // axes text
   ctx.fillStyle="#b9c5cf";ctx.font=`${11*dpr}px "IBM Plex Mono",monospace`;ctx.textAlign="center";ctx.textBaseline="top";
-  for(const v of niceTicks(r0,r1,6)){const x=l+(v-r0)/(r1-r0)*pw;ctx.fillRect(x,t+ph,1*dpr,4*dpr);ctx.fillText(String(+v.toFixed(2)),x,t+ph+6*dpr);}
+  const scP=+$("scale").value;
+  if(scP>0){ /* d axis (Å): d = 10/(r·cal); ticks at round d values, kept at least ~40 px apart */
+    const xr=rr=>l+(rr-r0)/(r1-r0)*pw,gap=40*dpr,cand=[];
+    for(let v=20;v>=6;v-=1)cand.push([v,v%5?1:0]);for(let v=6;v>=2;v-=0.5)cand.push([+v.toFixed(2),v%1?2:0]);
+    for(let v=2;v>=1;v-=0.1)cand.push([+v.toFixed(2),Math.abs(v*2-Math.round(v*2))<1e-6?1:3]);for(let v=1;v>=0.3;v-=0.05)cand.push([+v.toFixed(2),Math.abs(v*10-Math.round(v*10))<1e-6?2:4]);
+    const placedX=[];cand.sort((a,b)=>a[1]-b[1]);
+    for(const [dv] of cand){const rr=10/(dv*scP);if(rr<r0||rr>r1)continue;const x=xr(rr);if(x<l+8*dpr||x>l+pw-8*dpr)continue;if(placedX.some(q=>Math.abs(q-x)<gap))continue;placedX.push(x);
+      ctx.fillRect(x,t+ph,1*dpr,4*dpr);ctx.fillText(String(dv),x,t+ph+6*dpr);}
+    ctx.textAlign="right";ctx.fillText("d (Å)",l-6*dpr,t+ph+6*dpr);ctx.textAlign="center";}
+  else for(const v of niceTicks(r0,r1,6)){const x=l+(v-r0)/(r1-r0)*pw;ctx.fillRect(x,t+ph,1*dpr,4*dpr);ctx.fillText(String(+v.toFixed(2)),x,t+ph+6*dpr);}
   ctx.textAlign="right";ctx.textBaseline="middle";
   for(const v of [0,90,180,270,360]){const y=t+ph-(v/360)*ph;ctx.fillRect(l-4*dpr,y,4*dpr,1*dpr);ctx.fillText(v+"°",l-6*dpr,y);}
-  $("hudP").textContent=`r ${r0.toFixed(0)}–${r1.toFixed(0)} px · wheel to zoom`;
+  $("hudP").textContent=(scP>0?(r0>0.5?`d ${(10/(r0*scP)).toFixed(2)}–${(10/(r1*scP)).toFixed(3)} Å`:`d down to ${(10/(r1*scP)).toFixed(3)} Å`):`r ${r0.toFixed(0)}–${r1.toFixed(0)} px (enter calibration for d)`)+" · wheel to zoom";
 }
 function redrawAll(){drawMain();drawPolar();}
 
 /* ============================================================== interaction */
 function centreLocked(){if($("lock").checked){setStatus("Centre is locked. Untick “Lock centre” (under the pattern) to move it.",true);return true;}return false;}
-function setCentre(x,y,force){if(!force&&centreLocked()){drawMain();return;}S.cx=x;S.cy=y;remember();redrawAll();}
+/* ---------- undo / redo (Ctrl+Z, Ctrl+Y or Ctrl+Shift+Z): centre, peak edits, plot zoom and shown rings */
+var UNDO={past:[],future:[],busy:false,lastKind:"",lastT:0};
+function snap(){return JSON.stringify({cx:S.cx,cy:S.cy,pkAdd:S.pkAdd||[],pkDel:S.pkDel||[],xlo:$("xlo").value,xhi:$("xhi").value,sels:S.sels||[]});}
+function undoPush(kind,state){if(!UNDO||UNDO.busy||!S.img)return;const now=Date.now(),st=state||snap();
+  if(kind&&kind===UNDO.lastKind&&now-UNDO.lastT<800&&kind==="centre"){UNDO.lastT=now;return;}   // holding an arrow key = one step
+  UNDO.lastKind=kind;UNDO.lastT=now;if(UNDO.past[UNDO.past.length-1]===st)return;UNDO.past.push(st);if(UNDO.past.length>200)UNDO.past.shift();UNDO.future=[];}
+function undoApply(st){const o=JSON.parse(st);UNDO.busy=true;
+  try{S.cx=o.cx;S.cy=o.cy;$("cx").value=S.cx.toFixed(2);$("cy").value=S.cy.toFixed(2);remember();S.pkAdd=o.pkAdd;S.pkDel=o.pkDel;
+    $("xlo").value=o.xlo;$("xhi").value=o.xhi;if(S.profile)findPeaks();S.sels=o.sels;markRows();updSelHint();redrawAll();drawChart();}finally{UNDO.busy=false;}autoProfile();}
+function undoStep(back){const from=back?UNDO.past:UNDO.future,to=back?UNDO.future:UNDO.past;if(!from.length){setStatus(back?"Nothing to undo.":"Nothing to redo.");return;}
+  const cur=snap();let st=from.pop();while(st===cur&&from.length)st=from.pop();if(st===cur){setStatus(back?"Nothing to undo.":"Nothing to redo.");return;}
+  to.push(cur);UNDO.lastKind="";undoApply(st);setStatus(back?"Undone (Ctrl+Y to redo).":"Redone.");}
+document.addEventListener("keydown",e=>{if(!(e.ctrlKey||e.metaKey))return;const k=e.key.toLowerCase();if(k!=="z"&&k!=="y")return;
+  const tag=(e.target.tagName||"").toLowerCase();if(tag==="input"&&!/checkbox|radio|range|button|file/.test(e.target.type)||tag==="textarea")return;   // text boxes keep their own undo
+  e.preventDefault();undoStep(!(k==="y"||e.shiftKey));},true);
+let profTimer=null;
+function autoProfile(){if(!$("profAuto")||!$("profAuto").checked||!S.img)return;clearTimeout(profTimer);profTimer=setTimeout(()=>{if(+$("scale").value>0)compute({auto:true});},250);}
+function setCentre(x,y,force){if(!force&&centreLocked()){drawMain();return;}if(x!==S.cx||y!==S.cy)undoPush("centre");S.cx=x;S.cy=y;remember();redrawAll();autoProfile();}
 function move(dx,dy,mult){const s=STEPS[S.stepIdx]*(mult||1);setCentre(S.cx+dx*s,S.cy+dy*s);}
 let drag=null;
 cvM.addEventListener("pointerdown",e=>{cvM.focus();const k=cvM.width/cvM.getBoundingClientRect().width;drag={x:e.offsetX*k,y:e.offsetY*k,ox:S.ox,oy:S.oy,moved:false};cvM.setPointerCapture(e.pointerId);});
@@ -573,8 +663,10 @@ cvP.addEventListener("dblclick",()=>{S.polarR=null;drawPolar();});
 
 document.addEventListener("keydown",e=>{
   const tag=(e.target.tagName||"").toLowerCase(); if(tag==="input"||tag==="select"||tag==="textarea")return;
-  if(e.target.closest&&e.target.closest("#phaseBox"))return;
+  if(e.target.closest&&(e.target.closest("#phaseBox")||e.target.closest("#v3Panel")))return;
   if(!S.img)return; const k=e.key; let used=true; const mult=e.shiftKey?10:1;
+  /* arrow keys move the centre only while the pattern / centre controls are in use, so scrolling the page with the keyboard elsewhere never shifts it */
+  if(k.startsWith("Arrow")){const inWork=(e.target.closest&&e.target.closest("section.work"))||document.querySelector("section.work:hover");if(!inWork)return;}
   if(k==="ArrowLeft")move(-1,0,mult);else if(k==="ArrowRight")move(1,0,mult);else if(k==="ArrowUp")move(0,-1,mult);else if(k==="ArrowDown")move(0,1,mult);
   else if(k==="+"||k==="="){S.stepIdx=Math.min(STEPS.length-1,S.stepIdx+1);$("step").value=String(STEPS[S.stepIdx]);drawMain();}
   else if(k==="-"||k==="_"){S.stepIdx=Math.max(0,S.stepIdx-1);$("step").value=String(STEPS[S.stepIdx]);drawMain();}
@@ -592,7 +684,7 @@ for(const id of ["nc","r0","dr"]){$(id).addEventListener("input",()=>{$(id+"N").
   $(id+"N").addEventListener("change",()=>{$(id).max=Math.max(+$(id).max,+$(id+"N").value);$(id).value=$(id+"N").value;redrawAll();});}
 for(const id of ["blk","wht"]){const f=()=>{S.black=+$("blk").value;S.white=Math.max(S.black+1,+$("wht").value);buildLUT();redrawAll();};
   $(id).addEventListener("input",()=>{$(id+"N").value=$(id).value;f();});$(id+"N").addEventListener("change",()=>{$(id).value=$(id+"N").value;f();});}
-$("maskOn").addEventListener("change",redrawAll);$("showMask").addEventListener("change",redrawAll);
+$("maskOn").addEventListener("change",()=>{redrawAll();autoProfile();});$("showMask").addEventListener("change",redrawAll);
 $("step").addEventListener("change",()=>{S.stepIdx=STEPS.indexOf(+$("step").value);drawMain();});
 for(const id of ["cx","cy"])$(id).addEventListener("change",()=>{const x=parseFloat($("cx").value),y=parseFloat($("cy").value);if(isFinite(x)&&isFinite(y))setCentre(x,y);});
 document.querySelectorAll("[data-mv]").forEach(b=>b.addEventListener("click",e=>{const [dx,dy]=b.dataset.mv.split(",").map(Number);move(dx,dy,e.shiftKey?10:1);}));
@@ -600,8 +692,11 @@ $("zoomC").addEventListener("click",zoomCentre);
 $("fullView").addEventListener("click",()=>{fitView();S.polarR=null;redrawAll();});
 function updLam(){const kv=+$("kv").value;$("lam").textContent=kv>0?lambdaA(kv).toFixed(7):"–";}
 $("kv").addEventListener("input",()=>{updLam();if(S.profile)compute();});
-$("scale").addEventListener("change",()=>{if(S.profile)compute();});
+$("scale").addEventListener("change",()=>{if(S.profile)compute({auto:$("profAuto").checked});else autoProfile();drawPolar();});
+$("bin").addEventListener("change",()=>{if($("profAuto").checked)autoProfile();});
+$("profAuto").addEventListener("change",()=>{if($("profAuto").checked){autoProfile();setStatus("Auto update on: the profile follows the centre, calibration, bin and mask.");}});
 new ResizeObserver(()=>{if(S.img){const z=S.zoom;redrawAll();}drawChart();}).observe(document.body);
+new ResizeObserver(()=>drawChart()).observe($("chartWrap"));
 
 /* ============================================================== auto-refine (sharpest rings) */
 async function refine(){
@@ -626,14 +721,18 @@ async function refine(){
   setStatus(`Centre refined: moved ${(cx-start[0]).toFixed(2)}, ${(cy-start[1]).toFixed(2)} px. Check the polar view.`);
 }
 $("refine").addEventListener("click",()=>{if(!centreLocked())refine();});
+$("autoC").addEventListener("click",()=>{if(!S.img||centreLocked())return;const c=guessCentre();if(!c||!isFinite(c[0])){setStatus("Could not find the centre automatically.",true);return;}
+  setCentre(c[0],c[1]);setStatus(`Centre found automatically: (${c[0].toFixed(2)}, ${c[1].toFixed(2)}) px. Auto-refine can polish it further.`);});
+$("geoC").addEventListener("click",()=>{if(!S.img||centreLocked())return;const x=S.isFFT?Math.floor(S.W/2):(S.W-1)/2,y=S.isFFT?Math.floor(S.H/2):(S.H-1)/2;
+  setCentre(x,y);setStatus(`Centre moved to the image centre (${x.toFixed(2)}, ${y.toFixed(2)}) px.`);});
 $("lock").addEventListener("change",()=>{setStatus($("lock").checked?"Centre locked.":"Centre unlocked: click or use the arrow keys to move it.");drawMain();});
 
 /* ============================================================== profile */
 function setStatus(t,err){const s=$("status");s.textContent=t;s.classList.toggle("err",!!err);}
 function clearProfile(){S.profile=null;S.peaks=[];S.sels=[];$("chartEmpty").hidden=false;renderPeaks();for(const b of ["sv2t","svd","svfull","svpk","svset","svplot"])$(b).disabled=true;drawChart();}
-function compute(){
+function compute(opts){const auto=!!(opts&&opts.auto===true);
   if(!S.img)return; const sc=+$("scale").value, kv=+$("kv").value;
-  if(!(sc>0)){setStatus("Enter the calibration (nm⁻¹ per pixel) first.",true);$("scale").focus();return;}
+  if(!(sc>0)){if(auto)return;setStatus("Enter the calibration (nm⁻¹ per pixel) first.",true);$("scale").focus();return;}
   if(!(kv>0)){setStatus("Enter the accelerating voltage in kV.",true);return;}
   const W=S.W,H=S.H,cx=S.cx,cy=S.cy,bin=+$("bin").value,m=useMask();
   const rmax=Math.min(cx,cy,W-1-cx,H-1-cy); if(rmax<10){setStatus("The centre is too close to the image edge.",true);return;}
@@ -648,9 +747,9 @@ function compute(){
   if(!$("xlo").value||!$("xhi").value)setDefaultRange();
   findPeaks(); $("chartEmpty").hidden=true;
   for(const b of ["sv2t","svd","svfull","svpk","svset","svplot"])$(b).disabled=false;
-  if(!$("lock").checked){$("lock").checked=true;drawMain();}
+  if(!auto&&!$("lock").checked){$("lock").checked=true;drawMain();}
   if(!$("xlo").value||!$("xhi").value)setDefaultRange();
-  drawChart(); setStatus(`Profile from centre (${cx.toFixed(2)}, ${cy.toFixed(2)}) · ${R.length} points · ${S.peaks.length} peaks · centre locked`);
+  drawChart(); setStatus(`Profile from centre (${cx.toFixed(2)}, ${cy.toFixed(2)}) · ${R.length} points · ${S.peaks.length} peaks · `+(auto?"auto-updated":"centre locked"));
 }
 function baseline(I,win){const n=I.length,mn=new Float64Array(n);
   for(let i=0;i<n;i++){let m=Infinity;for(let j=Math.max(0,i-win);j<=Math.min(n-1,i+win);j++)if(I[j]<m)m=I[j];mn[i]=m;}
@@ -691,12 +790,12 @@ function renderPeaks(){const tb=$("peaks");tb.textContent="";
     if(p.manual)tr.title="Added by hand";tb.appendChild(tr);});
   $("pkDelSel").disabled=!S.sels.some(x=>x.peak!=null);}
 function removePeak(i){removePeaks([i]);}
-function removePeaks(idx){const ps=[...new Set(idx)].map(i=>S.peaks[i]).filter(Boolean);if(!ps.length)return;S.pkAdd=S.pkAdd||[];S.pkDel=S.pkDel||[];
+function removePeaks(idx){const ps=[...new Set(idx)].map(i=>S.peaks[i]).filter(Boolean);if(!ps.length)return;undoPush("peaks");S.pkAdd=S.pkAdd||[];S.pkDel=S.pkDel||[];
   for(const p of ps){if(p.manual){let k=-1,bd=Infinity;S.pkAdd.forEach((r,j)=>{const d=Math.abs(r-p.r);if(d<bd){bd=d;k=j;}});if(k>=0)S.pkAdd.splice(k,1);}else S.pkDel.push(p.r);}
   S.sels=S.sels.filter(x=>!idx.includes(x.peak));findPeaks();drawChart();redrawAll();
   setStatus(ps.length===1?`Peak at d ${ps[0].d.toFixed(4)} Å deleted.`:`${ps.length} peaks deleted (${ps.map(p=>p.d.toFixed(3)).join(", ")} Å).`);}
 function deleteSelectedPeaks(){const idx=S.sels.filter(x=>x.peak!=null).map(x=>x.peak);if(!idx.length){setStatus("Select peaks first: click a peak (shift+click for several), then Delete.",true);return;}removePeaks(idx);}
-function addPeakAtR(r){const P=S.profile;if(!P||!(r>0))return;S.pkAdd=S.pkAdd||[];S.pkDel=S.pkDel||[];
+function addPeakAtR(r){const P=S.profile;if(!P||!(r>0))return;undoPush("peaks");S.pkAdd=S.pkAdd||[];S.pkDel=S.pkDel||[];
   const j=S.pkDel.findIndex(rd=>Math.abs(rd-r)<=Math.max(3*P.bin,0.004*rd));if(j>=0)S.pkDel.splice(j,1);else S.pkAdd.push(r);
   findPeaks();drawChart();const p=S.peaks.slice().sort((a,b)=>Math.abs(a.r-r)-Math.abs(b.r-r))[0];if(p)setStatus(`Peak added at d ${p.d.toFixed(4)} Å (refined to the local maximum).`);}
 const SEL_COLORS=["#ff4fd8","#ff9f1c","#8cff4a","#b48cff","#ff6b6b","#ffffff","#4d9dff","#c8ff00"];
@@ -705,7 +804,7 @@ function markRows(){{const b=$("pkDelSel");if(b)b.disabled=!S.sels.some(x=>x.pea
 function ringInfo(r,peakIdx){const P=S.profile,q=r*P.sc,d=10/q,tt=2*Math.asin(Math.min(1,P.lam/(2*d)))*180/Math.PI;
   return {r,peak:peakIdx??null,d,tt,short:`${peakIdx!=null?"#"+(peakIdx+1)+" ":""}${d.toFixed(3)} Å`};}
 /* click = show only this ring (click it again to hide); shift+click = add / remove rings */
-function selectRing(r,peakIdx,additive,spot,label){
+function selectRing(r,peakIdx,additive,spot,label){undoPush("rings");
   if(!S.profile||!(r>0)){S.sels=[];}
   else{
     let j=S.sels.findIndex(x=>peakIdx!=null?x.peak===peakIdx:(x.peak==null&&Math.abs(x.r-r)<0.75));
@@ -736,7 +835,7 @@ function setDefaultRange(){const P=S.profile,mode=$("xmode").value;if(!P)return;
   if(mode==="d"){lo=dlo;hi=dhi;}else if(mode==="q"){lo=10/dhi;hi=10/dlo;}else if(mode==="tt"){lo=2*Math.asin(lam/(2*dhi))*180/Math.PI;hi=2*Math.asin(lam/(2*dlo))*180/Math.PI;}else{lo=10/dhi/P.sc;hi=P.R[P.R.length-1];}
   $("xlo").value=+lo.toPrecision(4);$("xhi").value=+hi.toPrecision(4);}
 $("xmode").addEventListener("change",()=>{setDefaultRange();drawChart();});
-for(const id of ["xlo","xhi"])$(id).addEventListener("change",drawChart);
+for(const id of ["xlo","xhi"]){$(id).addEventListener("focus",()=>{UNDO.pre=snap();});$(id).addEventListener("change",()=>{if(UNDO.pre)undoPush("zoomtxt",UNDO.pre);UNDO.pre=snap();drawChart();});}
 $("logy").addEventListener("change",drawChart);$("pkLines").addEventListener("change",drawChart);$("pkFull").addEventListener("change",drawChart);$("bgsub").addEventListener("change",()=>{drawChart();updSaveLabels();});
 function niceTicks(a,b,n){if(!(b>a))return[];const span=b-a,step0=span/n,mag=Math.pow(10,Math.floor(Math.log10(step0)));const f=step0/mag;const step=(f<1.5?1:f<3?2:f<7?5:10)*mag;
   const out=[];for(let v=Math.ceil(a/step)*step;v<=b+1e-9;v+=step)out.push(+v.toPrecision(10));return out;}
@@ -771,14 +870,41 @@ function drawChart(target,tdpr){
   ctx.strokeStyle=acc;ctx.lineWidth=1.3*dpr;ctx.beginPath();let first=true;
   for(let i=0;i<X.length;i++){if(X[i]<lo||X[i]>hi){first=true;continue;}const x=sx(X[i]),y=sy(Y[i]);if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);}
   ctx.stroke();
+  /* ---- label layout: experimental d labels are placed first, then CIF labels (strongest first); each is nudged sideways or up/down until it overlaps nothing */
+  const placed=[],ovl=(a,b)=>a.x0<b.x1&&b.x0<a.x1&&a.y0<b.y1&&b.y0<a.y1;
+  const fitsBox=b=>b.y0>=T+1*dpr&&b.y1<=T+ph&&b.x0>=L&&b.x1<=L+pw&&!placed.some(q=>ovl(q,b));
+  const boxAt=(ax,ay,len,h)=>({x0:ax-h/2,x1:ax+h/2,y0:ay-len,y1:ay});   // vertical (rotated) text: runs upward from the anchor
+  const placeLabel=(x,ay0,len,h,gap)=>{const sides=[x+gap,x-gap],step=Math.max(3*dpr,h*0.5);
+    for(let k=0;k<120;k++){for(const dy of k?[-k*step,k*step]:[0])for(const ax of sides){const b=boxAt(ax,ay0+dy,len,h);if(fitsBox(b)){placed.push(b);return{ax,ay:ay0+dy,moved:k>0};}}}
+    placed.push(boxAt(sides[0],ay0,len,h));return{ax:sides[0],ay:ay0,moved:false};};
+  const pkLines=$("pkLines").checked,pkFull=$("pkFull").checked,MATCH="#2fbf71",cmV=+$("cmin").value||0,sV=phaseScale();
+  const cifD=S.phases.filter(phVisible).flatMap(ph=>ph.lines.filter(x=>x.I>=cmV).map(x=>x.d*sV));
+  { /* keep labels out of the legend box (top right) */
+    const lt=[`Experimental (${S.name||"pattern"})`].concat($("cSticks").checked?S.phases.filter(phVisible).map(phs=>(phs.legend||phs.label)+(phs.show?"":"  (preview)")):[]);
+    ctx.font=`${11*dpr}px "IBM Plex Sans",sans-serif`;const lw=Math.max(...lt.map(t=>ctx.measureText(t).width));placed.push({x0:L+pw-lw-30*dpr,x1:L+pw,y0:T+36*dpr,y1:T+40*dpr+lt.length*16*dpr});}
+  const pkFont=`600 ${11*dpr}px "IBM Plex Mono",monospace`,expLabs=[];ctx.font=pkFont;
+  for(const p of S.peaks){const xv=mode==="d"?p.d:mode==="tt"?p.tt:mode==="q"?p.q:p.r;if(xv<lo||xv>hi)continue;
+    let k=0,bd=Infinity;for(let i=0;i<X.length;i++){const dd=Math.abs(X[i]-xv);if(dd<bd){bd=dd;k=i;}}
+    const hit=cifD.some(d=>Math.abs(d-p.d)/p.d<=0.01),col=hit?MATCH:warn,x=sx(xv),y=sy(Y[k])-6*dpr,t=p.d.toFixed(3),tw=ctx.measureText(t).width,fh=11*dpr;
+    placed.push({x0:x-4*dpr,x1:x+4*dpr,y0:y-7*dpr,y1:y});   // the peak marker
+    expLabs.push({x,y,hit,col,t,tw,fh,pos:placeLabel(x,y-1*dpr,tw+6*dpr,fh*1.4,fh*0.75)});}
   if($("cSticks").checked&&S.phases.some(phVisible)){const shown=S.phases.filter(phVisible);const lab=$("cLab").checked||$("cLabD").checked,lfs=(+$("cLabSize").value||10)*dpr;
+    const cifLabs=[];
     shown.forEach((phs,pi)=>{ctx.strokeStyle=phs.color;ctx.fillStyle=phs.color;const focus=phs.id===S.focus;
       for(const ln of phaseLines(phs,false)){const r=phaseR(ln.d);if(!(r>0))continue;const xv=rToX(r,mode);if(xv<lo||xv>hi)continue;const x=sx(xv),hgt=ln.I/100*ph*0.42;
         ctx.globalAlpha=0.85;ctx.lineWidth=(focus?2:1.4)*dpr;ctx.beginPath();ctx.moveTo(x,T+ph);ctx.lineTo(x,T+ph-hgt);ctx.stroke();
-        if(lab){ctx.globalAlpha=1;ctx.save();ctx.font=`${focus?"600 ":""}${lfs}px "IBM Plex Mono",monospace`;ctx.translate(x+0.5*lfs,T+ph-hgt-3*dpr);ctx.rotate(-Math.PI/2);ctx.textAlign="left";ctx.textBaseline="middle";ctx.fillText(labTxt(ln),0,0);ctx.restore();}}});
+        if(lab)cifLabs.push({x,top:T+ph-hgt-3*dpr,txt:labTxt(ln),color:phs.color,font:`${focus?"600 ":""}${lfs}px "IBM Plex Mono",monospace`,I:ln.I+(focus?1000:0)});}});
+    ctx.globalAlpha=1;cifLabs.sort((a,b)=>b.I-a.I);
+    for(const c of cifLabs){ctx.font=c.font;const tw=ctx.measureText(c.txt).width,pos=placeLabel(c.x,c.top,tw+2*dpr,lfs*1.15,0.5*lfs);
+      if(pos.moved){ctx.save();ctx.strokeStyle=muted;ctx.globalAlpha=.5;ctx.lineWidth=0.8*dpr;ctx.setLineDash([1*dpr,3*dpr]);ctx.beginPath();ctx.moveTo(c.x,c.top+3*dpr);ctx.lineTo(pos.ax,pos.ay);ctx.stroke();ctx.restore();}   /* faint grey dotted leader: never mistaken for the stick */
+      ctx.save();ctx.fillStyle=c.color;ctx.translate(pos.ax,pos.ay);ctx.rotate(-Math.PI/2);ctx.textAlign="left";ctx.textBaseline="middle";ctx.fillText(c.txt,0,0);ctx.restore();}
+  }
+  { /* legend: the experimental curve, then every shown phase */
+    const ent=[{c:acc,t:`Experimental (${S.name||"pattern"})`,curve:true}].concat($("cSticks").checked?S.phases.filter(phVisible).map(phs=>({c:phs.color,t:(phs.legend||phs.label)+(phs.show?"":"  (preview)")})):[]);
     ctx.globalAlpha=1;ctx.font=`${11*dpr}px "IBM Plex Sans",sans-serif`;ctx.textAlign="right";ctx.textBaseline="top";
-    shown.forEach((phs,i)=>{const y=T+40*dpr+i*16*dpr,txt=(phs.legend||phs.label)+(phs.show?"":"  (preview)");const tw=ctx.measureText(txt).width;ctx.fillStyle=css.getPropertyValue("--panel").trim();ctx.globalAlpha=.85;ctx.fillRect(L+pw-tw-26*dpr,y-2*dpr,tw+24*dpr,15*dpr);ctx.globalAlpha=1;
-      ctx.fillStyle=phs.color;ctx.fillRect(L+pw-tw-22*dpr,y+3*dpr,12*dpr,4*dpr);ctx.fillStyle=ink;ctx.fillText(txt,L+pw-4*dpr,y);});}
+    ent.forEach((e,i)=>{const y=T+40*dpr+i*16*dpr,tw=ctx.measureText(e.t).width;ctx.fillStyle=css.getPropertyValue("--panel").trim();ctx.globalAlpha=.85;ctx.fillRect(L+pw-tw-26*dpr,y-2*dpr,tw+24*dpr,15*dpr);ctx.globalAlpha=1;
+      if(e.curve){ctx.strokeStyle=e.c;ctx.lineWidth=2*dpr;ctx.beginPath();ctx.moveTo(L+pw-tw-22*dpr,y+5*dpr);ctx.lineTo(L+pw-tw-10*dpr,y+5*dpr);ctx.stroke();}
+      else{ctx.fillStyle=e.c;ctx.fillRect(L+pw-tw-22*dpr,y+3*dpr,12*dpr,4*dpr);}ctx.fillStyle=ink;ctx.fillText(e.t,L+pw-4*dpr,y);});}
   for(const sl of S.sels){const xv=rToX(sl.r,mode);if(xv>=lo&&xv<=hi){const col=sl.color==="#ffffff"?muted:sl.color;ctx.strokeStyle=col;ctx.lineWidth=2*dpr;ctx.setLineDash([6*dpr,4*dpr]);
     ctx.beginPath();ctx.moveTo(sx(xv),T);ctx.lineTo(sx(xv),T+ph);ctx.stroke();ctx.setLineDash([]);
     if(sl.peak==null){const lab=sl.short.startsWith("spot")||!sl.short.includes("(")?(sl.spot?"spot ":"")+"d "+sl.d.toFixed(3)+" Å":sl.short;ctx.font=`600 ${11*dpr}px "IBM Plex Mono",monospace`;const tw=ctx.measureText(lab).width;
@@ -786,22 +912,17 @@ function drawChart(target,tdpr){
       ctx.fillStyle=col;ctx.textAlign="left";ctx.textBaseline="top";ctx.fillText(lab,x,T+21*dpr);}}}
   // peaks
   ctx.fillStyle=warn;ctx.font=`600 ${11*dpr}px "IBM Plex Mono",monospace`;ctx.textAlign="left";ctx.textBaseline="middle";
-  // experimental peaks: vertical line; green when a shown CIF line (ticked or previewed, ≥ lines %) lies within ±1 % in d
-  const pkLines=$("pkLines").checked,pkFull=$("pkFull").checked,MATCH="#2fbf71",cmV=+$("cmin").value||0,sV=phaseScale();
-  const cifD=S.phases.filter(phVisible).flatMap(ph=>ph.lines.filter(x=>x.I>=cmV).map(x=>x.d*sV));
-  for(const p of S.peaks){const xv=mode==="d"?p.d:mode==="tt"?p.tt:mode==="q"?p.q:p.r;if(xv<lo||xv>hi)continue;
-    let k=0,bd=Infinity;for(let i=0;i<X.length;i++){const dd=Math.abs(X[i]-xv);if(dd<bd){bd=dd;k=i;}}
-    const hit=cifD.some(d=>Math.abs(d-p.d)/p.d<=0.01),col=hit?MATCH:warn;
-    const x=sx(xv),y=sy(Y[k])-6*dpr;
-    /* thin dashed line from the top of the plot down to the peak marker only, so CIF sticks below stay visible */
+  // experimental peaks: vertical line; the d label turns green when a shown CIF line (ticked or previewed, ≥ lines %) lies within ±1 % in d
+  ctx.font=pkFont;
+  for(const e of expLabs){const {x,y,hit,col,t,tw,fh,pos}=e;
     if(pkLines){ctx.save();ctx.strokeStyle=col;ctx.globalAlpha=0.6;ctx.lineWidth=1*dpr;ctx.setLineDash([4*dpr,4*dpr]);
       ctx.beginPath();ctx.moveTo(x,T);ctx.lineTo(x,y-7*dpr);if(pkFull){ctx.moveTo(x,y+1*dpr);ctx.lineTo(x,T+ph);}ctx.stroke();ctx.restore();}
     ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-4*dpr,y-7*dpr);ctx.lineTo(x+4*dpr,y-7*dpr);ctx.closePath();ctx.fill();
-    {const t=p.d.toFixed(3),tw=ctx.measureText(t).width,fh=11*dpr;   // label sits beside the peak line, on its own background
-      ctx.save();ctx.translate(x+fh*0.75,y-4*dpr);ctx.rotate(-Math.PI/2);
-      if(hit){ctx.fillStyle=MATCH;ctx.fillRect(-3*dpr,-fh*0.7,tw+6*dpr,fh*1.4);ctx.fillStyle="#0b1a12";}   /* matched: highlighted d label */
-      else{ctx.fillStyle=css.getPropertyValue("--panel").trim();ctx.globalAlpha=.85;ctx.fillRect(-2*dpr,-fh*0.65,tw+4*dpr,fh*1.3);ctx.globalAlpha=1;ctx.fillStyle=col;}
-      ctx.fillText(t,0,0);ctx.restore();}}
+    if(pos.moved){ctx.save();ctx.strokeStyle=col;ctx.globalAlpha=.7;ctx.lineWidth=1*dpr;ctx.beginPath();ctx.moveTo(x,y-7*dpr);ctx.lineTo(pos.ax,pos.ay);ctx.stroke();ctx.restore();}
+    ctx.save();ctx.translate(pos.ax,pos.ay-3*dpr);ctx.rotate(-Math.PI/2);ctx.textAlign="left";ctx.textBaseline="middle";
+    if(hit){ctx.fillStyle=MATCH;ctx.fillRect(-3*dpr,-fh*0.7,tw+6*dpr,fh*1.4);ctx.fillStyle="#0b1a12";}   /* matched: highlighted d label */
+    else{ctx.fillStyle=css.getPropertyValue("--panel").trim();ctx.globalAlpha=.85;ctx.fillRect(-2*dpr,-fh*0.65,tw+4*dpr,fh*1.3);ctx.globalAlpha=1;ctx.fillStyle=col;}
+    ctx.fillText(t,0,0);ctx.restore();}
   if(chartDrag&&chartDrag.moved){const a=Math.max(L,Math.min(chartDrag.x0,chartDrag.x1)),b2=Math.min(L+pw,Math.max(chartDrag.x0,chartDrag.x1));
     ctx.fillStyle=acc;ctx.globalAlpha=.15;ctx.fillRect(a,T,b2-a,ph);ctx.globalAlpha=1;ctx.strokeStyle=acc;ctx.lineWidth=1*dpr;ctx.strokeRect(a,T,b2-a,ph);}
   if(hoverX!==null&&hoverX>=L&&hoverX<=L+pw){const xv=lo+(hoverX-L)/pw*(hi-lo);let k=0,bd=Infinity;for(let i=0;i<X.length;i++){const dd=Math.abs(X[i]-xv);if(dd<bd){bd=dd;k=i;}}
@@ -813,22 +934,22 @@ function drawChart(target,tdpr){
 }
 let chartDrag=null,suppressClick=false;
 const cPx=e=>e.offsetX*(cvC.width/cvC.getBoundingClientRect().width);
-function setRange(lo,hi){if(!(hi>lo))return;$("xlo").value=+lo.toPrecision(6);$("xhi").value=+hi.toPrecision(6);drawChart();}
+function setRange(lo,hi){if(!(hi>lo))return;undoPush("zoom");$("xlo").value=+lo.toPrecision(6);$("xhi").value=+hi.toPrecision(6);drawChart();}
 cvC.addEventListener("pointerdown",e=>{if(!S.profile||!chartGeom||e.button!==0)return;chartDrag={x0:cPx(e),x1:cPx(e),moved:false};cvC.setPointerCapture(e.pointerId);});
 cvC.addEventListener("pointermove",e=>{hoverX=cPx(e);if(chartDrag){chartDrag.x1=hoverX;if(Math.abs(chartDrag.x1-chartDrag.x0)>6*chartGeom.dpr)chartDrag.moved=true;}if(S.profile)drawChart();});
 cvC.addEventListener("pointerup",e=>{if(!chartDrag)return;const d=chartDrag;chartDrag=null;
   if(d.moved){suppressClick=true;const g=chartGeom,f=x=>g.lo+(Math.max(g.L,Math.min(g.L+g.pw,x))-g.L)/g.pw*(g.hi-g.lo);const a=f(Math.min(d.x0,d.x1)),b=f(Math.max(d.x0,d.x1));if(b-a>1e-6)setRange(a,b);else drawChart();}});
 cvC.addEventListener("wheel",e=>{if(!S.profile||!chartGeom)return;e.preventDefault();const g=chartGeom,px=cPx(e);if(px<g.L||px>g.L+g.pw)return;
   const xc=g.lo+(px-g.L)/g.pw*(g.hi-g.lo),k=e.deltaY<0?0.8:1.25;setRange(xc-(xc-g.lo)*k,xc+(g.hi-xc)*k);},{passive:false});
-cvC.addEventListener("dblclick",()=>{if(S.profile){setDefaultRange();drawChart();}});
-$("zreset").addEventListener("click",()=>{if(S.profile){setDefaultRange();drawChart();}});
+cvC.addEventListener("dblclick",()=>{if(S.profile){undoPush("zoom");setDefaultRange();drawChart();}});
+$("zreset").addEventListener("click",()=>{if(S.profile){undoPush("zoom");setDefaultRange();drawChart();}});
 cvC.addEventListener("contextmenu",e=>{if(!S.profile||!chartGeom)return;e.preventDefault();const g=chartGeom,px=cPx(e);if(px<g.L||px>g.L+g.pw)return;
   let bi=-1,bd=Infinity;S.peaks.forEach((p,i)=>{const xv=rToX(p.r,g.mode);if(xv<g.lo||xv>g.hi)return;const d=Math.abs(g.sx(xv)-px);if(d<bd){bd=d;bi=i;}});
   if(bi>=0&&bd<=8*g.dpr)removePeak(bi);else addPeakAtR(xToR(g.lo+(px-g.L)/g.pw*(g.hi-g.lo),g.mode));});
 $("pkAddBtn").addEventListener("click",()=>{const on=$("pkAddBtn").getAttribute("aria-pressed")!=="true";$("pkAddBtn").setAttribute("aria-pressed",String(on));
   setStatus(on?"Add peaks: click the plot where a peak should be. Click the button again to stop.":"");});
 $("pkDelSel").addEventListener("click",deleteSelectedPeaks);
-$("pkUndo").addEventListener("click",()=>{S.pkAdd=[];S.pkDel=[];if(S.profile){findPeaks();drawChart();redrawAll();}setStatus("Peak edits cleared.");});
+$("pkUndo").addEventListener("click",()=>{undoPush("peaks");S.pkAdd=[];S.pkDel=[];if(S.profile){findPeaks();drawChart();redrawAll();}setStatus("Peak edits cleared.");});
 cvC.addEventListener("click",e=>{
   if(suppressClick){suppressClick=false;return;}
   if(!S.profile||!chartGeom)return;const g=chartGeom,px=e.offsetX*(cvC.width/cvC.getBoundingClientRect().width);
@@ -854,6 +975,11 @@ async function saveFile(filename,text){
   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);ss.textContent="Saved "+filename+" (check your Downloads folder)";
 }
 const fmt=(v,n)=>Number(v).toFixed(n);
+$("svpolar").addEventListener("click",async()=>{if(!S.img)return;drawPolar();const dpr=cvP.width/cvP.getBoundingClientRect().width,cap=22*dpr;
+  const c=document.createElement("canvas");c.width=cvP.width;c.height=cvP.height+cap;const g=c.getContext("2d");g.fillStyle="#07090b";g.fillRect(0,0,c.width,c.height);g.drawImage(cvP,0,0);
+  g.fillStyle="#d7dee4";g.font=`${11*dpr}px "IBM Plex Mono",monospace`;g.textBaseline="middle";
+  g.fillText(`${S.name} · polar unwrap · centre (${S.cx.toFixed(2)}, ${S.cy.toFixed(2)}) px · ${$("hudP").textContent.replace(" · wheel to zoom","")}`,8*dpr,cvP.height+cap/2);
+  const blob=await new Promise(res=>c.toBlob(res,"image/png"));saveFile(base()+"_polar.png",blob);});
 $("svimg").addEventListener("click",async()=>{
   if(!S.img)return; const cw=cvM.width,ch=cvM.height, N=Math.round(Math.min(3000,Math.max(1600,cw*2))), k=N/cw, H0=Math.round(ch*k);
   const lwScreen=cvM.width/cvM.getBoundingClientRect().width, lw=lwScreen*k*0.75;
@@ -890,26 +1016,55 @@ $("svset").addEventListener("click",()=>{const P=S.profile;saveFile(base()+"_cen
 
 /* ============================================================== open files */
 async function openFile(f){
-  if(!f)return; setStatus("Reading "+f.name+"…"); document.body.classList.add("busy"); await new Promise(r=>setTimeout(r,20));
+  if(!f)return;S.lastFile=f;const ftype=$("ftype").value; setStatus("Reading "+f.name+"…"); document.body.classList.add("busy"); await new Promise(r=>setTimeout(r,20));
   try{
     const ext=f.name.split(".").pop().toLowerCase();
     if(ext==="dm4"||ext==="dm3"){const buf=await f.arrayBuffer();const r=parseDM(buf);
       let sc=r.scale,u=r.units.replace(/\s/g,"");
       if(sc!=null){if(u==="1/nm"||u==="nm^-1"){}else if(u==="1/Å"||u==="1/A"||u==="Å^-1"){sc*=10;}else if(u==="1/µm"||u==="1/um"){sc/=1000;}else{sc=null;}}
       $("xlo").value="";$("xhi").value="";
+      const ru=REAL_UNITS[r.units.replace(/\s/g,"")];
+      if(!r.complex&&(ftype==="real"||(ftype==="auto"&&ru))){setReal(r.W,r.H,r.data,{name:f.name,pix:ru&&r.scale?r.scale*ru:null,kv:r.kv,acq:r.acq});document.body.classList.remove("busy");return;}
       // FFT (complex image): centre = zero-frequency pixel, no beam stop to mask
       const fftC=r.complex?[Math.floor(r.W/2),Math.floor(r.H/2)]:null;   // zero frequency of a centred FFT
-      setImage(r.W,r.H,r.data,{name:f.name,scale:sc,kv:r.kv,units:r.units,fft:r.complex,center:fftC});
+      setImage(r.W,r.H,r.data,{name:f.name,scale:sc,kv:r.kv,units:r.units,fft:r.complex,center:fftC,acq:r.acq});
     }else{
-      const bmp=await createImageBitmap(f);const c=document.createElement("canvas");c.width=bmp.width;c.height=bmp.height;const g=c.getContext("2d");g.drawImage(bmp,0,0);
-      const px=g.getImageData(0,0,c.width,c.height).data;const d=new Float32Array(c.width*c.height);for(let i=0;i<d.length;i++)d[i]=(px[4*i]+px[4*i+1]+px[4*i+2])/3;
+      let IW,IH,d;
+      if(ext==="tif"||ext==="tiff"){try{const t=readTIFF(await f.arrayBuffer());IW=t.W;IH=t.H;d=t.data;}catch(err){try{const bmp=await createImageBitmap(f);IW=-1;}catch(e2){throw new Error("TIFF: "+err.message);}}}
+      if(!d){const bmp=await createImageBitmap(f);const c=document.createElement("canvas");c.width=bmp.width;c.height=bmp.height;const g=c.getContext("2d");g.drawImage(bmp,0,0);
+        const px=g.getImageData(0,0,c.width,c.height).data;d=new Float32Array(c.width*c.height);for(let i=0;i<d.length;i++)d[i]=(px[4*i]+px[4*i+1]+px[4*i+2])/3;IW=c.width;IH=c.height;}
       $("xlo").value="";$("xhi").value="";
+      if(ftype==="real"){setReal(IW,IH,d,{name:f.name,pix:+$("rsPix").value||null,kv:null});document.body.classList.remove("busy");return;}
+      const c={width:IW,height:IH};
       setImage(c.width,c.height,d,{name:f.name,scale:null,units:""});setStatus("Image loaded. Enter the calibration (nm⁻¹ per pixel) before computing.");
     }
   }catch(err){setStatus("Could not read "+f.name+": "+err.message,true);}
   document.body.classList.remove("busy");
 }
 $("file").addEventListener("change",e=>openFile(e.target.files[0]));
+/* Chrome/Edge: open the pickers with the File System Access API, which remembers the last folder separately for each button (by id).
+   Other browsers, or if it is unavailable, fall back to the normal file input. */
+const FSA=typeof window.showOpenFilePicker==="function"&&typeof window.showDirectoryPicker==="function";
+async function walkDir(dir,path,out){for await(const [name,h] of dir.entries()){if(h.kind==="directory")await walkDir(h,path.concat(name),out);
+  else if(/\.cif$/i.test(name))out.push({f:await h.getFile(),group:path[path.length-1]});}}
+/* last-used location per button: Chrome's own memory (id) plus the last picked file/folder handle kept in IndexedDB and passed as startIn,
+   so each button reopens where it was last used, even after the page is reloaded */
+const PICK_DB=(()=>{let p=null;const open=()=>p||(p=new Promise((res,rej)=>{const r=indexedDB.open("saed-pickers",1);r.onupgradeneeded=()=>r.result.createObjectStore("h");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}));
+  return {get:async k=>{try{const db=await open();return await new Promise(res=>{const q=db.transaction("h").objectStore("h").get(k);q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null);});}catch(e){return null;}},
+          set:async(k,v)=>{try{const db=await open();await new Promise(res=>{const t=db.transaction("h","readwrite");t.objectStore("h").put(v,k);t.oncomplete=res;t.onerror=res;});}catch(e){}}};})();
+async function pickWithMemory(key,fn,opts){const last=await PICK_DB.get(key);let r;
+  try{r=await fn(Object.assign({id:key},opts,last?{startIn:last}:{}));}
+  catch(err){if(err&&err.name==="AbortError")throw err;r=await fn(Object.assign({id:key},opts));}   // stored location gone (moved / deleted): open normally
+  const h=Array.isArray(r)?r[0]:r;if(h)PICK_DB.set(key,h);return r;}
+function hookPicker(labelFor,run){const lab=document.querySelector(`label[for="${labelFor}"]`);if(!lab||!FSA)return;
+  lab.addEventListener("click",async e=>{e.preventDefault();try{await run();}catch(err){if(err&&err.name==="AbortError")return;console.warn(err);$(labelFor).click();}});}
+hookPicker("file",async()=>{const [h]=await pickWithMemory("saed-pattern",o=>window.showOpenFilePicker(o),{multiple:false,excludeAcceptAllOption:false,
+  types:[{description:"Diffraction pattern / FFT / image",accept:{"application/octet-stream":[".dm4",".dm3"],"image/*":[".png",".jpg",".jpeg",".tif",".tiff"]}}]});
+  openFile(await h.getFile());});
+hookPicker("cifIn",async()=>{const hs=await pickWithMemory("saed-cif",o=>window.showOpenFilePicker(o),{multiple:true,types:[{description:"CIF files",accept:{"chemical/x-cif":[".cif"]}}]});
+  addCIFs(await Promise.all(hs.map(h=>h.getFile())));});
+hookPicker("cifDir",async()=>{const d=await pickWithMemory("saed-cifdir",o=>window.showDirectoryPicker(o),{mode:"read"});const out=[];await walkDir(d,[d.name],out);
+  if(!out.length){$("cifStatus").textContent=`No .cif files found in “${d.name}”.`;return;}addCIFs(out);});
 let dragDepth=0;
 window.addEventListener("dragenter",e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes("Files")){dragDepth++;$("drop").hidden=false;e.preventDefault();}});
 window.addEventListener("dragover",e=>e.preventDefault());
@@ -979,7 +1134,7 @@ function phaseFromBlock(b,fileName){
     const f=[num(r[iX]),num(r[iY]),num(r[iZ])];if(f.some(v=>!isFinite(v)))continue;
     // expand by symmetry, keep unique positions in the unit cell
     const seen=[];for(const op of ops){const p=[0,1,2].map(i=>{let v=op.R[i][0]*f[0]+op.R[i][1]*f[1]+op.R[i][2]*f[2]+op.t[i];v-=Math.floor(v);if(v>0.99999)v=0;return v;});
-      if(seen.some(q=>q.every((v,i)=>{const d=Math.abs(v-p[i]);return Math.min(d,1-d)<1e-3;})))continue;seen.push(p);atoms.push({el,x:p[0],y:p[1],z:p[2],occ,B});}}
+      if(seen.some(q=>q.every((v,i)=>{const d=Math.abs(v-p[i]);return Math.min(d,1-d)<1e-3;})))continue;seen.push(p);atoms.push({el,lab:iL>=0?r[iL]:el,x:p[0],y:p[1],z:p[2],occ,B});}}
   if(!atoms.length)return null;
   if(unknown.size)warn=(warn?warn+"; ":"")+"skipped unknown atom types: "+[...unknown].join(", ");
   const sg=(g("_space_group_name_h-m_alt")||g("_symmetry_space_group_name_h-m")||"").trim();
@@ -1043,22 +1198,27 @@ function fitScore(ph){
   const missF=strong.length?miss/strong.length:1;
   return {score:(hitW-chance)/(1-chance)-0.5*missF,hitW,chance,missF};}
 const groupsOf=()=>{const order=[],m=new Map();for(const ph of S.phases){const g=ph.group||"Files";if(!m.has(g)){m.set(g,[]);order.push(g);}m.get(g).push(ph);}return order.map(g=>[g,m.get(g)]);};
-const displayOrder=()=>groupsOf().flatMap(([g,L])=>S.collapsed&&S.collapsed.has(g)?[]:L);
+/* starred phases: a separate "★ Starred" box on top (they also stay in their own folder box); remembered per CIF file in this browser */
+const STAR_G="★ Starred",starKey=ph=>"saed-star:"+ph.file+"|"+(ph.code||ph.block||"");
+const starLoad=ph=>{try{return localStorage.getItem(starKey(ph))==="1";}catch(e){return false;}};
+const starSave=ph=>{try{ph.star?localStorage.setItem(starKey(ph),"1"):localStorage.removeItem(starKey(ph));}catch(e){}};
+const viewGroups=()=>{const st=S.phases.filter(p=>p.star);return (st.length?[[STAR_G,st,true]]:[]).concat(groupsOf());};
+const displayOrder=()=>{const seen=new Set();return viewGroups().flatMap(([g,L])=>S.collapsed&&S.collapsed.has(g)?[]:L).filter(p=>!seen.has(p.id)&&seen.add(p.id));};
 function renderPhases(){
   const box=$("phaseGroups");box.textContent="";$("cClear").disabled=!S.phases.length;for(const b of ["cBest","cBestPrev","cBestNext","cBestIn"])$(b).disabled=!S.phases.length;
-  {const sel=$("cBestIn"),keep=sel.value,gs=groupsOf().map(x=>x[0]);sel.textContent="";const o0=document.createElement("option");o0.value="";o0.textContent="all folders";sel.appendChild(o0);
+  {const sel=$("cBestIn"),keep=sel.value,gs=viewGroups().map(x=>x[0]);sel.textContent="";const o0=document.createElement("option");o0.value="";o0.textContent="all folders";sel.appendChild(o0);
    for(const g of gs){const o=document.createElement("option");o.value=g;o.textContent=g;sel.appendChild(o);}sel.value=gs.includes(keep)?keep:"";}S.collapsed=S.collapsed||new Set();
   if(!S.phases.length){box.innerHTML='<div class="keys" style="padding:12px;text-align:center">no CIF loaded</div>';renderLines();renderPhaseCaption();return;}
-  for(const [g,list] of groupsOf()){
-    const grp=document.createElement("div");grp.className="pgroup";const closed=S.collapsed.has(g);
+  for(const [g,list,isStar] of viewGroups()){
+    const grp=document.createElement("div");grp.className="pgroup"+(isStar?" star":"");const closed=S.collapsed.has(g);
     const head=document.createElement("div");head.className="pghead";
-    head.innerHTML=`<button class="tog" title="Show / hide this folder" aria-label="toggle">${closed?"▸":"▾"}</button><b></b><span class="keys"></span><button class="bf" title="Best fit within this folder">★ best fit</button><button class="all">tick all</button><button class="none">untick all</button><button class="rm" title="Remove this folder's phases">remove</button>`;
-    head.querySelector("b").textContent="📁 "+g;head.querySelector(".keys").textContent=`${list.length} phase${list.length>1?"s":""}, ${list.filter(p=>p.show).length} ticked`;
+    head.innerHTML=`<button class="tog" title="Show / hide this folder" aria-label="toggle">${closed?"▸":"▾"}</button><b></b><span class="keys"></span><button class="bf" title="Best fit within this folder">★ best fit</button><button class="all">tick all</button><button class="none">untick all</button>`+(isStar?`<button class="rm" title="Unstar all (the phases stay loaded in their folders)">unstar all</button>`:`<button class="rm" title="Remove this folder's phases">remove</button>`);
+    head.querySelector("b").textContent=isStar?g:"📁 "+g;head.querySelector(".keys").textContent=`${list.length} phase${list.length>1?"s":""}, ${list.filter(p=>p.show).length} ticked`;
     head.querySelector(".tog").addEventListener("click",()=>{closed?S.collapsed.delete(g):S.collapsed.add(g);renderPhases();});
     head.querySelector(".bf").addEventListener("click",()=>{$("cBestIn").value=g;bestGo(0);});
     head.querySelector(".all").addEventListener("click",()=>{list.forEach(p=>p.show=true);phaseRefresh();});
     head.querySelector(".none").addEventListener("click",()=>{list.forEach(p=>p.show=false);phaseRefresh();});
-    head.querySelector(".rm").addEventListener("click",()=>{S.phases=S.phases.filter(p=>!list.includes(p));if(list.some(p=>p.id===S.focus))S.focus=null;phaseRefresh();});
+    head.querySelector(".rm").addEventListener("click",()=>{if(isStar){list.forEach(p=>{p.star=false;starSave(p);});renderPhases();return;}S.phases=S.phases.filter(p=>!list.includes(p));if(list.some(p=>p.id===S.focus))S.focus=null;phaseRefresh();});
     grp.appendChild(head);
     if(!closed){
       const tbl=document.createElement("table");
@@ -1066,18 +1226,19 @@ function renderPhases(){
       const tb=tbl.querySelector("tbody");
       for(const ph of list){const tr=document.createElement("tr");tr.dataset.id=ph.id;if(ph.id===S.focus)tr.className="focus";
         const st=matchStats(ph);
-        tr.innerHTML=`<td style="text-align:center"><input type="checkbox" ${ph.show?"checked":""} aria-label="show"></td><td><span class="sw"></span><b></b><br><span class="keys"></span></td><td></td><td></td><td></td><td><button class="x" title="Remove" aria-label="Remove">×</button></td>`;
+        tr.innerHTML=`<td style="text-align:center;white-space:nowrap"><input type="checkbox" ${ph.show?"checked":""} aria-label="show"><button class="starb${ph.star?" on":""}" title="${ph.star?"Unstar":"Star: also list it in the ★ Starred box"}" aria-label="star">${ph.star?"★":"☆"}</button></td><td><span class="sw"></span><b></b><br><span class="keys"></span></td><td></td><td></td><td></td><td><button class="x" title="Remove" aria-label="Remove">×</button></td>`;
         tr.querySelector(".sw").style.background=ph.color;tr.querySelector("b").textContent=ph.label;
         tr.querySelector(".keys").textContent=[ph.code?"ICSD/COD "+ph.code:"",ph.file,ph.pressure?"P "+ph.pressure:"",ph.warn?"⚠ "+ph.warn:""].filter(Boolean).join(" · ");
         tr.children[2].textContent=ph.cell.slice(0,3).map(v=>v.toFixed(4)).join(", ");
         tr.children[3].textContent=st?`${st.n} / ${st.N}`:"–";tr.children[4].textContent=st?`${st.miss} / ${st.strong}`:"–";
         tr.querySelector("input").addEventListener("change",e=>{ph.show=e.target.checked;renderPhases();redrawAll();drawChart();});
+        tr.querySelector(".starb").addEventListener("click",e=>{e.stopPropagation();ph.star=!ph.star;starSave(ph);renderPhases();});
         tr.querySelector(".x").addEventListener("click",e=>{e.stopPropagation();S.phases=S.phases.filter(p=>p!==ph);if(S.focus===ph.id)S.focus=null;renderPhases();redrawAll();drawChart();});
         tr.addEventListener("click",e=>{if(e.target.closest("input,button"))return;focusPhase(ph.id);$("phaseBox").focus({preventScroll:true});});
         tb.appendChild(tr);}
       const body=document.createElement("div");body.className="pgbody";body.appendChild(tbl);grp.appendChild(body);}
     box.appendChild(grp);}
-  renderLines();renderPhaseCaption();}
+  renderLines();renderPhaseCaption();if(typeof v3Sync==="function")v3Sync();}
 function focusPhase(id){S.focus=id;renderPhases();redrawAll();drawChart();
   const tr=$("phaseGroups").querySelector(`tr[data-id="${id}"]`);if(tr){const bx=tr.closest(".pgbody,.tablebox");if(bx){const br=bx.getBoundingClientRect(),rr=tr.getBoundingClientRect(),hh=(bx.querySelector("thead")||{offsetHeight:0}).offsetHeight;if(rr.top<br.top+hh)bx.scrollTop-=br.top+hh-rr.top;else if(rr.bottom>br.bottom)bx.scrollTop+=rr.bottom-br.bottom;}}}
 $("phaseBox").addEventListener("keydown",e=>{const L=displayOrder();if(!L.length)return;let i=L.findIndex(p=>p.id===S.focus);
@@ -1107,7 +1268,7 @@ async function addCIFs(files){
       for(const b of blocks){const ph=phaseFromBlock(b,f.name);if(!ph)continue;
         ph.lines=simulate(ph,0.62);ph.id=++phaseSeq;ph.color=PH_COLORS[(ph.id-1)%PH_COLORS.length];ph.show=false;
         ph.label=[ph.formula||ph.block||f.name,ph.mineral?`(${ph.mineral})`:"",ph.sg].filter(Boolean).join(" ");
-        ph.legend=compactFormula(ph.formula||ph.block||f.name)+(ph.code?`  ICSD ${ph.code}`:"");ph.group=it.group;
+        ph.legend=compactFormula(ph.formula||ph.block||f.name)+(ph.code?`  ICSD ${ph.code}`:"");ph.group=it.group;ph.star=starLoad(ph);
         S.phases.push(ph);any=true;added++;if(firstNew==null)firstNew=ph.id;}
       if(!any)failed.push(f.name);}catch(err){failed.push(f.name+" ("+err.message+")");}}
   if(added&&S.focus==null)S.focus=firstNew;
@@ -1122,7 +1283,7 @@ async function entriesToFiles(entry,parent,out){
   if(entry.isFile){await new Promise(res=>entry.file(f=>{if(/\.cif$/i.test(f.name))out.push({f,group:parent||"Files"});else if(!parent)out.push({f,group:null});res();},()=>res()));return;}
   if(entry.isDirectory){const rd=entry.createReader();let batch;do{batch=await new Promise(res=>rd.readEntries(res,()=>res([])));for(const en of batch)await entriesToFiles(en,entry.name,out);}while(batch.length);}}
 /* best-fit navigation: rank the phases in the chosen folder (or all), then go to #1, or step with ◀ ▶ */
-function bestRank(){const g=$("cBestIn").value;return S.phases.filter(ph=>!g||(ph.group||"Files")===g).map(ph=>({ph,f:fitScore(ph)})).filter(o=>o.f).sort((a,b)=>b.f.score-a.f.score);}
+function bestRank(){const g=$("cBestIn").value;return S.phases.filter(ph=>!g||(g===STAR_G?ph.star:(ph.group||"Files")===g)).map(ph=>({ph,f:fitScore(ph)})).filter(o=>o.f).sort((a,b)=>b.f.score-a.f.score);}
 function bestGo(step){   // step 0: best; +1 / -1: next / previous relative to the highlighted phase
   if(!S.phases.length)return;if(!S.profile||!S.peaks.length){setStatus("Compute the profile first, then use Best fit.",true);return;}
   const rank=bestRank();if(!rank.length){$("cifStatus").textContent="No phases in that folder.";return;}
@@ -1163,6 +1324,193 @@ function synth(){
 
 /* ============================================================== boot */
 updLam(); synth();
+/* ============================================================== 3D crystal-structure viewer (no libraries) */
+const EL_DATA=(()=>{const col="H FFFFFF He D9FFFF Li CC80FF Be C2FF00 B FFB5B5 C 909090 N 3050F8 O FF0D0D F 90E050 Ne B3E3F5 Na AB5CF2 Mg 8AFF00 Al BFA6A6 Si F0C8A0 P FF8000 S FFFF30 Cl 1FF01F Ar 80D1E3 K 8F40D4 Ca 3DFF00 Sc E6E6E6 Ti BFC2C7 V A6A6AB Cr 8A99C7 Mn 9C7AC7 Fe E06633 Co F090A0 Ni 50D050 Cu C88033 Zn 7D80B0 Ga C28F8F Ge 668F8F As BD80E3 Se FFA100 Br A62929 Kr 5CB8D1 Rb 702EB0 Sr 00FF00 Y 94FFFF Zr 94E0E0 Nb 73C2C9 Mo 54B5B5 Tc 3B9E9E Ru 248F8F Rh 0A7D8C Pd 006985 Ag C0C0C0 Cd FFD98F In A67573 Sn 668080 Sb 9E63B5 Te D47A00 I 940094 Xe 429EB0 Cs 57178F Ba 00C900 La 70D4FF Ce FFFFC7 Pr D9FFC7 Nd C7FFC7 Pm A3FFC7 Sm 8FFFC7 Eu 61FFC7 Gd 45FFC7 Tb 30FFC7 Dy 1FFFC7 Ho 00FF9C Er 00E675 Tm 00D452 Yb 00BF38 Lu 00AB24 Hf 4DC2FF Ta 4DA6FF W 2194D6 Re 267DAB Os 266696 Ir 175487 Pt D0D0E0 Au FFD123 Hg B8B8D0 Tl A6544D Pb 575961 Bi 9E4FB5 Po AB5C00 At 754F45 Rn 428296 Fr 420066 Ra 007D00 Ac 70ABFA Th 00BAFF Pa 00A1FF U 008FFF Np 0080FF Pu 006BFF Am 545CF2 Cm 785CE3 Bk 8A4FE3 Cf A136D4".split(" ");
+  const rad="H .31 He .28 Li 1.28 Be .96 B .84 C .76 N .71 O .66 F .57 Ne .58 Na 1.66 Mg 1.41 Al 1.21 Si 1.11 P 1.07 S 1.05 Cl 1.02 Ar 1.06 K 2.03 Ca 1.76 Sc 1.70 Ti 1.60 V 1.53 Cr 1.39 Mn 1.50 Fe 1.42 Co 1.38 Ni 1.24 Cu 1.32 Zn 1.22 Ga 1.22 Ge 1.20 As 1.19 Se 1.20 Br 1.20 Kr 1.16 Rb 2.20 Sr 1.95 Y 1.90 Zr 1.75 Nb 1.64 Mo 1.54 Tc 1.47 Ru 1.46 Rh 1.42 Pd 1.39 Ag 1.45 Cd 1.44 In 1.42 Sn 1.39 Sb 1.39 Te 1.38 I 1.39 Xe 1.40 Cs 2.44 Ba 2.15 La 2.07 Ce 2.04 Pr 2.03 Nd 2.01 Pm 1.99 Sm 1.98 Eu 1.98 Gd 1.96 Tb 1.94 Dy 1.92 Ho 1.92 Er 1.89 Tm 1.90 Yb 1.87 Lu 1.87 Hf 1.75 Ta 1.70 W 1.62 Re 1.51 Os 1.44 Ir 1.41 Pt 1.36 Au 1.36 Hg 1.32 Tl 1.45 Pb 1.46 Bi 1.48 Po 1.40 At 1.50 Rn 1.50 Fr 2.60 Ra 2.21 Ac 2.15 Th 2.06 Pa 2.00 U 1.96 Np 1.90 Pu 1.87 Am 1.80 Cm 1.69 Bk 1.68 Cf 1.68".split(" ");
+  const D={};for(let i=0;i<col.length;i+=2)D[col[i]]={c:"#"+col[i+1],r:1.5};for(let i=0;i<rad.length;i+=2)(D[rad[i]]=D[rad[i]]||{c:"#ff1493"}).r=+rad[i+1];return D;})();
+const elInfo=el=>EL_DATA[el]||{c:"#ff1493",r:1.5};
+const V3={ph:null,atoms:[],bonds:[],cell:null,R:[[1,0,0],[0,1,0],[0,0,1]],zoom:1,pan:[0,0],drag:null,hover:-1,key:""};
+const cv3=$("v3d");
+function fracToCart(cell){const [a,b,c,al,be,ga]=cell,r=Math.PI/180,ca=Math.cos(al*r),cb=Math.cos(be*r),cg=Math.cos(ga*r),sg=Math.sin(ga*r);
+  const cz=c*Math.sqrt(Math.max(1e-12,1-cb*cb-((ca-cb*cg)/sg)**2));
+  const M=[[a,b*cg,c*cb],[0,b*sg,c*(ca-cb*cg)/sg],[0,0,cz]];return f=>[M[0][0]*f[0]+M[0][1]*f[1]+M[0][2]*f[2],M[1][1]*f[1]+M[1][2]*f[2],M[2][2]*f[2]];}
+function v3Phase(){if(S.focus!=null){const p=S.phases.find(x=>x.id===S.focus);if(p)return p;}return S.phases.find(x=>x.show)||null;}
+function v3Build(){const ph=V3.ph;V3.atoms=[];V3.bonds=[];if(!ph)return;
+  const n=[+$("v3na").value||1,+$("v3nb").value||1,+$("v3nc").value||1].map(v=>Math.max(1,Math.min(6,Math.round(v))));
+  const toC=fracToCart(ph.cell),edge=$("v3edge").checked,eps=0.02,A=[];
+  for(const t of ph.atoms){const f=[t.x,t.y,t.z];
+    const opts=f.map((v,i)=>{const L=[];for(let k=0;k<n[i];k++)L.push(v+k);if(edge&&v<eps)L.push(v+n[i]);return L;});
+    for(const x of opts[0])for(const y of opts[1])for(const z of opts[2])A.push({el:t.el,lab:t.lab||t.el,occ:t.occ,f:[x,y,z],p:toC([x,y,z])});}
+  V3.atoms=A;
+  /* bonds: distance < tol × (r_cov,i + r_cov,j), using a cell list */
+  if($("v3bond").checked){const same=$("v3same").checked,tol=+$("v3tol").value||1.15,rmax=2*Math.max(...A.map(a=>elInfo(a.el).r))*tol,grid=new Map(),key=(i,j,k)=>i+","+j+","+k;
+    A.forEach((a,i)=>{const g=a.p.map(v=>Math.floor(v/rmax));const k=key(...g);(grid.get(k)||grid.set(k,[]).get(k)).push(i);a.g=g;});
+    for(let i=0;i<A.length;i++){const a=A[i],ra=elInfo(a.el).r;
+      for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(let dz=-1;dz<=1;dz++){const L=grid.get(key(a.g[0]+dx,a.g[1]+dy,a.g[2]+dz));if(!L)continue;
+        for(const j of L){if(j<=i)continue;const b=A[j],d=Math.hypot(a.p[0]-b.p[0],a.p[1]-b.p[1],a.p[2]-b.p[2]);
+          if((same||a.el!==b.el)&&d>0.4&&d<tol*(ra+elInfo(b.el).r))V3.bonds.push([i,j,d]);}}}
+    if(V3.bonds.length>60000){V3.bonds.length=60000;}}
+  const corners=[];for(const x of [0,n[0]])for(const y of [0,n[1]])for(const z of [0,n[2]])corners.push(toC([x,y,z]));
+  V3.ctr=[0,1,2].map(i=>corners.reduce((s,c)=>s+c[i],0)/8);V3.size=Math.max(...corners.map(c=>Math.hypot(c[0]-V3.ctr[0],c[1]-V3.ctr[1],c[2]-V3.ctr[2])))||5;
+  V3.cell={toC,n};
+  const els=[...new Set(ph.atoms.map(a=>a.el))];
+  $("v3legend").innerHTML="";for(const e of els){const s=document.createElement("span");s.innerHTML=`<i style="background:${elInfo(e).c}"></i>${e}`;$("v3legend").appendChild(s);}
+  $("v3info").textContent=`${ph.legend.trim()} · ${ph.sg||""} · a b c = ${ph.cell.slice(0,3).map(v=>v.toFixed(3)).join(", ")} Å · α β γ = ${ph.cell.slice(3).map(v=>(+v).toFixed(2)).join(", ")}° · ${A.length} atoms, ${V3.bonds.length} bonds shown`;}
+function v3Sync(force){const on=$("v3on").checked;$("v3body").hidden=!on;if(!on)return;
+  const ph=v3Phase();const k=ph?ph.id+"|"+[...["v3na","v3nb","v3nc","v3tol"].map(i=>$(i).value),$("v3edge").checked,$("v3bond").checked,$("v3same").checked].join(","):"";
+  if(force||k!==V3.key){const newPh=!V3.ph||!ph||V3.ph.id!==(ph&&ph.id);V3.ph=ph;V3.key=k;v3Build();if(newPh&&ph)v3View("c",true);}
+  $("v3empty").hidden=!!ph;v3Draw();}
+const mmul=(A,B)=>A.map(r=>[0,1,2].map(j=>r[0]*B[0][j]+r[1]*B[1][j]+r[2]*B[2][j]));
+const rotX=t=>[[1,0,0],[0,Math.cos(t),-Math.sin(t)],[0,Math.sin(t),Math.cos(t)]],rotY=t=>[[Math.cos(t),0,Math.sin(t)],[0,1,0],[-Math.sin(t),0,Math.cos(t)]];
+function v3View(ax,keepZoom){if(!V3.cell)return;const toC=V3.cell.toC;
+  /* look down the chosen axis (into the screen), with a sensible "up" */
+  let v=ax==="a"?toC([1,0,0]):ax==="b"?toC([0,1,0]):toC([0,0,1]);let up=ax==="c"?toC([0,1,0]):toC([0,0,1]);
+  const nrm=x=>{const l=Math.hypot(...x);return x.map(t=>t/l);},cross=(p,q)=>[p[1]*q[2]-p[2]*q[1],p[2]*q[0]-p[0]*q[2],p[0]*q[1]-p[1]*q[0]];
+  const z=nrm(v.map(t=>-t));let x=nrm(cross(up,z));if(!isFinite(x[0]))x=[1,0,0];const y=cross(z,x);
+  V3.R=[x,y.map(t=>-t),z];   // screen: x right, y down, z toward viewer
+  if(!keepZoom){V3.zoom=1;V3.pan=[0,0];}if(keepZoom===true){V3.zoom=1;V3.pan=[0,0];}v3Draw();}
+function v3Project(){const W=cv3.width,H=cv3.height,R=V3.R,c=V3.ctr,sc=V3.zoom*0.47*Math.min(W,H)/V3.size,D=V3.size*4,persp=$("v3persp").checked;
+  return p=>{const q=[p[0]-c[0],p[1]-c[1],p[2]-c[2]];const x=R[0][0]*q[0]+R[0][1]*q[1]+R[0][2]*q[2],y=R[1][0]*q[0]+R[1][1]*q[1]+R[1][2]*q[2],z=R[2][0]*q[0]+R[2][1]*q[1]+R[2][2]*q[2];
+    const f=persp?D/(D-z):1;return [W/2+V3.pan[0]+x*sc*f,H/2+V3.pan[1]+y*sc*f,z,sc*f];};}
+function shade(hex,k){const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,m=v=>Math.round(k>=0?v+(255-v)*k:v*(1+k));return `rgb(${m(r)},${m(g)},${m(b)})`;}
+function v3Draw(target){const cv=target||cv3;if(!target){if(!$("v3on").checked)return;sizeCanvas(cv3);}
+  const ctx=cv.getContext("2d"),W=cv.width,H=cv.height,css=getComputedStyle(document.documentElement),dpr=W/Math.max(1,cv.getBoundingClientRect().width||W);
+  ctx.fillStyle=$("v3white").checked?"#ffffff":css.getPropertyValue("--panel").trim()||"#111";ctx.fillRect(0,0,W,H);
+  if(!V3.ph||!V3.atoms.length)return;const P=v3Project(),A=V3.atoms,rs=+$("v3size").value||0.5,ink=$("v3white").checked?"#222":css.getPropertyValue("--ink").trim();
+  const pr=A.map(a=>P(a.p));const items=[];
+  A.forEach((a,i)=>items.push({z:pr[i][2],t:0,i}));
+  const adj=A.map(()=>[]);if($("v3bond").checked)V3.bonds.forEach(([i,j])=>{adj[i].push(j);adj[j].push(i);});
+  items.sort((p,q)=>p.z-q.z);
+  /* unit cell(s) behind everything */
+  if($("v3cell").checked&&V3.cell){const {toC,n}=V3.cell;ctx.save();ctx.lineWidth=1.2*dpr;
+    const E=(f0,f1,col)=>{const p0=P(toC(f0)),p1=P(toC(f1));ctx.strokeStyle=col;ctx.beginPath();ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke();};
+    ctx.globalAlpha=.35;for(let i=0;i<=n[0];i++)for(let j=0;j<=n[1];j++)E([i,j,0],[i,j,n[2]],ink);for(let i=0;i<=n[0];i++)for(let k=0;k<=n[2];k++)E([i,0,k],[i,n[1],k],ink);for(let j=0;j<=n[1];j++)for(let k=0;k<=n[2];k++)E([0,j,k],[n[0],j,k],ink);
+    ctx.globalAlpha=1;ctx.lineWidth=2.4*dpr;E([0,0,0],[1,0,0],"#e4572e");E([0,0,0],[0,1,0],"#2fbf71");E([0,0,0],[0,0,1],"#4a86e8");
+    ctx.font=`600 ${13*dpr}px "IBM Plex Mono",monospace`;ctx.textAlign="center";ctx.textBaseline="middle";
+    for(const [f,l,c] of [[[1.12,0,0],"a","#e4572e"],[[0,1.12,0],"b","#2fbf71"],[[0,0,1.12],"c","#4a86e8"]]){const p=P(toC(f));ctx.fillStyle=c;ctx.fillText(l,p[0],p[1]);}
+    ctx.restore();}
+  const labels=$("v3lab").checked;
+  for(const it of items){
+    /* each atom: its half-bonds first (centre to bond midpoint), then the sphere, back to front */
+    {const i=it.i,p=pr[i];if(adj[i].length){ctx.lineCap="butt";ctx.strokeStyle=shade(elInfo(A[i].el).c,-0.2);
+      for(const j of adj[i]){const q=pr[j];ctx.lineWidth=Math.max(1.5*dpr,0.17*(p[3]+q[3])/2);ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo((p[0]+q[0])/2,(p[1]+q[1])/2);ctx.stroke();}}}
+    const a=A[it.i],p=pr[it.i],e=elInfo(a.el),r=Math.max(1.5*dpr,e.r*rs*p[3]);
+    const g=ctx.createRadialGradient(p[0]-r*0.35,p[1]-r*0.35,r*0.1,p[0],p[1],r);g.addColorStop(0,shade(e.c,0.6));g.addColorStop(0.55,e.c);g.addColorStop(1,shade(e.c,-0.55));
+    ctx.fillStyle=g;ctx.globalAlpha=a.occ<0.99?0.55+0.45*a.occ:1;ctx.beginPath();ctx.arc(p[0],p[1],r,0,2*Math.PI);ctx.fill();ctx.globalAlpha=1;
+    if(it.i===V3.hover){ctx.strokeStyle=ink;ctx.lineWidth=2*dpr;ctx.stroke();}
+    if(labels&&r>6*dpr){ctx.fillStyle="#000";ctx.font=`600 ${Math.min(14,r/dpr*0.8)*dpr}px "IBM Plex Sans",sans-serif`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(a.el,p[0],p[1]);}}
+  if(V3.hover>=0&&V3.hover<A.length&&!target){const a=A[V3.hover],t=`${a.lab} (${a.el}) · x y z = ${a.f.map(v=>v.toFixed(4)).join(", ")}${a.occ<0.99?" · occ "+a.occ.toFixed(3):""}`;
+    ctx.font=`${12*dpr}px "IBM Plex Mono",monospace`;ctx.textAlign="left";ctx.textBaseline="top";const w=ctx.measureText(t).width;
+    ctx.fillStyle=css.getPropertyValue("--bg").trim()||"#000";ctx.globalAlpha=.85;ctx.fillRect(8*dpr,8*dpr,w+12*dpr,20*dpr);ctx.globalAlpha=1;ctx.fillStyle=ink;ctx.fillText(t,14*dpr,12*dpr);}}
+function v3Pick(mx,my){if(!V3.atoms.length)return -1;const P=v3Project(),rs=+$("v3size").value||0.5;let best=-1,bz=-Infinity;
+  V3.atoms.forEach((a,i)=>{const p=P(a.p),r=Math.max(3,elInfo(a.el).r*rs*p[3]);if((p[0]-mx)**2+(p[1]-my)**2<=r*r&&p[2]>bz){bz=p[2];best=i;}});return best;}
+const v3px=e=>{const k=cv3.width/cv3.getBoundingClientRect().width;return [e.offsetX*k,e.offsetY*k];};
+cv3.addEventListener("pointerdown",e=>{cv3.focus({preventScroll:true});const [x,y]=v3px(e);V3.drag={x,y,pan:e.shiftKey||e.button===2||e.button===1};cv3.setPointerCapture(e.pointerId);});
+cv3.addEventListener("pointermove",e=>{const [x,y]=v3px(e);
+  if(V3.drag){const dx=x-V3.drag.x,dy=y-V3.drag.y;V3.drag.x=x;V3.drag.y=y;
+    if(V3.drag.pan){V3.pan[0]+=dx;V3.pan[1]+=dy;}else{const k=3/Math.min(cv3.width,cv3.height);V3.R=mmul(mmul(rotX(-dy*k),rotY(dx*k)),V3.R);}v3Draw();return;}
+  const h=v3Pick(x,y);if(h!==V3.hover){V3.hover=h;v3Draw();}});
+cv3.addEventListener("pointerup",()=>{V3.drag=null;});
+cv3.addEventListener("pointerleave",()=>{if(V3.hover>=0){V3.hover=-1;v3Draw();}});
+cv3.addEventListener("contextmenu",e=>e.preventDefault());
+cv3.addEventListener("wheel",e=>{e.preventDefault();V3.zoom*=e.deltaY<0?1.12:1/1.12;V3.zoom=Math.max(0.1,Math.min(30,V3.zoom));v3Draw();},{passive:false});
+cv3.addEventListener("dblclick",()=>v3View("c",true));
+cv3.addEventListener("keydown",e=>{const t=0.08;let R=null;
+  if(e.key==="ArrowLeft")R=rotY(-t);else if(e.key==="ArrowRight")R=rotY(t);else if(e.key==="ArrowUp")R=rotX(t);else if(e.key==="ArrowDown")R=rotX(-t);
+  else if(e.key==="+"||e.key==="=")V3.zoom*=1.12;else if(e.key==="-")V3.zoom/=1.12;else return;
+  e.preventDefault();e.stopPropagation();if(R)V3.R=mmul(R,V3.R);v3Draw();});
+for(const [id,ax] of [["v3va","a"],["v3vb","b"],["v3vc","c"]])$(id).addEventListener("click",()=>v3View(ax,true));
+$("v3on").addEventListener("change",()=>v3Sync(true));
+for(const id of ["v3na","v3nb","v3nc","v3tol"])$(id).addEventListener("change",()=>v3Sync());
+for(const id of ["v3edge","v3bond","v3same"])$(id).addEventListener("change",()=>v3Sync());
+for(const id of ["v3cell","v3lab","v3persp","v3white"])$(id).addEventListener("change",()=>v3Draw());
+$("v3size").addEventListener("input",()=>v3Draw());
+new ResizeObserver(()=>v3Draw()).observe($("v3wrap"));
+$("v3save").addEventListener("click",()=>{if(!V3.ph)return;const c=document.createElement("canvas");c.width=cv3.width;c.height=cv3.height;v3Draw(c);
+  const x=c.getContext("2d"),dpr=c.width/cv3.getBoundingClientRect().width;x.fillStyle=$("v3white").checked?"#222":getComputedStyle(document.documentElement).getPropertyValue("--ink");
+  x.font=`${13*dpr}px "IBM Plex Sans",sans-serif`;x.textBaseline="bottom";x.fillText(V3.ph.legend.trim()+(V3.ph.sg?"  "+V3.ph.sg:""),12*dpr,c.height-10*dpr);
+  c.toBlob(b=>saveFile(((V3.ph.formula||"structure").replace(/\s+/g,"")+(V3.ph.code?"_"+V3.ph.code:""))+"_3D.png",b),"image/png");});
+
+/* ============================================================== real-space image → FFT (then the same workflow as a pattern) */
+S.real=null;S.lastFile=null;
+const REAL_UNITS={"nm":1,"Å":0.1,"A":0.1,"Angstrom":0.1,"µm":1000,"um":1000,"pm":0.001};
+/* minimal uncompressed TIFF reader: 8/16/32-bit integer or float, grey or RGB, strips */
+function readTIFF(buf){const dv=new DataView(buf),bo=dv.getUint16(0);if(bo!==0x4949&&bo!==0x4d4d)throw new Error("not a TIFF");const le=bo===0x4949;
+  if(dv.getUint16(2,le)!==42)throw new Error("BigTIFF is not supported");const ifd=dv.getUint32(4,le),n=dv.getUint16(ifd,le),T={};
+  const SZ={1:1,2:1,3:2,4:4,5:8,6:1,7:1,8:2,9:4,10:8,11:4,12:8};
+  for(let i=0;i<n;i++){const e=ifd+2+12*i,tag=dv.getUint16(e,le),typ=dv.getUint16(e+2,le),cnt=dv.getUint32(e+4,le),sz=(SZ[typ]||1)*cnt,off=sz<=4?e+8:dv.getUint32(e+8,le),v=[];
+    for(let k=0;k<Math.min(cnt,100000);k++){const q=off+k*(SZ[typ]||1);v.push(typ===3?dv.getUint16(q,le):typ===4?dv.getUint32(q,le):typ===1||typ===7?dv.getUint8(q):typ===11?dv.getFloat32(q,le):typ===12?dv.getFloat64(q,le):typ===5?dv.getUint32(q,le)/dv.getUint32(q+4,le):dv.getUint32(q,le));}
+    T[tag]=v;}
+  const W=T[256][0],H=T[257][0],bps=(T[258]||[8])[0],cmp=(T[259]||[1])[0],spp=(T[277]||[1])[0],fmt=(T[339]||[1])[0];
+  if(cmp!==1)throw new Error("compressed TIFF (export it uncompressed, or as .dm4)");if(T[322])throw new Error("tiled TIFF is not supported");
+  const offs=T[273],cnts=T[279],bpp=bps/8,data=new Float32Array(W*H);let px=0;
+  const rd=q=>bps===8?dv.getUint8(q):bps===16?(fmt===2?dv.getInt16(q,le):dv.getUint16(q,le)):bps===32?(fmt===3?dv.getFloat32(q,le):fmt===2?dv.getInt32(q,le):dv.getUint32(q,le)):dv.getFloat64(q,le);
+  for(let s=0;s<offs.length&&px<W*H;s++){const end=offs[s]+cnts[s];for(let q=offs[s];q+bpp*spp<=end&&px<W*H;q+=bpp*spp){let v=0;const ns=Math.min(spp,3);for(let c=0;c<ns;c++)v+=rd(q+c*bpp);data[px++]=v/ns;}}
+  return {W,H,data};}
+/* radix-2 FFT on one line (in place) */
+function fftLine(re,im,n,cs,sn,rev){for(let i=0;i<n;i++){const j=rev[i];if(j>i){let t=re[i];re[i]=re[j];re[j]=t;t=im[i];im[i]=im[j];im[j]=t;}}
+  for(let size=2;size<=n;size<<=1){const half=size>>1,step=n/size;for(let i=0;i<n;i+=size)for(let j=0,k=0;j<half;j++,k+=step){const a=i+j,b=a+half,c=cs[k],s=sn[k];
+    const xr=re[b]*c+im[b]*s,xi=im[b]*c-re[b]*s;re[b]=re[a]-xr;im[b]=im[a]-xi;re[a]+=xr;im[a]+=xi;}}}
+async function fft2amp(src,N,progress){const re=new Float32Array(N*N),im=new Float32Array(N*N);re.set(src);
+  const cs=new Float64Array(N/2),sn=new Float64Array(N/2);for(let k=0;k<N/2;k++){cs[k]=Math.cos(2*Math.PI*k/N);sn[k]=Math.sin(2*Math.PI*k/N);}
+  const rev=new Uint32Array(N),bits=Math.log2(N);for(let i=0;i<N;i++){let r=0,x=i;for(let b=0;b<bits;b++){r=(r<<1)|(x&1);x>>=1;}rev[i]=r;}
+  const tr=new Float64Array(N),ti=new Float64Array(N);
+  for(let pass=0;pass<2;pass++){for(let l=0;l<N;l++){
+      if(pass===0){const o=l*N;for(let i=0;i<N;i++){tr[i]=re[o+i];ti[i]=im[o+i];}fftLine(tr,ti,N,cs,sn,rev);for(let i=0;i<N;i++){re[o+i]=tr[i];im[o+i]=ti[i];}}
+      else{for(let i=0;i<N;i++){tr[i]=re[i*N+l];ti[i]=im[i*N+l];}fftLine(tr,ti,N,cs,sn,rev);for(let i=0;i<N;i++){re[i*N+l]=tr[i];im[i*N+l]=ti[i];}}
+      if((l&127)===127){progress&&progress((pass*N+l)/(2*N));await new Promise(r=>setTimeout(r,0));}}}
+  const amp=new Float32Array(N*N),h=N/2;   // |F|, shifted so zero frequency sits at (N/2, N/2)
+  for(let y=0;y<N;y++){const ys=((y+h)%N)*N;for(let x=0;x<N;x++){const i=y*N+x;amp[ys+((x+h)%N)]=Math.sqrt(re[i]*re[i]+im[i]*im[i]);}}
+  return amp;}
+const RS={prev:null,pw:0,ph:0,k:1,drag:false};
+const cvR=$("rsCv");
+function rsPrepare(){const R=S.real,f=Math.max(1,Math.ceil(Math.max(R.W,R.H)/1400)),w=Math.floor(R.W/f),h=Math.floor(R.H/f),d=new Float32Array(w*h);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){let s=0;for(let j=0;j<f;j++)for(let i=0;i<f;i++)s+=R.data[(y*f+j)*R.W+x*f+i];d[y*w+x]=s;}
+  const [lo,hi]=pct(sample(d,200000),[0.5,99.5]),g=new Uint8ClampedArray(w*h*4);
+  for(let i=0;i<w*h;i++){const v=Math.max(0,Math.min(255,(d[i]-lo)/(hi-lo||1)*255));g[4*i]=g[4*i+1]=g[4*i+2]=v;g[4*i+3]=255;}
+  const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").putImageData(new ImageData(g,w,h),0,0);RS.prev=c;RS.f=f;}
+function rsSizes(){const R=S.real,m=Math.min(R.W,R.H),out=[];for(let n=128;n<=Math.min(4096,m);n*=2)out.push(n);return out;}
+function rsDraw(){if(!S.real||!RS.prev)return;sizeCanvas(cvR);const ctx=cvR.getContext("2d"),W=cvR.width,H=cvR.height,R=S.real,dpr=W/cvR.getBoundingClientRect().width;
+  ctx.fillStyle="#07090b";ctx.fillRect(0,0,W,H);const k=Math.min(W/R.W,H/R.H),ox=(W-R.W*k)/2,oy=(H-R.H*k)/2;RS.k=k;RS.ox=ox;RS.oy=oy;
+  ctx.imageSmoothingEnabled=true;ctx.drawImage(RS.prev,ox,oy,R.W*k,R.H*k);
+  const N=+$("rsN").value,x0=R.x0,y0=R.y0;ctx.fillStyle="rgba(0,0,0,.45)";
+  ctx.fillRect(ox,oy,R.W*k,y0*k);ctx.fillRect(ox,oy+(y0+N)*k,R.W*k,(R.H-y0-N)*k);ctx.fillRect(ox,oy+y0*k,x0*k,N*k);ctx.fillRect(ox+(x0+N)*k,oy+y0*k,(R.W-x0-N)*k,N*k);
+  ctx.strokeStyle="#ffd23f";ctx.lineWidth=2*dpr;ctx.strokeRect(ox+x0*k,oy+y0*k,N*k,N*k);
+  ctx.fillStyle="#ffd23f";ctx.font=`600 ${12*dpr}px "IBM Plex Mono",monospace`;ctx.textBaseline="top";
+  const pix=+$("rsPix").value,rt=`FFT region ${N}×${N}`,rw=ctx.measureText(rt).width;
+  ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(ox+x0*k+3*dpr,oy+y0*k+3*dpr,rw+8*dpr,17*dpr);ctx.fillStyle="#ffd23f";ctx.fillText(rt,ox+x0*k+7*dpr,oy+y0*k+6*dpr);
+  if(R.acq){const at="Acquired "+R.acq,aw=ctx.measureText(at).width;ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(ox+R.W*k-aw-14*dpr,oy+3*dpr,aw+11*dpr,17*dpr);ctx.fillStyle="#fff";ctx.textBaseline="top";ctx.fillText(at,ox+R.W*k-aw-9*dpr,oy+6*dpr);}
+  if(pix>0){/* scale bar */const nice=[1,2,5,10,20,50,100,200,500,1000,2000,5000];const tgt=R.W*pix*0.2,L=nice.reduce((a,b)=>Math.abs(b-tgt)<Math.abs(a-tgt)?b:a),lp=L/pix*k;
+    ctx.fillStyle="#fff";ctx.fillRect(ox+12*dpr,oy+R.H*k-18*dpr,lp,4*dpr);ctx.textBaseline="bottom";ctx.fillText(L+" nm",ox+12*dpr,oy+R.H*k-22*dpr);}}
+function rsClampROI(cx,cy){const R=S.real,N=+$("rsN").value;R.cxr=cx;R.cyr=cy;R.x0=Math.round(Math.max(0,Math.min(R.W-N,cx-N/2)));R.y0=Math.round(Math.max(0,Math.min(R.H-N,cy-N/2)));}
+async function rsCompute(){const R=S.real;if(!R)return;const N=+$("rsN").value,pix=+$("rsPix").value,hann=$("rsHann").checked;rsClampROI(R.cxr,R.cyr);
+  $("rsGo").disabled=true;document.body.classList.add("busy");const st=$("rsStatus");st.textContent=`Computing FFT ${N}×${N}…`;await new Promise(r=>setTimeout(r,20));
+  try{const src=new Float32Array(N*N);let m=0;for(let y=0;y<N;y++){const o=(R.y0+y)*R.W+R.x0;for(let x=0;x<N;x++){const v=R.data[o+x];src[y*N+x]=v;m+=v;}}m/=N*N;
+    const wv=new Float32Array(N);for(let i=0;i<N;i++)wv[i]=hann?0.5-0.5*Math.cos(2*Math.PI*i/(N-1)):1;
+    for(let y=0;y<N;y++)for(let x=0;x<N;x++){const i=y*N+x;src[i]=(src[i]-m)*wv[x]*wv[y];}
+    const t0=performance.now();const amp=await fft2amp(src,N,f=>{st.textContent=`Computing FFT ${N}×${N}… ${Math.round(100*f)} %`;});
+    const stem=R.name.replace(/\.[^.]+$/,""),scale=pix>0?1/(N*pix):null;
+    S.realROI={x0:R.x0,y0:R.y0,N,pix,hann};
+    setImage(N,N,amp,{name:`${stem}_FFT${N}.fft`,scale,kv:R.kv,units:"1/nm",fft:true,center:[N/2,N/2],fromReal:true,acq:R.acq});
+    st.textContent=`FFT of ${N}×${N} px at (${R.x0}, ${R.y0})${hann?", Hann window":""} done in ${((performance.now()-t0)/1000).toFixed(1)} s`+(scale?` · calibration ${scale.toPrecision(6)} nm⁻¹/px (= 1 / (N × pixel size))`:" · enter the pixel size to calibrate d");
+  }catch(err){st.textContent="FFT failed: "+err.message;}
+  $("rsGo").disabled=false;document.body.classList.remove("busy");rsDraw();}
+function setReal(W,H,data,meta){S.real={W,H,data,name:meta.name,kv:meta.kv,acq:meta.acq||"",x0:0,y0:0};$("rsPanel").hidden=false;
+  $("rsPix").value=meta.pix>0?+meta.pix.toPrecision(8):"";$("rsName").textContent=meta.name+(meta.acq?` · acquired ${meta.acq}`:"")+` · ${W} × ${H} px`+(meta.pix>0?` · ${(+meta.pix).toPrecision(5)} nm/px (from file)`:" · pixel size not in file");
+  const sel=$("rsN");sel.textContent="";const ns=rsSizes();for(const n of ns){const o=document.createElement("option");o.value=n;o.textContent=n+" × "+n+(n===ns[ns.length-1]?" (largest)":"");sel.appendChild(o);}
+  sel.value=String(ns[ns.length-1]);rsClampROI(W/2,H/2);rsPrepare();rsDraw();rsCompute();}
+const rsPt=e=>{const k=cvR.width/cvR.getBoundingClientRect().width,R=S.real;return [(e.offsetX*k-RS.ox)/RS.k,(e.offsetY*k-RS.oy)/RS.k];};
+cvR.addEventListener("pointerdown",e=>{if(!S.real)return;RS.drag=true;cvR.setPointerCapture(e.pointerId);const [x,y]=rsPt(e);rsClampROI(x,y);rsDraw();});
+cvR.addEventListener("pointermove",e=>{if(!RS.drag)return;const [x,y]=rsPt(e);rsClampROI(x,y);rsDraw();});
+cvR.addEventListener("pointerup",()=>{if(!RS.drag)return;RS.drag=false;if($("rsAuto").checked)rsCompute();});
+$("rsGo").addEventListener("click",rsCompute);
+$("rsN").addEventListener("change",()=>{const R=S.real;if(!R)return;rsClampROI(R.cxr,R.cyr);rsDraw();if($("rsAuto").checked)rsCompute();});
+$("rsHann").addEventListener("change",()=>{if(S.real&&$("rsAuto").checked)rsCompute();});
+$("rsPix").addEventListener("change",()=>{rsDraw();if(S.real&&S.isFFT&&S.realROI){const p=+$("rsPix").value;if(p>0){$("scale").value=+(1/(S.realROI.N*p)).toPrecision(8);$("scale").dispatchEvent(new Event("change"));refreshInfo({units:"1/nm"});drawMain();}}});
+$("rsFull").addEventListener("click",()=>{const R=S.real;if(!R)return;const ns=rsSizes();$("rsN").value=String(ns[ns.length-1]);rsClampROI(R.W/2,R.H/2);rsDraw();rsCompute();});
+new ResizeObserver(()=>rsDraw()).observe($("rsWrap"));
+$("ftype").addEventListener("change",()=>{if(S.lastFile)openFile(S.lastFile);});
+
 </script>
 
 </body></html>
