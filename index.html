@@ -175,16 +175,18 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <span class="row2"><label for="rsN">FFT region</label><select id="rsN" style="width:auto"></select></span>
       <label title="Tapers the region edges to zero so the edges do not add a bright cross through the FFT"><input id="rsHann" type="checkbox" checked> Hann window</label>
       <label title="Recompute as soon as the region is moved or resized"><input id="rsAuto" type="checkbox" checked> auto update</label>
+      <label title="Use this FFT region (same position, as a fraction of the image, and size) for every compared real-space image; moving it recomputes the others"><input id="rsShare" type="checkbox" checked> same region for all compared images</label>
       <button id="rsFull" title="Largest square, centred">Whole image</button>
       <button class="primary" id="rsGo">Compute FFT</button>
     </div>
     <div class="chartbar" id="rsBC"><span class="row2"><label for="rsBri">brightness</label><input id="rsBri" type="range" min="-100" max="100" step="1" value="0" style="width:9rem"><input id="rsBriN" type="number" min="-100" max="100" step="1" value="0" style="width:4.2rem"></span>
       <span class="row2"><label for="rsCon">contrast</label><input id="rsCon" type="range" min="-100" max="100" step="1" value="0" style="width:9rem"><input id="rsConN" type="number" min="-100" max="100" step="1" value="0" style="width:4.2rem"></span>
-      <button id="rsBCReset" title="Brightness 0, contrast 0">↺ reset</button><span class="keys">display only — the FFT always uses the raw data; Save image uses these settings</span></div>
+      <button id="rsBCReset" title="Brightness 0, contrast 0">↺ reset</button>
+      <button id="rsPlay" aria-pressed="false" title="Cycle through all compared real-space images under the FFT region, to see where to place it">▶ play compared images</button><input id="rsPlayDt" type="number" min="0.1" max="5" step="0.1" value="0.6" style="width:4rem" title="Seconds per image"><span class="keys">s</span><span class="keys" id="rsPlayInfo"></span><span class="keys">display only — the FFT always uses the raw data; Save image uses these settings</span></div>
     <div id="rsWrap" style="position:relative;height:clamp(300px,42vh,520px);min-height:200px;resize:vertical;overflow:hidden;border:1px solid var(--line);border-radius:var(--r)">
       <canvas id="rsCv" aria-label="Real-space image; drag to place the FFT region" style="display:block;width:100%;height:100%;cursor:crosshair;touch-action:none"></canvas></div>
     <div class="row2" style="justify-content:flex-end;gap:12px"><label title="Also draw the yellow FFT region square on the saved image"><input id="rsSaveRoi" type="checkbox"> with FFT region</label>
-<span class="row2 infoSel" style="gap:6px" title="What the information box on the images shows"><span class="keys">on image:</span><label><input type="checkbox" data-k="name" checked> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date" checked> date</label><label><input type="checkbox" data-k="time" checked> time</label><label><input type="checkbox" data-k="Ts" checked> T set</label><label><input type="checkbox" data-k="T" checked> T meas</label><label><input type="checkbox" data-k="P" checked> pressure</label><label title="Gas flow"><input type="checkbox" data-k="gas"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><label><input type="checkbox" data-k="log" checked> log times</label></span><span class="spacer"></span>
+<span class="row2 infoSel" style="gap:6px" title="What the information box on the images shows"><span class="keys">on image:</span><label><input type="checkbox" data-k="name"> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date"> date</label><label><input type="checkbox" data-k="time" checked> time</label><label><input type="checkbox" data-k="Ts" checked> T set</label><label><input type="checkbox" data-k="T"> T meas</label><label><input type="checkbox" data-k="P"> pressure</label><label title="Gas flow"><input type="checkbox" data-k="gas"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><input class="gasN" type="text" placeholder="gas" title="Gas name, written after SCCM (e.g. PH3)" style="width:5.5rem"><label><input type="checkbox" data-k="log" checked> log times</label></span><span class="spacer"></span>
       <button id="rsSave" title="Saves the real-space image (up to 2048 px) with scale bar, acquisition time and temperature">Save image (.png)</button></div>
     <div class="keys"><kbd>click</kbd> or <kbd>drag</kbd> on the image to place the square FFT region (yellow) · the FFT amplitude |F| is shown below as the pattern, centred at zero frequency, and everything else (centre, profile, peaks, CIF matching) works on it as on an SAED pattern · calibration = 1 / (FFT size × pixel size). <span id="rsStatus" style="color:var(--ink)"></span></div>
   </section>
@@ -193,6 +195,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <button id="gifCollapse" title="Collapse / expand this section" aria-label="collapse" style="padding:2px 9px">▾</button>
       <h2>Animation (GIF)</h2>
       <span class="row2"><label for="gifMode">frames</label><select id="gifMode" style="width:auto" title="Images as loaded, or the diffraction pattern / FFT used for each profile (a real-space image becomes its FFT)"><option value="img">images as loaded</option><option value="pat">FFT / diffraction patterns</option></select></span>
+      <label id="gifCropBox" title="Real-space images: show only the FFT region (as used for the profile and the FFT)"><input id="gifCrop" type="checkbox" checked> FFT region only</label>
       <span class="row2" id="gifZoomBox"><label for="gifZoom">zoom</label><select id="gifZoom" style="width:auto" title="Magnification around the pattern centre"><option value="1">1×</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option><option value="4">4×</option></select></span>
       <span class="row2"><label for="gifBri">brightness</label><input id="gifBri" type="range" min="-100" max="100" step="1" value="0" style="width:6rem"></span>
       <span class="row2"><label for="gifCon">contrast</label><input id="gifCon" type="range" min="-100" max="100" step="1" value="0" style="width:6rem"></span><button id="gifBCReset" title="Brightness 0, contrast 0" style="padding:2px 8px">↺</button>
@@ -202,7 +205,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <span class="spacer"></span>
       <button id="gifSave" disabled>Download GIF</button>
     </div>
-    <div class="chartbar gifTxt"><span class="keys">on GIF:</span><label><input type="checkbox" data-k="name"> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date"> date</label><label><input type="checkbox" data-k="time"> time</label><label><input type="checkbox" data-k="Ts"> T set</label><label><input type="checkbox" data-k="T"> T meas</label><label><input type="checkbox" data-k="P"> pressure</label><label title="Gas flow"><input type="checkbox" data-k="gas"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><label><input type="checkbox" data-k="log"> log times</label><label><input type="checkbox" data-k="count"> frame number</label></div>
+    <div class="chartbar gifTxt"><span class="keys">on GIF:</span><label><input type="checkbox" data-k="name"> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date"> date</label><label><input type="checkbox" data-k="time"> time</label><label><input type="checkbox" data-k="Ts"> T set</label><label><input type="checkbox" data-k="T"> T meas</label><label><input type="checkbox" data-k="P"> pressure</label><label title="Gas flow"><input type="checkbox" data-k="gas"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><input class="gasN" type="text" placeholder="gas" title="Gas name, written after SCCM (e.g. PH3)" style="width:5.5rem"><label><input type="checkbox" data-k="log"> log times</label><label><input type="checkbox" data-k="count"> frame number</label></div>
     <div class="chartbar"><button id="gifPrev" aria-label="previous frame">◀</button><button id="gifPause" aria-pressed="false">❚❚ pause</button><button id="gifNext" aria-label="next frame">▶</button><span class="keys" id="gifFrame"></span><span class="spacer"></span><span class="status" id="gifStatus">Uses the images shown in Compare profiles, in their order (drag rows to reorder). Tick “on GIF” items to add text to the frames.</span></div>
     <div style="display:flex;justify-content:center;background:#07090b;border:1px solid var(--line);border-radius:var(--r);padding:8px"><canvas id="gifCv" width="512" height="512" style="max-width:100%;height:auto;image-rendering:auto"></canvas></div>
   </section>
@@ -217,7 +220,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
         <div class="hud bottom"><span id="hudCursor">hover the pattern: r and d at the cursor</span></div>
       </div>
       <div class="row2" style="justify-content:space-between">
-<span class="row2 infoSel" style="gap:6px" title="What the information box on the images shows"><span class="keys">on image:</span><label><input type="checkbox" data-k="name" checked> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date" checked> date</label><label><input type="checkbox" data-k="time" checked> time</label><label><input type="checkbox" data-k="Ts" checked> T set</label><label><input type="checkbox" data-k="T" checked> T meas</label><label><input type="checkbox" data-k="P" checked> pressure</label><label title="Gas flow"><input type="checkbox" data-k="gas"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><label><input type="checkbox" data-k="log" checked> log times</label></span>
+<span class="row2 infoSel" style="gap:6px" title="What the information box on the images shows"><span class="keys">on image:</span><label><input type="checkbox" data-k="name"> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date"> date</label><label><input type="checkbox" data-k="time" checked> time</label><label><input type="checkbox" data-k="Ts" checked> T set</label><label><input type="checkbox" data-k="T"> T meas</label><label><input type="checkbox" data-k="P"> pressure</label><label title="Gas flow"><input type="checkbox" data-k="gas"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><input class="gasN" type="text" placeholder="gas" title="Gas name, written after SCCM (e.g. PH3)" style="width:5.5rem"><label><input type="checkbox" data-k="log" checked> log times</label></span>
         <label title="When locked, clicks and arrow keys no longer move the centre; a click measures the spot under the cursor instead"><input id="lock" type="checkbox"> Lock centre <span class="keys">(on after Compute; then click a spot to see its d)</span></label>
         <span class="row2" style="gap:8px"><button id="fullView" title="Show the whole pattern (h)">Full view</button>
         <button id="svimg" disabled title="Saves the pattern as currently shown, with guide circles and selected rings">Save image with rings (.png)</button></span>
@@ -301,7 +304,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
         <select id="xmode" style="width:auto"><option value="d">d (Å)</option><option value="tt">2θ (°)</option><option value="q">q (nm⁻¹)</option><option value="r">r (px)</option></select></div><div class="row2"><label for="xlo">from</label><input id="xlo" type="number" step="any"><label for="xhi">to</label><input id="xhi" type="number" step="any"><button id="zreset" title="Back to the full range (or double-click the plot)">Reset zoom</button></div></div>
     <div class="chartbar"><div class="row2"><label title="Vertical line at each detected peak; it turns green when a shown CIF line is within ±1 % in d"><input id="pkLines" type="checkbox"> peak lines</label><label title="On: the peak line runs down to the baseline. Off: it stops at the peak marker, so CIF sticks underneath stay clear"><input id="pkFull" type="checkbox" checked> full height</label>
         <label><input id="logy" type="checkbox"> log I</label><label><input id="bgsub" type="checkbox" checked> subtract background</label></div><div class="row2"><label for="sens">peak sensitivity</label><input id="sens" type="range" min="2" max="20" step="0.5" value="6" style="width:7rem"><label for="pkMin" title="Ignore detected peaks lower than this % of the strongest peak (peaks you add by hand are always kept)">min height</label><input id="pkMin" type="number" min="0" max="100" step="0.5" value="2" style="width:4.5rem"><span class="keys">%</span></div></div>
-    <div class="chartbar"><span class="row2" style="gap:6px" title="What the legend shows for the experimental profile"><button id="lgEditBtn" title="Edit the legend texts of this plot" style="padding:2px 9px">✎ edit legend</button><span class="keys">legend:</span><label><input id="lgName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="lgType" type="checkbox"> type</label><label><input id="lgDate" type="checkbox"> date</label><label><input id="lgTime" type="checkbox"> time</label><label><input id="lgTs" type="checkbox"> T set</label><label><input id="lgT" type="checkbox" checked> T meas</label><label><input id="lgP" type="checkbox"> pressure</label><label title="Gas flow"><input id="lgGas" type="checkbox"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"></span></div>
+    <div class="chartbar"><span class="row2" style="gap:6px" title="What the legend shows for the experimental profile"><button id="lgEditBtn" title="Edit the legend texts of this plot" style="padding:2px 9px">✎ edit legend</button><span class="keys">legend:</span><label><input id="lgName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="lgType" type="checkbox"> type</label><label><input id="lgDate" type="checkbox"> date</label><label><input id="lgTime" type="checkbox"> time</label><label><input id="lgTs" type="checkbox"> T set</label><label><input id="lgT" type="checkbox" checked> T meas</label><label><input id="lgP" type="checkbox"> pressure</label><label title="Gas flow"><input id="lgGas" type="checkbox"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><input class="gasN" type="text" placeholder="gas" title="Gas name, written after SCCM (e.g. PH3)" style="width:5.5rem"></span></div>
     <div id="lgEdit" class="lgedit" hidden></div>
     <div class="bench" style="grid-template-columns:minmax(0,1fr)">
       <div id="chartWrap" title="Drag the bottom-right corner to change the plot height"><canvas id="chart" aria-label="Intensity profile"></canvas>
@@ -344,7 +347,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <button id="cmpClear" title="Empty the comparison">Clear list</button>
     </div>
     <div class="chartbar">
-      <span class="row2" style="gap:6px" title="What each profile's label shows (legend, or the labels beside the stacked curves)"><span class="keys">label by:</span><label><input id="clName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="clType" type="checkbox"> type</label><label><input id="clDate" type="checkbox"> date</label><label><input id="clTime" type="checkbox"> time</label><label><input id="clTs" type="checkbox"> T set</label><label><input id="clT" type="checkbox"> T meas</label><label><input id="clP" type="checkbox"> pressure</label><label title="Gas flow"><input id="clGas" type="checkbox"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"></span>
+      <span class="row2" style="gap:6px" title="What each profile's label shows (legend, or the labels beside the stacked curves)"><span class="keys">label by:</span><label><input id="clName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="clType" type="checkbox"> type</label><label><input id="clDate" type="checkbox"> date</label><label><input id="clTime" type="checkbox"> time</label><label><input id="clTs" type="checkbox"> T set</label><label><input id="clT" type="checkbox"> T meas</label><label><input id="clP" type="checkbox"> pressure</label><label title="Gas flow"><input id="clGas" type="checkbox"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><input class="gasN" type="text" placeholder="gas" title="Gas name, written after SCCM (e.g. PH3)" style="width:5.5rem"></span>
     </div>
     <div id="cmpLgEdit" class="lgedit" hidden></div>
     <div id="cmpWrap" style="position:relative;height:clamp(420px,60vh,820px);min-height:260px;resize:vertical;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)"><canvas id="cmpChart" style="display:block;width:100%;height:100%;cursor:crosshair" aria-label="Profile comparison"></canvas></div>
@@ -1001,6 +1004,8 @@ function expLegend(){const acq=S.acqStr||(S.real&&S.real.acq)||"",parts=[];
   if($("lgGas").checked&&gasTxt())parts.push(gasTxt());
   return parts.length?`Experimental (${parts.join(" · ")})`:"Experimental";}
 for(const id of ["lgGas","lgName","lgType","lgDate","lgTime","lgTs","lgT","lgP"])document.getElementById(id).addEventListener("change",()=>drawChart());
+/* compact y tick labels: 6000000 → 6e6, 2500000 → 2.5e6 (keeps them clear of the axis title) */
+function yTick(v){const a=Math.abs(v);if(a>=1e5||(a>0&&a<1e-3)){const e=Math.floor(Math.log10(a)),m=v/Math.pow(10,e);return `${+m.toFixed(2)}e${e}`;}return String(+v.toPrecision(4));}
 function drawChart(target,tdpr){
   const exp=target instanceof HTMLCanvasElement,cv=exp?target:cvC;/* target is an Event when used as an event handler */const ctx=cv.getContext("2d");if(!exp)sizeCanvas(cvC);const cw=cv.width,ch=cv.height,dpr=exp?tdpr:cw/Math.max(1,cvC.getBoundingClientRect().width);
   ctx.clearRect(0,0,cw,ch); const P=S.profile; if(!P)return;
@@ -1021,10 +1026,10 @@ function drawChart(target,tdpr){
   ctx.textAlign="center";ctx.textBaseline="top";
   for(const v of niceTicks(lo,hi,8)){const x=sx(v);ctx.beginPath();ctx.moveTo(x,T);ctx.lineTo(x,T+ph);ctx.stroke();ctx.fillText(String(+v.toPrecision(6)),x,T+ph+6*dpr);}
   ctx.textAlign="right";ctx.textBaseline="middle";
-  for(const v of niceTicks(ymin,ymax,5)){const y=T+ph-(v-ymin)/(ymax-ymin)*ph;ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(L+pw,y);ctx.stroke();ctx.fillText(logy?String(+Math.pow(10,v).toPrecision(2)):String(+v.toPrecision(4)),L-6*dpr,y);}
+  for(const v of niceTicks(ymin,ymax,5)){const y=T+ph-(v-ymin)/(ymax-ymin)*ph;ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(L+pw,y);ctx.stroke();ctx.fillText(logy?yTick(Math.pow(10,v)):yTick(v),L-6*dpr,y);}
   ctx.fillStyle=ink;ctx.textAlign="center";ctx.textBaseline="bottom";
   ctx.font=`${12*dpr}px "IBM Plex Sans",sans-serif`;ctx.fillText({d:"d (Å)",tt:"2θ (°)",q:"q (nm⁻¹)",r:"r (px)"}[mode],L+pw/2,ch-2*dpr);
-  ctx.save();ctx.translate(14*dpr,T+ph/2);ctx.rotate(-Math.PI/2);ctx.textBaseline="top";ctx.fillText(bgs?"I − background":"I (azimuthal mean)",0,0);ctx.restore();
+  ctx.save();ctx.translate(5*dpr,T+ph/2);ctx.rotate(-Math.PI/2);ctx.textBaseline="top";ctx.fillText("Intensity",0,0);ctx.restore();
   ctx.save();ctx.beginPath();ctx.rect(L,T,pw,ph);ctx.clip();
   ctx.strokeStyle=acc;ctx.lineWidth=1.3*dpr;ctx.beginPath();let first=true;
   for(let i=0;i<X.length;i++){if(X[i]<lo||X[i]>hi){first=true;continue;}const x=sx(X[i]),y=sy(Y[i]);if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);}
@@ -1685,6 +1690,7 @@ async function fft2amp(src,N,progress){const re=new Float32Array(N*N),im=new Flo
   for(let y=0;y<N;y++){const ys=((y+h)%N)*N;for(let x=0;x<N;x++){const i=y*N+x;amp[ys+((x+h)%N)]=Math.sqrt(re[i]*re[i]+im[i]*im[i]);}}
   return amp;}
 const RS={prev:null,pw:0,ph:0,k:1,drag:false};
+const RSP={on:false,frames:[],k:0,timer:null};
 /* grey value with the brightness / contrast sliders: contrast c ∈ [-100,100] → gain 2^(c/33), brightness b shifts by b % of the range */
 function rsGrey(v,lo,hi){const b=+$("rsBri").value||0,c=+$("rsCon").value||0,t=(v-lo)/(hi-lo||1),g=Math.pow(2,c/33);return Math.max(0,Math.min(255,((t-0.5)*g+0.5+b/100)*255));}
 function rsPaint(){const d=RS.d,w=RS.w,h=RS.h,g=new Uint8ClampedArray(w*h*4);for(let i=0;i<w*h;i++){const v=rsGrey(d[i],RS.lo,RS.hi);g[4*i]=g[4*i+1]=g[4*i+2]=v;g[4*i+3]=255;}
@@ -1696,7 +1702,7 @@ function rsPrepare(){const R=S.real,f=Math.max(1,Math.ceil(Math.max(R.W,R.H)/140
 function rsSizes(){const R=S.real,m=Math.min(R.W,R.H),out=[];for(let n=128;n<=Math.min(4096,m);n*=2)out.push(n);return out;}
 function rsDraw(){if(!S.real||!RS.prev)return;sizeCanvas(cvR);const ctx=cvR.getContext("2d"),W=cvR.width,H=cvR.height,R=S.real,dpr=W/cvR.getBoundingClientRect().width;
   ctx.fillStyle="#07090b";ctx.fillRect(0,0,W,H);const k=Math.min(W/R.W,H/R.H),ox=(W-R.W*k)/2,oy=(H-R.H*k)/2;RS.k=k;RS.ox=ox;RS.oy=oy;
-  ctx.imageSmoothingEnabled=true;ctx.drawImage(RS.prev,ox,oy,R.W*k,R.H*k);
+  ctx.imageSmoothingEnabled=true;{const pf=RSP.on&&RSP.frames.length?RSP.frames[RSP.k%RSP.frames.length]:null;ctx.drawImage(pf?pf.c:RS.prev,ox,oy,R.W*k,R.H*k);}
   const N=+$("rsN").value,x0=R.x0,y0=R.y0;ctx.fillStyle="rgba(0,0,0,.45)";
   ctx.fillRect(ox,oy,R.W*k,y0*k);ctx.fillRect(ox,oy+(y0+N)*k,R.W*k,(R.H-y0-N)*k);ctx.fillRect(ox,oy+y0*k,x0*k,N*k);ctx.fillRect(ox+(x0+N)*k,oy+y0*k,(R.W-x0-N)*k,N*k);
   ctx.strokeStyle="#ffd23f";ctx.lineWidth=2*dpr;ctx.strokeRect(ox+x0*k,oy+y0*k,N*k,N*k);
@@ -1706,7 +1712,9 @@ function rsDraw(){if(!S.real||!RS.prev)return;sizeCanvas(cvR);const ctx=cvR.getC
   {const ls=[[IF("name")?R.name:"",IF("type")?"real-space image":""].filter(Boolean).join(" · ")].filter(Boolean).concat(acqSel(R.acq)?["Acquired "+acqSel(R.acq)]:[],typeof infoLines==="function"?infoLines(R.acq).map(l=>l.txt):[]),aw=Math.max(0,...ls.map(t=>ctx.measureText(t).width));
     if(ls.length){ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(ox+R.W*k-aw-14*dpr,oy+3*dpr,aw+11*dpr,(4+15*ls.length)*dpr);ctx.fillStyle="#fff";ctx.textBaseline="top";ls.forEach((t,i)=>ctx.fillText(t,ox+R.W*k-aw-9*dpr,oy+(6+15*i)*dpr));}}
   if(pix>0){/* scale bar */const nice=[1,2,5,10,20,50,100,200,500,1000,2000,5000];const tgt=R.W*pix*0.2,L=nice.reduce((a,b)=>Math.abs(b-tgt)<Math.abs(a-tgt)?b:a),lp=L/pix*k;
-    ctx.fillStyle="#fff";ctx.fillRect(ox+12*dpr,oy+R.H*k-18*dpr,lp,4*dpr);ctx.textBaseline="bottom";ctx.fillText(L+" nm",ox+12*dpr,oy+R.H*k-22*dpr);}}
+    ctx.fillStyle="#fff";ctx.fillRect(ox+12*dpr,oy+R.H*k-18*dpr,lp,4*dpr);ctx.textBaseline="bottom";ctx.fillText(L+" nm",ox+12*dpr,oy+R.H*k-22*dpr);}
+  if(RSP.on&&RSP.frames.length){const f=RSP.frames[RSP.k%RSP.frames.length],t=`▶ ${RSP.k%RSP.frames.length+1} / ${RSP.frames.length} · ${f.name}`;ctx.font=`600 ${12*dpr}px "IBM Plex Mono",monospace`;ctx.textBaseline="bottom";
+    const tw=ctx.measureText(t).width;ctx.fillStyle="rgba(0,0,0,.7)";ctx.fillRect(ox+R.W*k-tw-16*dpr,oy+R.H*k-24*dpr,tw+12*dpr,20*dpr);ctx.fillStyle="#7fe0ff";ctx.fillText(t,ox+R.W*k-tw-10*dpr,oy+R.H*k-8*dpr);}}
 function rsClampROI(cx,cy){const R=S.real,N=+$("rsN").value;R.cxr=cx;R.cyr=cy;R.x0=Math.round(Math.max(0,Math.min(R.W-N,cx-N/2)));R.y0=Math.round(Math.max(0,Math.min(R.H-N,cy-N/2)));}
 async function rsCompute(){const R=S.real;if(!R)return;const N=+$("rsN").value,pix=+$("rsPix").value,hann=$("rsHann").checked;rsClampROI(R.cxr,R.cyr);
   $("rsGo").disabled=true;document.body.classList.add("busy");const st=$("rsStatus");st.textContent=`Computing FFT ${N}×${N}…`;await new Promise(r=>setTimeout(r,20));
@@ -1723,12 +1731,23 @@ async function rsCompute(){const R=S.real;if(!R)return;const N=+$("rsN").value,p
 function setReal(W,H,data,meta){S.real={W,H,data,name:meta.name,kv:meta.kv,acq:meta.acq||"",x0:0,y0:0};$("rsPanel").hidden=false;
   $("rsPix").value=meta.pix>0?+meta.pix.toPrecision(8):"";$("rsName").textContent=meta.name+(meta.acq?` · acquired ${meta.acq}`:"")+` · ${W} × ${H} px`+(meta.pix>0?` · ${(+meta.pix).toPrecision(5)} nm/px (from file)`:" · pixel size not in file");
   const sel=$("rsN");sel.textContent="";const ns=rsSizes();for(const n of ns){const o=document.createElement("option");o.value=n;o.textContent=n+" × "+n+(n===ns[ns.length-1]?" (largest)":"");sel.appendChild(o);}
-  sel.value=String(ns[ns.length-1]);rsClampROI(W/2,H/2);rsPrepare();rsDraw();return rsCompute();}
+  const sh=$("rsShare").checked&&S.roiShare;
+  if(sh){const N=ns.includes(sh.N)?sh.N:(ns.filter(n=>n<=sh.N).pop()||ns[ns.length-1]);sel.value=String(N);rsClampROI(sh.fx*W,sh.fy*H);}
+  else{sel.value=String(ns[ns.length-1]);rsClampROI(W/2,H/2);}
+  rsPrepare();rsDraw();return rsCompute();}
+/* shared FFT region: remembered as fractional centre + size; a change by the user recomputes the other compared real-space images */
+function rsShareSave(){const R=S.real;if(!R)return;S.roiShare={fx:R.cxr/R.W,fy:R.cyr/R.H,N:+$("rsN").value};}
+let rsPropT=0;
+function rsPropagate(){if(!$("rsShare").checked||S.cmpBatch)return;clearTimeout(rsPropT);rsPropT=setTimeout(async()=>{if(S.cmpBatch)return;
+  const cur=S.cmp.find(e=>e.file===S.lastFile),oth=S.cmp.filter(e=>e.kind==="real"&&e!==cur);if(!oth.length)return;
+  for(const e of oth)e.prof=null;await cmpRunAll(true);if(cur){try{S.cmpBatch=true;await cmpOpen(cur,false);}finally{S.cmpBatch=false;}}
+  $("cmpStatus").textContent=`FFT region ${S.roiShare.N}×${S.roiShare.N} applied to ${oth.length+(cur?1:0)} real-space images.`;},350);}
+async function rsUser(compute){rsShareSave();if(compute){await rsCompute();rsPropagate();}}
 const rsPt=e=>{const k=cvR.width/cvR.getBoundingClientRect().width,R=S.real;return [(e.offsetX*k-RS.ox)/RS.k,(e.offsetY*k-RS.oy)/RS.k];};
 cvR.addEventListener("pointerdown",e=>{if(!S.real)return;RS.drag=true;cvR.setPointerCapture(e.pointerId);const [x,y]=rsPt(e);rsClampROI(x,y);rsDraw();});
 cvR.addEventListener("pointermove",e=>{if(!RS.drag)return;const [x,y]=rsPt(e);rsClampROI(x,y);rsDraw();});
-cvR.addEventListener("pointerup",()=>{if(!RS.drag)return;RS.drag=false;if($("rsAuto").checked)rsCompute();});
-$("rsGo").addEventListener("click",rsCompute);
+cvR.addEventListener("pointerup",()=>{if(!RS.drag)return;RS.drag=false;rsUser($("rsAuto").checked);});
+$("rsGo").addEventListener("click",()=>rsUser(true));
 $("rsSave").addEventListener("click",async()=>{const R=S.real;if(!R)return;const f=Math.max(1,Math.ceil(Math.max(R.W,R.H)/2048)),w=Math.floor(R.W/f),h=Math.floor(R.H/f),d=new Float32Array(w*h);
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){let s=0;for(let j=0;j<f;j++)for(let i=0;i<f;i++)s+=R.data[(y*f+j)*R.W+x*f+i];d[y*w+x]=s;}
   const [lo,hi]=pct(sample(d,300000),[0.5,99.5]),g=new Uint8ClampedArray(w*h*4);
@@ -1745,10 +1764,22 @@ $("rsSave").addEventListener("click",async()=>{const R=S.real;if(!R)return;const
 {let raf=0;const upd=()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;if(S.real&&RS.d){rsPaint();rsDraw();}});};
   for(const [a,b] of [["rsBri","rsBriN"],["rsCon","rsConN"]]){$(a).addEventListener("input",()=>{$(b).value=$(a).value;upd();});$(b).addEventListener("change",()=>{$(a).value=Math.max(-100,Math.min(100,+$(b).value||0));$(b).value=$(a).value;upd();});}
   $("rsBCReset").addEventListener("click",()=>{for(const id of ["rsBri","rsBriN","rsCon","rsConN"])$(id).value=0;upd();});}
-$("rsN").addEventListener("change",()=>{const R=S.real;if(!R)return;rsClampROI(R.cxr,R.cyr);rsDraw();if($("rsAuto").checked)rsCompute();});
+/* play all compared real-space images under the FFT region (display only) */
+function rsPlayStop(){RSP.on=false;clearInterval(RSP.timer);RSP.timer=null;$("rsPlay").setAttribute("aria-pressed","false");$("rsPlay").textContent="▶ play compared images";$("rsPlayInfo").textContent="";rsDraw();}
+function rsPlayTick(){clearInterval(RSP.timer);RSP.timer=setInterval(()=>{RSP.k=(RSP.k+1)%Math.max(1,RSP.frames.length);rsDraw();},Math.max(0.1,+$("rsPlayDt").value||0.6)*1000);}
+$("rsPlay").addEventListener("click",async()=>{if(RSP.on){rsPlayStop();return;}
+  const L=cmpOrder().filter(e=>e.kind==="real");if(L.length<2){$("rsPlayInfo").textContent="Compare two or more real-space images first.";return;}
+  $("rsPlay").disabled=true;RSP.frames=[];
+  try{for(let i=0;i<L.length;i++){const e=L[i];$("rsPlayInfo").textContent=`reading ${i+1} / ${L.length}…`;
+      if(!e.rsThumb){const src=await gifFrameSource(e,1024);e.rsThumb=thumbCanvas(src);}RSP.frames.push({c:e.rsThumb,name:e.rel});}}
+  finally{$("rsPlay").disabled=false;}
+  const cur=L.findIndex(e=>e.file===S.lastFile);RSP.k=cur<0?0:cur;RSP.on=true;$("rsPlay").setAttribute("aria-pressed","true");$("rsPlay").textContent="❚❚ stop";
+  $("rsPlayInfo").textContent="drag the box while it plays; release to apply to all";rsDraw();rsPlayTick();});
+$("rsPlayDt").addEventListener("change",()=>{if(RSP.on)rsPlayTick();});
+$("rsN").addEventListener("change",()=>{const R=S.real;if(!R)return;rsClampROI(R.cxr,R.cyr);rsDraw();rsUser($("rsAuto").checked);});
 $("rsHann").addEventListener("change",()=>{if(S.real&&$("rsAuto").checked)rsCompute();});
 $("rsPix").addEventListener("change",()=>{rsDraw();if(S.real&&S.isFFT&&S.realROI){const p=+$("rsPix").value;if(p>0){$("scale").value=+(1/(S.realROI.N*p)).toPrecision(8);$("scale").dispatchEvent(new Event("change"));refreshInfo({units:"1/nm"});drawMain();}}});
-$("rsFull").addEventListener("click",()=>{const R=S.real;if(!R)return;const ns=rsSizes();$("rsN").value=String(ns[ns.length-1]);rsClampROI(R.W/2,R.H/2);rsDraw();rsCompute();});
+$("rsFull").addEventListener("click",()=>{const R=S.real;if(!R)return;const ns=rsSizes();$("rsN").value=String(ns[ns.length-1]);rsClampROI(R.W/2,R.H/2);rsDraw();rsUser(true);});
 new ResizeObserver(()=>rsDraw()).observe($("rsWrap"));
 $("ftype").addEventListener("change",()=>{if(S.lastFile)openFile(S.lastFile);});
 
@@ -2021,6 +2052,11 @@ function cmpCapture(manual){const e=S.cmp.find(x=>x.file===S.lastFile);if(!e||!S
   if(S.isFFT)e.cen="fft";else if(!S.cmpBatch&&(manual||S.centreTouched))e.cen="set";e.err="";
   try{let L=S.pyr[0];for(const l of S.pyr){L=l;if(l.w<=2048&&l.h<=2048)break;}const g=new Uint8Array(L.w*L.h);for(let i=0;i<g.length;i++)g[i]=LUT[L.d[i]];
     e.pat={g,w:L.w,h:L.h,cx:S.cx/L.f,cy:S.cy/L.f,fft:!!S.isFFT};}catch(err){}
+  e.roiImg=null;e.roi=null;
+  try{if(e.kind==="real"&&S.real&&S.realROI){const Rr=S.real,{x0,y0,N}=S.realROI,f=Math.max(1,Math.ceil(N/1024)),w=Math.floor(N/f),d=new Float32Array(w*w);
+      for(let y=0;y<w;y++)for(let x=0;x<w;x++){let t=0;for(let j=0;j<f;j++){const o=(y0+y*f+j)*Rr.W+x0+x*f;for(let i=0;i<f;i++)t+=Rr.data[o+i];}d[y*w+x]=t;}
+      const [lo,hi]=pct(sample(d,200000),[0.5,99.5]),g=new Uint8Array(w*w);for(let i=0;i<g.length;i++)g[i]=Math.max(0,Math.min(255,(d[i]-lo)/(hi-lo||1)*255));
+      e.roiImg={g,w,h:w};e.roi={x0,y0,N};}}catch(err){}
   S.cmpActive=e;cmpRender();if(typeof gifModeNote==="function")gifModeNote();}
 async function cmpOpen(e,batch){S.cmpActive=e;S.centreTouched=false;await openFile(e.file);
   if(!S.img||S.lastFile!==e.file)throw new Error("could not open");
@@ -2083,10 +2119,10 @@ function drawCmp(target,tdpr){const exp=target instanceof HTMLCanvasElement,cv=e
   const sx=v=>Lm+(v-lo)/(hi-lo)*pw,sy=v=>T+ph-(v-ymin)/(ymax-ymin)*ph;cmpGeom={L:Lm,pw,T,ph,lo,hi,mode,dpr};
   ctx.font=`${11*dpr}px "IBM Plex Mono",monospace`;ctx.fillStyle=muted;ctx.strokeStyle=line;ctx.lineWidth=1*dpr;ctx.textAlign="center";ctx.textBaseline="top";
   for(const v of niceTicks(lo,hi,8)){const x=sx(v);ctx.beginPath();ctx.moveTo(x,T);ctx.lineTo(x,T+ph);ctx.stroke();ctx.fillText(String(+v.toPrecision(6)),x,T+ph+6*dpr);}
-  ctx.textAlign="right";ctx.textBaseline="middle";if(!stacked)for(const v of niceTicks(ymin,ymax,5)){const y=sy(v);ctx.beginPath();ctx.moveTo(Lm,y);ctx.lineTo(Lm+pw,y);ctx.stroke();ctx.fillText(String(+v.toPrecision(4)),Lm-6*dpr,y);}
+  ctx.textAlign="right";ctx.textBaseline="middle";if(!stacked)for(const v of niceTicks(ymin,ymax,5)){const y=sy(v);ctx.beginPath();ctx.moveTo(Lm,y);ctx.lineTo(Lm+pw,y);ctx.stroke();ctx.fillText(yTick(v),Lm-6*dpr,y);}
   ctx.fillStyle=ink;ctx.textAlign="center";ctx.textBaseline="bottom";ctx.font=`${12*dpr}px "IBM Plex Sans",sans-serif`;ctx.fillText({d:"d (Å)",tt:"2θ (°)",q:"q (nm⁻¹)"}[mode],Lm+pw/2,ch-2*dpr);
-  ctx.save();ctx.translate(14*dpr,T+ph/2);ctx.rotate(-Math.PI/2);ctx.textBaseline="top";
-  ctx.fillText(($("cmpNorm").value!=="none"?"normalised ":"")+($("cmpBg").checked?"I − background":"I")+(stacked?" (offset)":""),0,0);ctx.restore();
+  ctx.save();ctx.translate(5*dpr,T+ph/2);ctx.rotate(-Math.PI/2);ctx.textBaseline="top";
+  ctx.fillText(($("cmpNorm").value!=="none"?"Normalised intensity":"Intensity")+(stacked?" (stacked)":""),0,0);ctx.restore();
   ctx.save();ctx.beginPath();ctx.rect(Lm,T,pw,ph);ctx.clip();
   if(/^r/.test($("cmpNorm").value)){const n1=+$("cmpNd").value,n2=+$("cmpNd2").value,tx=d=>mode==="d"?d:mode==="q"?10/d:2*Math.asin(Math.min(1,lambdaA(+$("kv").value||300)/(2*d)))*180/Math.PI;
     if(n1>0&&n2>0){const a=sx(tx(n1)),b=sx(tx(n2));ctx.fillStyle=css.getPropertyValue("--accent");ctx.globalAlpha=.08;ctx.fillRect(Math.min(a,b),T,Math.abs(b-a),ph);ctx.globalAlpha=1;}}
@@ -2263,7 +2299,7 @@ function gifCompose(){const T=GIF.size,n=GIF.base.length;GIF.canv=GIF.base.map((
 function gifPatSource(e,T){const P=e.pat;if(!P)throw new Error("no pattern yet — compute its profile first");const z=+$("gifZoom").value||1,side=Math.min(P.w,P.h)/z;
   const c=document.createElement("canvas");c.width=P.w;c.height=P.h;const id=new ImageData(P.w,P.h);for(let i=0;i<P.g.length;i++){const v=P.g[i];id.data[4*i]=id.data[4*i+1]=id.data[4*i+2]=v;id.data[4*i+3]=255;}
   c.getContext("2d").putImageData(id,0,0);return {canvas:c,sx:P.cx-side/2,sy:P.cy-side/2,side};}
-function gifModeNote(){const pm=$("gifMode").value==="pat";$("gifZoomBox").style.display=pm?"":"none";
+function gifModeNote(){const pm=$("gifMode").value==="pat";$("gifZoomBox").style.display=pm?"":"none";$("gifCropBox").style.display=pm?"none":"";
   if(pm){const L=cmpOrder().filter(x=>x.show),miss=L.filter(e=>!e.pat).length;if(miss)$("gifStatus").textContent=`${miss} shown image${miss>1?"s have":" has"} no pattern yet — press Compare (or open them) so their FFT / pattern is computed.`;}}
 function gifBC(c){const b=+$("gifBri").value||0,k=+$("gifCon").value||0;if(!b&&!k)return c;const g=Math.pow(2,k/33),o=c.getContext("2d"),d=o.getImageData(0,0,c.width,c.height),a=d.data;
   const lut=new Uint8ClampedArray(256);for(let v=0;v<256;v++)lut[v]=((v/255-0.5)*g+0.5+b/100)*255;for(let i=0;i<a.length;i+=4){a[i]=lut[a[i]];a[i+1]=lut[a[i+1]];a[i+2]=lut[a[i+2]];}
@@ -2273,6 +2309,8 @@ async function gifBuild(){const L=cmpOrder().filter(x=>x.show);if(L.length<2){$(
   for(let k=0;k<L.length;k++){const e=L[k];st.textContent=`Reading frame ${k+1} / ${L.length}: ${e.rel}…`;await new Promise(r=>setTimeout(r,0));
     const c=document.createElement("canvas");c.width=T;c.height=T;const g=c.getContext("2d");g.fillStyle="#000";g.fillRect(0,0,T,T);g.imageSmoothingEnabled=true;
     try{if($("gifMode").value==="pat"){const P=gifPatSource(e,T);g.drawImage(P.canvas,P.sx,P.sy,P.side,P.side,0,0,T,T);}
+      else if(e.kind==="real"&&$("gifCrop").checked&&e.roiImg){const P=e.roiImg,cc=document.createElement("canvas");cc.width=P.w;cc.height=P.h;const id=new ImageData(P.w,P.h);
+        for(let i=0;i<P.g.length;i++){const v=P.g[i];id.data[4*i]=id.data[4*i+1]=id.data[4*i+2]=v;id.data[4*i+3]=255;}cc.getContext("2d").putImageData(id,0,0);g.drawImage(cc,0,0,P.w,P.h,0,0,T,T);}
       else{const src=await gifFrameSource(e,T),tc=thumbCanvas(src),sc=Math.min(T/src.tw,T/src.th),w=src.tw*sc,h=src.th*sc;g.drawImage(tc,(T-w)/2,(T-h)/2,w,h);}}
     catch(err){st.textContent=`Could not use ${e.rel}: ${err.message}`;await new Promise(r=>setTimeout(r,600));continue;}
     GIF.base.push(c);GIF.ents.push(e);}
@@ -2280,7 +2318,8 @@ async function gifBuild(){const L=cmpOrder().filter(x=>x.show);if(L.length<2){$(
   $("gifMake").disabled=false;$("gifSave").disabled=!GIF.canv.length;st.textContent=`${GIF.canv.length} frames ready (${T} × ${T} px). Change the frame time or the “on GIF” text to preview; Download writes the GIF.`;gifPlay();}
 {let raf=0;const upd=()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;if(GIF.base.length){gifCompose();gifPlay();}});};
   $("gifBri").addEventListener("input",upd);$("gifCon").addEventListener("input",upd);$("gifBCReset").addEventListener("click",()=>{$("gifBri").value=0;$("gifCon").value=0;upd();});}
-$("gifMode").addEventListener("change",()=>{gifModeNote();if(GIF.base.length)gifBuild();});$("gifZoom").addEventListener("change",()=>{if(GIF.base.length&&$("gifMode").value==="pat")gifBuild();});
+$("gifMode").addEventListener("change",()=>{gifModeNote();if(GIF.base.length)gifBuild();});$("gifCrop").addEventListener("change",()=>{if(GIF.base.length&&$("gifMode").value==="img")gifBuild();});
+$("gifZoom").addEventListener("change",()=>{if(GIF.base.length&&$("gifMode").value==="pat")gifBuild();});
 setTimeout(gifModeNote,0);
 document.querySelectorAll(".gifTxt input").forEach(c=>c.addEventListener("change",()=>{if(GIF.base.length){gifCompose();gifPlay();}}));
 function gifDelay(){return Math.max(0.02,+$("gifDt").value||0.5);}
@@ -2305,10 +2344,10 @@ $("gifCollapse").addEventListener("click",()=>{S.gifCollapsed=!S.gifCollapsed;gi
 {const _cv=cmpVis;cmpVis=function(){_cv();$("gifPanel").hidden=S.cmp.length<2;};}
 
 /* gas flow typed by the user, shown as “Gas flow 13 SCCM” wherever its box is ticked */
-function gasTxt(){const c=document.querySelector(".gasV");const v=c?String(c.value).trim():"";return v!==""?`${v} SCCM`:"";}
+function gasTxt(){const c=document.querySelector(".gasV"),n=document.querySelector(".gasN");const v=c?String(c.value).trim():"",g=n?String(n.value).trim():"";return v!==""?`${v} SCCM${g?" "+g:""}`:(g||"");}
 function gasChanged(){try{if(typeof drawChart==="function"&&S.profile)drawChart();}catch(e){}try{cmpRender();}catch(e){}try{if(typeof tempShow==="function")tempShow();}catch(e){}
   try{if(typeof GIF!=="undefined"&&GIF.base&&GIF.base.length){gifCompose();gifPlay();}}catch(e){}}
-document.querySelectorAll(".gasV").forEach(c=>c.addEventListener("input",()=>{document.querySelectorAll(".gasV").forEach(x=>{if(x!==c)x.value=c.value;});gasChanged();}));
+for(const cls of [".gasV",".gasN"])document.querySelectorAll(cls).forEach(c=>c.addEventListener("input",()=>{document.querySelectorAll(cls).forEach(x=>{if(x!==c)x.value=c.value;});gasChanged();}));
 
 /* ============================================================== 3D: rotating GIF with a transparent background */
 function v3RotM(u,t){const l=Math.hypot(...u)||1,[x,y,z]=u.map(v=>v/l),c=Math.cos(t),s=Math.sin(t),C=1-c;
