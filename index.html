@@ -2172,7 +2172,13 @@ function drawCmp(target,tdpr){const exp=target instanceof HTMLCanvasElement,cv=e
   const step=stacked?off*(gmax||1):0;
   let ymin=Infinity,ymax=-Infinity;out.forEach((s,k)=>{for(let i=0;i<s.X.length;i++){if(s.X[i]<lo||s.X[i]>hi)continue;const v=s.Y[i]+k*step;if(v<ymin)ymin=v;if(v>ymax)ymax=v;}});
   if(!(ymax>ymin)){ymin=0;ymax=1;}const pad=(ymax-ymin)*0.04;ymin-=pad;ymax+=pad;
-  const labW=stacked?Math.min(260*dpr,cw*0.25):0,Lm=64*dpr,Rm=14*dpr+labW,T=14*dpr,B=40*dpr,pw=cw-Lm-Rm,ph=ch-T-B;
+  /* hkl / d labels get their own band above the plot, so they never sit on the curves */
+  let labBand=0,cmpLabQ=null;if($("cmpSticks").checked&&($("cLab").checked||$("cLabD").checked)&&typeof phVisible==="function"){const sV=phaseScale(),cmV=+$("cmin").value||0;
+    ctx.font=`600 ${(+$("cLabSize").value||10)*dpr}px "IBM Plex Mono",monospace`;
+    for(const phs of S.phases.filter(phVisible))for(const ln of phs.lines){if(ln.I<cmV)continue;const d=ln.d*sV,xv=mode==="d"?d:mode==="q"?10/d:2*Math.asin(Math.min(1,lambdaA(+$("kv").value||300)/(2*d)))*180/Math.PI;if(xv<lo||xv>hi)continue;
+      labBand=Math.max(labBand,ctx.measureText(labTxt(ln)).width);}
+    if(labBand)labBand=Math.min(labBand+10*dpr,ch*0.35);}
+  const labW=stacked?Math.min(260*dpr,cw*0.25):0,Lm=64*dpr,Rm=14*dpr+labW,T=14*dpr+labBand,B=40*dpr,pw=cw-Lm-Rm,ph=ch-T-B;
   const sx=v=>Lm+(v-lo)/(hi-lo)*pw,sy=v=>T+ph-(v-ymin)/(ymax-ymin)*ph;cmpGeom={L:Lm,pw,T,ph,lo,hi,mode,dpr};
   ctx.font=`${11*dpr}px "IBM Plex Mono",monospace`;ctx.fillStyle=muted;ctx.strokeStyle=line;ctx.lineWidth=1*dpr;ctx.textAlign="center";ctx.textBaseline="top";
   for(const v of niceTicks(lo,hi,8)){const x=sx(v);ctx.beginPath();ctx.moveTo(x,T);ctx.lineTo(x,T+ph);ctx.stroke();ctx.fillText(String(+v.toPrecision(6)),x,T+ph+6*dpr);}
@@ -2191,18 +2197,18 @@ function drawCmp(target,tdpr){const exp=target instanceof HTMLCanvasElement,cv=e
         ctx.beginPath();ctx.moveTo(x,T+ph);ctx.lineTo(x,T+ph-h);ctx.stroke();
         if(cmpLabOn)cmpLabs.push({x,top:T+ph-h,txt:labTxt(ln),c:phs.color,I:ln.I+(phs.id===S.focus?1000:0)});}}ctx.globalAlpha=1;
     /* hkl / d labels on the sticks (the “hkl labels” / “d labels” boxes of the CIF section); strongest first, overlapping ones are left out */
-    if(cmpLabOn&&cmpLabs.length){const lfs=(+$("cLabSize").value||10)*dpr,placed=[];ctx.save();ctx.font=`600 ${lfs}px "IBM Plex Mono",monospace`;ctx.textBaseline="middle";ctx.textAlign="left";
+    if(cmpLabOn&&cmpLabs.length)cmpLabQ=()=>{const lfs=(+$("cLabSize").value||10)*dpr,placed=[];ctx.save();ctx.font=`600 ${lfs}px "IBM Plex Mono",monospace`;ctx.textBaseline="middle";ctx.textAlign="left";
       cmpLabs.sort((a,b)=>b.I-a.I);
-      for(const L of cmpLabs){if(!L.txt)continue;const w=ctx.measureText(L.txt).width,y1=Math.max(T+w+4*dpr,L.top-3*dpr),y0=y1-w;   // rotated text runs upwards from y1
-        if(placed.some(p=>Math.abs(p.x-L.x)<lfs*1.1&&!(y1<p.y0||y0>p.y1)))continue;placed.push({x:L.x,y0,y1});
+      for(const L of cmpLabs){if(!L.txt)continue;const w=ctx.measureText(L.txt).width,y1=T-4*dpr,y0=y1-w;   // rotated text runs upwards from just above the plot
+        if(placed.some(p=>Math.abs(p.x-L.x)<lfs*1.1&&!(y1<p.y0||y0>p.y1)))continue;placed.push({x:L.x,y0,y1});if(L.top>T+2*dpr){ctx.save();ctx.strokeStyle=L.c;ctx.globalAlpha=.35;ctx.lineWidth=0.8*dpr;ctx.setLineDash([1*dpr,3*dpr]);ctx.beginPath();ctx.moveTo(L.x,L.top);ctx.lineTo(L.x,T);ctx.stroke();ctx.restore();}
         ctx.save();ctx.translate(L.x,y1);ctx.rotate(-Math.PI/2);ctx.lineWidth=3*dpr;ctx.lineJoin="round";ctx.strokeStyle=css.getPropertyValue("--panel").trim()||"#fff";ctx.strokeText(L.txt,0,0);ctx.fillStyle=L.c;ctx.fillText(L.txt,0,0);ctx.restore();}
-      ctx.restore();}}
+      ctx.restore();};}
   out.forEach((s,k)=>{ctx.strokeStyle=cmpColor(s.e);ctx.lineWidth=(s.e===S.cmpActive?2:1.3)*dpr;ctx.beginPath();let first=true;
     for(let i=0;i<s.X.length;i++){if(s.X[i]<lo||s.X[i]>hi||!isFinite(s.Y[i])){first=true;continue;}const x=sx(s.X[i]),y=sy(s.Y[i]+k*step);if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);}ctx.stroke();});
   if(cmpDrag&&cmpDrag.moved){const a=Math.max(Lm,Math.min(cmpDrag.x0,cmpDrag.x1)),b=Math.min(Lm+pw,Math.max(cmpDrag.x0,cmpDrag.x1));ctx.fillStyle=css.getPropertyValue("--accent");ctx.globalAlpha=.15;ctx.fillRect(a,T,b-a,ph);ctx.globalAlpha=1;}
   if(cmpHover!=null&&!exp){ctx.strokeStyle=muted;ctx.setLineDash([3*dpr,3*dpr]);ctx.beginPath();ctx.moveTo(cmpHover,T);ctx.lineTo(cmpHover,T+ph);ctx.stroke();ctx.setLineDash([]);
     const xv=lo+(cmpHover-Lm)/pw*(hi-lo),dd=mode==="d"?xv:mode==="q"?10/xv:(lambdaA(+$("kv").value||300)/(2*Math.sin(xv*Math.PI/360)));ctx.fillStyle=ink;ctx.font=`${11*dpr}px "IBM Plex Mono",monospace`;ctx.textAlign="left";ctx.textBaseline="top";ctx.fillText(`d ${dd.toFixed(4)} Å`,Math.min(cmpHover+6*dpr,Lm+pw-90*dpr),T+4*dpr);}
-  ctx.restore();
+  ctx.restore();if(cmpLabQ)cmpLabQ();
   ctx.font=`${11*dpr}px "IBM Plex Sans",sans-serif`;
   if(stacked){ctx.textAlign="left";ctx.textBaseline="middle";out.forEach((s,k)=>{let y=null;for(let i=s.X.length-1;i>=0;i--){if(s.X[i]>=lo&&s.X[i]<=hi&&isFinite(s.Y[i])){y=sy(s.Y[i]+k*step);break;}}
       if(y==null)return;ctx.fillStyle=cmpColor(s.e);const t=cmpLabel(s.e);let tt=t;while(ctx.measureText(tt).width>labW-12*dpr&&tt.length>4)tt=tt.slice(0,-2);if(tt!==t)tt+="…";ctx.fillText(tt,Lm+pw+8*dpr,Math.max(T+6*dpr,Math.min(T+ph-6*dpr,y)));});}
