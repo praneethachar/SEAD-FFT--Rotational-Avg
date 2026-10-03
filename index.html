@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 </head><body>
-<title>d-Spacing Studio</title>
+<title>d-Spacing Compare</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -31,6 +31,10 @@
 .brcard{display:flex;flex-direction:column;gap:6px;text-align:left;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer;color:var(--ink);font:inherit}
 .brcard:hover{border-color:var(--accent)}.brcard.cur{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
 .brthumb{aspect-ratio:1/1;background:#07090b;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#8e9ba7;font-size:.8rem;overflow:hidden}
+.brcard{position:relative}.brtick{position:absolute;left:12px;top:12px;z-index:2;background:rgba(0,0,0,.65);color:#fff;border-radius:6px;padding:2px 8px;font-size:.75rem;display:flex;gap:6px;align-items:center;cursor:pointer}
+.brcard.ticked{border-color:#e0a800;box-shadow:0 0 0 2px #e0a800 inset}
+#cmpRows tr[draggable="true"]{cursor:grab}#cmpRows tr.dragging{opacity:.4}#cmpRows tr.dropAbove td{box-shadow:inset 0 2px 0 var(--accent)}#cmpRows tr.dropBelow td{box-shadow:inset 0 -2px 0 var(--accent)}
+#cmpRows .grip{color:var(--muted);font-size:1rem;cursor:grab}#cmpRows .up,#cmpRows .dn{padding:0 5px;font-size:.65rem;line-height:1.4}
 .brthumb canvas{width:100%;height:100%;object-fit:contain;image-rendering:auto}
 .brtxt{display:flex;flex-direction:column;gap:2px;font-size:.75rem;line-height:1.3;min-width:0}.brtxt b{font-size:.78rem;word-break:break-all}
 .brtxt .tm{font-family:var(--f-data)}.brtxt .kd{color:var(--muted)}.brtxt .lg{font-family:var(--f-data);color:var(--ink)}
@@ -135,8 +139,8 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
   <header class="top">
     <span class="row2" style="gap:6px"><button class="primary" id="brPick" title="Choose a folder: every image in it (and its sub-folders) is listed with time, temperature and pressure; pick one to analyse">📂 Browse folder…</button><input id="brDir" type="file" webkitdirectory directory multiple hidden>
       <button id="brShow" hidden title="Reopen the image list">Image list</button>
-      <button id="brPrev" disabled title="Previous image in the list (in the list's order)" aria-label="previous image">◀</button><button id="brNext" disabled title="Next image in the list" aria-label="next image">▶</button></span>
-    <div class="brand"><h1>d-Spacing Studio</h1><small>SAED &amp; FFT ring profiles · d vs I · CIF phase matching</small></div>
+      <select id="imgSel" class="imgsel" disabled style="width:auto;max-width:34rem" title="Jump to another image: the images in the comparison (or, before comparing, all images of the browsed folder)"><option>— no images —</option></select></span>
+    <div class="brand"><h1>d-Spacing Compare</h1><small>compare ring profiles of several SAED patterns / FFTs</small></div>
     <label class="btn primary" for="file">Open .dm4 / .dm3 / image<input id="file" type="file" accept=".dm4,.dm3,.png,.jpg,.jpeg,.tif,.tiff"></label>
     <label class="row2" title="Auto: DM files calibrated in nm / Å / µm are real-space images (an FFT is computed), 1/nm files are patterns. Plain PNG/JPG/TIF are treated as patterns unless you choose “real-space image”.">file is
       <select id="ftype" style="width:auto"><option value="auto">auto-detect</option><option value="diff">a diffraction pattern / FFT</option><option value="real">a real-space image → compute FFT</option></select></label>
@@ -160,6 +164,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
   <section class="panel" id="rsPanel" hidden style="display:grid;gap:10px">
     <div class="chartbar">
       <h2>Real-space image → FFT</h2>
+      <select class="imgsel" disabled style="width:auto;max-width:34rem" title="Jump to another image"><option>— no images —</option></select>
       <span class="keys" id="rsName"></span>
       <span class="spacer"></span>
       <span class="row2"><label for="rsPix">pixel size</label><input id="rsPix" type="number" step="any" min="0" style="width:7rem"><span class="keys">nm/px</span></span>
@@ -178,6 +183,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
 
   <section class="work">
     <div class="side">
+      <div class="row2" style="gap:8px"><label class="keys">image</label><select class="imgsel" disabled style="width:auto;max-width:34rem" title="Jump to another image"><option>— no images —</option></select></div>
       <div class="scope" id="mainWrap">
         <canvas id="main" tabindex="0" aria-label="Diffraction pattern. Click to set the centre (or, when the centre is locked, to measure a spot), wheel to zoom, drag to pan, arrow keys to move the centre."></canvas>
         <div class="hud" hidden><span id="hudC"></span><span id="hudZ"></span></div>
@@ -250,6 +256,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
   <section class="panel" style="display:grid;gap:10px">
     <div class="chartbar">
       <h2>Profile</h2>
+      <select class="imgsel" disabled style="width:auto;max-width:34rem" title="Jump to another image"><option>— no images —</option></select>
       <button class="primary" id="compute">Compute profile (Enter)</button>
       <label title="Recompute the profile automatically whenever the centre, calibration, bin or mask changes (the centre is then not locked automatically)"><input id="profAuto" type="checkbox" checked> auto update</label>
       <button id="pkAddBtn" aria-pressed="false" title="While on, clicking the plot adds a peak at that position (right-click also adds; right-click a peak removes it)">+ Add peaks</button>
@@ -258,11 +265,13 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <div class="row2"><label for="xmode">x axis</label>
         <select id="xmode" style="width:auto"><option value="d">d (Å)</option><option value="tt">2θ (°)</option><option value="q">q (nm⁻¹)</option><option value="r">r (px)</option></select></div>
       <div class="row2"><label for="xlo">from</label><input id="xlo" type="number" step="any"><label for="xhi">to</label><input id="xhi" type="number" step="any"><button id="zreset" title="Back to the full range (or double-click the plot)">Reset zoom</button></div>
-      <div class="row2"><label title="Vertical line at each detected peak; it turns green when a shown CIF line is within ±1 % in d"><input id="pkLines" type="checkbox"> peak lines</label><label title="On: the peak line runs down to the baseline. Off: it stops at the peak marker, so CIF sticks underneath stay clear"><input id="pkFull" type="checkbox" checked> full height</label><label><input id="logy" type="checkbox"> log I</label><label><input id="bgsub" type="checkbox" checked> subtract background</label></div>
+      <div class="row2"><label title="Vertical line at each detected peak; it turns green when a shown CIF line is within ±1 % in d"><input id="pkLines" type="checkbox"> peak lines</label><label title="On: the peak line runs down to the baseline. Off: it stops at the peak marker, so CIF sticks underneath stay clear"><input id="pkFull" type="checkbox" checked> full height</label>
+        <label><input id="logy" type="checkbox"> log I</label><label><input id="bgsub" type="checkbox" checked> subtract background</label></div>
       <div class="row2"><label for="sens">peak sensitivity</label><input id="sens" type="range" min="2" max="20" step="0.5" value="6" style="width:7rem"></div>
       <span class="spacer"></span>
       <span class="status" id="status"></span>
     </div>
+    <div class="chartbar"><span class="row2" style="gap:6px" title="What the legend shows for the experimental profile"><span class="keys">legend:</span><label><input id="lgName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="lgType" type="checkbox"> type</label><label><input id="lgTime" type="checkbox"> time</label><label><input id="lgT" type="checkbox" checked> T</label><label><input id="lgP" type="checkbox"> pressure</label></span></div>
     <div class="bench" style="grid-template-columns:minmax(0,1fr)">
       <div id="chartWrap" title="Drag the bottom-right corner to change the plot height"><canvas id="chart" aria-label="Intensity profile"></canvas>
         <div class="empty" id="chartEmpty" style="position:absolute;inset:0">Set the centre, then press <b>&nbsp;Compute profile&nbsp;</b>. Nothing is saved until you press a Save button.</div></div>
@@ -279,6 +288,35 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <button id="svplot" disabled title="The plot as shown: profile, peak markers, CIF sticks and legend, selected rings">Plot with overlays (.png)</button>
       <span class="status" id="saveStatus">Files are only written when you press a Save button.</span>
     </div>
+  </section>
+  <section class="panel" id="cmpPanel" hidden style="display:grid;gap:10px">
+    <div class="chartbar">
+      <h2>Compare profiles</h2><span class="keys" id="cmpCount"></span>
+      <button class="primary" id="cmpRun" title="Compute (or recompute) the profile of every image in the list">Compute all</button>
+      <span class="row2"><label for="cmpLay">layout</label><select id="cmpLay" style="width:auto"><option value="overlay">overlay</option><option value="stack">stacked</option></select></span>
+      <span class="row2" id="cmpOffWrap" hidden><label for="cmpOff">offset</label><input id="cmpOff" type="range" min="0" max="1.5" step="0.02" value="0.6" style="width:7rem"></span>
+      <span class="row2"><label for="cmpNorm">normalise</label><select id="cmpNorm" style="width:auto"><option value="none">none</option><option value="max">to max in view</option><option value="rmax">to max in d range</option><option value="rarea">to area in d range</option></select></span>
+      <span class="row2" id="cmpNdWrap" hidden><label for="cmpNd">d from</label><input id="cmpNd" type="number" step="0.001" value="1.95" style="width:5.5rem"><label for="cmpNd2">to</label><input id="cmpNd2" type="number" step="0.001" value="2.05" style="width:5.5rem"><span class="keys">Å</span></span>
+      <label><input id="cmpBg" type="checkbox" checked> subtract background</label>
+      <label title="CIF sticks of the ticked / highlighted phases along the bottom"><input id="cmpSticks" type="checkbox"> CIF sticks</label>
+      <span class="row2" id="cmpStWrap" hidden><label for="cmpStH" title="Height of a 100 % line, as a fraction of the plot height">stick height</label><input id="cmpStH" type="range" min="5" max="100" step="1" value="25" style="width:7rem"><span class="keys" id="cmpStHv">25 %</span>
+        <label title="Every line runs the full plot height (intensity shown as opacity)"><input id="cmpStFull" type="checkbox"> full-height lines</label></span>
+    </div>
+    <div class="chartbar">
+      <span class="row2"><label for="cmpXm">x axis</label><select id="cmpXm" style="width:auto"><option value="d">d (Å)</option><option value="tt">2θ (°)</option><option value="q">q (nm⁻¹)</option></select></span>
+      <span class="row2"><label for="cmpLo">from</label><input id="cmpLo" type="number" step="any" style="width:5.5rem"><label for="cmpHi">to</label><input id="cmpHi" type="number" step="any" style="width:5.5rem"><button id="cmpReset">Reset zoom</button></span>
+      <span class="row2"><label for="cmpSort">order</label><select id="cmpSort" style="width:auto"><option value="time">by acquisition time</option><option value="temp">by T measured</option><option value="name">by name</option><option value="custom">custom (drag rows)</option></select><label><input id="cmpRev" type="checkbox"> reverse</label></span>
+      <span class="row2"><label for="cmpCol">colours</label><select id="cmpCol" style="width:auto"><option value="dist">distinct</option><option value="grad">gradient (in order)</option></select></span>
+      <span class="spacer"></span>
+      <button id="cmpSvPng" disabled>Save plot (.png)</button><button id="cmpSvTxt" disabled title="All shown profiles on one common grid (as plotted, without the stacking offset)">Save data (.txt)</button>
+      <button id="cmpClear" title="Empty the comparison">Clear list</button>
+    </div>
+    <div class="chartbar">
+      <span class="row2" style="gap:6px" title="What each profile's label shows (legend, or the labels beside the stacked curves)"><span class="keys">label by:</span><label><input id="clName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="clType" type="checkbox"> type</label><label><input id="clTime" type="checkbox"> time</label><label><input id="clT" type="checkbox"> T</label><label><input id="clP" type="checkbox"> pressure</label></span>
+    </div>
+    <div id="cmpWrap" style="position:relative;height:clamp(420px,60vh,820px);min-height:260px;resize:vertical;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)"><canvas id="cmpChart" style="display:block;width:100%;height:100%;cursor:crosshair" aria-label="Profile comparison"></canvas></div>
+    <div class="keys">zoom: <kbd>wheel</kbd> or <kbd>drag</kbd> across a range, <kbd>double-click</kbd> to reset · FFTs use the zero-frequency centre automatically; SAED patterns start from an automatic centre (⚠) — press <b>open</b>, set the centre on the pattern above, and the profile updates here. <span id="cmpStatus" style="color:var(--ink)"></span></div>
+    <div class="tablebox" style="max-height:300px"><table><thead><tr><th title="Drag a row to change the order">order</th><th>show</th><th></th><th style="text-align:left">image</th><th>acquired</th><th>T set / meas</th><th>pressure</th><th>type</th><th>centre</th><th></th></tr></thead><tbody id="cmpRows"></tbody></table></div>
   </section>
   <section class="panel" id="phasePanel" style="display:grid;gap:10px">
     <div class="chartbar">
@@ -326,8 +364,10 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
 <div id="brModal" hidden role="dialog" aria-modal="true" aria-label="Image list">
   <div class="brpanel">
     <div class="brhead"><h2 id="brTitle">Images</h2><span class="spacer"></span>
-      <label for="brSort">sort</label><select id="brSort" style="width:auto"><option value="time">by acquisition time</option><option value="name">by name</option></select>
+      <label for="brSort">sort</label><select id="brSort" style="width:auto"><option value="time">by acquisition time</option><option value="temp">by T measured</option><option value="name">by name</option></select>
       <label for="brKind">show</label><select id="brKind" style="width:auto"><option value="all">all</option><option value="diff">diffraction / FFT</option><option value="real">real-space images</option></select>
+      <button id="brTickAll">tick all</button><button id="brTickNone">untick all</button>
+      <button class="primary" id="brCompare" disabled title="Add the ticked images to the comparison and compute their profiles">Compare ticked (0)</button>
       <button id="brClose" title="Close (Esc)">✕ Close</button></div>
     <div class="keys" style="padding:0 14px 8px">Click an image to open it; the list closes and you keep working on the main page. Temperature and pressure come from the loaded logs (matched to each image's acquisition time). ◀ ▶ next to “Browse folder” step through this list.</div>
     <div id="brGrid"></div>
@@ -421,7 +461,7 @@ function pct(arr,ps){const s=Float32Array.from(arr).sort();return ps.map(p=>s[Ma
 function sample(arr,n){const step=Math.max(1,Math.floor(arr.length/n));const out=new Float32Array(Math.ceil(arr.length/step));for(let i=0,j=0;i<arr.length;i+=step,j++)out[j]=arr[i];return out;}
 
 /* ============================================================== load an image */
-function setImage(W,H,data,meta){S.acqStr=meta.acq||"";if(!meta.fromReal){S.real=null;S.realROI=null;const rp=document.getElementById("rsPanel");if(rp)rp.hidden=true;}if(UNDO){UNDO.past=[];UNDO.future=[];UNDO.lastKind="";}
+function setImage(W,H,data,meta){setTimeout(()=>{if(typeof imgSelRender==="function")imgSelRender();},0);S.acqStr=meta.acq||"";if(!meta.fromReal){S.real=null;S.realROI=null;const rp=document.getElementById("rsPanel");if(rp)rp.hidden=true;}if(UNDO){UNDO.past=[];UNDO.future=[];UNDO.lastKind="";}
   S.W=W;S.H=H;S.img=data;S.name=meta.name;S.example=!!meta.example;S.profile=null;S.peaks=[];
   const smp=sample(data,400000); const [p1,pmax]=pct(smp,[1,100]);
   let mx=-Infinity; for(let i=0;i<data.length;i+=1){if(data[i]>mx)mx=data[i];}
@@ -668,7 +708,7 @@ document.addEventListener("keydown",e=>{if(!(e.ctrlKey||e.metaKey))return;const 
   e.preventDefault();undoStep(!(k==="y"||e.shiftKey));},true);
 let profTimer=null;
 function autoProfile(){if(!$("profAuto")||!$("profAuto").checked||!S.img)return;clearTimeout(profTimer);profTimer=setTimeout(()=>{if(+$("scale").value>0)compute({auto:true});},250);}
-function setCentre(x,y,force){if(!force&&centreLocked()){drawMain();return;}if(x!==S.cx||y!==S.cy)undoPush("centre");S.cx=x;S.cy=y;remember();redrawAll();autoProfile();}
+function setCentre(x,y,force){if(!force&&centreLocked()){drawMain();return;}if(!S.cmpBatch&&(x!==S.cx||y!==S.cy))S.centreTouched=true;if(x!==S.cx||y!==S.cy)undoPush("centre");S.cx=x;S.cy=y;remember();redrawAll();autoProfile();}
 function move(dx,dy,mult){const s=STEPS[S.stepIdx]*(mult||1);setCentre(S.cx+dx*s,S.cy+dy*s);}
 let drag=null;
 cvM.addEventListener("pointerdown",e=>{cvM.focus();const k=cvM.width/cvM.getBoundingClientRect().width;drag={x:e.offsetX*k,y:e.offsetY*k,ox:S.ox,oy:S.oy,moved:false};cvM.setPointerCapture(e.pointerId);});
@@ -793,6 +833,7 @@ function compute(opts){const auto=!!(opts&&opts.auto===true);
   if(!auto&&!$("lock").checked){$("lock").checked=true;drawMain();}
   if(!$("xlo").value||!$("xhi").value)setDefaultRange();
   drawChart(); setStatus(`Profile from centre (${cx.toFixed(2)}, ${cy.toFixed(2)}) · ${R.length} points · ${S.peaks.length} peaks · `+(auto?"auto-updated":"centre locked"));
+  if(typeof cmpCapture==="function")cmpCapture(!auto);
 }
 function baseline(I,win){const n=I.length,mn=new Float64Array(n);
   for(let i=0;i<n;i++){let m=Infinity;for(let j=Math.max(0,i-win);j<=Math.min(n-1,i+win);j++)if(I[j]<m)m=I[j];mn[i]=m;}
@@ -885,6 +926,15 @@ function niceTicks(a,b,n){if(!(b>a))return[];const span=b-a,step0=span/n,mag=Mat
 let hoverX=null, chartGeom=null;
 function rToX(r,mode){const P=S.profile,q=r*P.sc,d=10/q;return mode==="d"?d:mode==="q"?q:mode==="tt"?2*Math.asin(Math.min(1,P.lam/(2*d)))*180/Math.PI:r;}
 function xToR(v,mode){const P=S.profile;const d=mode==="d"?v:mode==="q"?10/v:mode==="tt"?P.lam/(2*Math.sin(v*Math.PI/360)):null;return mode==="r"?v:10/d/P.sc;}
+/* legend text of the experimental profile, from the "legend:" check boxes */
+function expLegend(){const acq=S.acqStr||(S.real&&S.real.acq)||"",parts=[];
+  if($("lgName").checked)parts.push(S.realROI&&S.real?S.real.name:(S.name||"pattern"));
+  if($("lgType").checked&&S.img)parts.push(S.isFFT?"FFT":"SAED");
+  if($("lgTime").checked&&acq)parts.push(acq.replace(/\s+/g," "));
+  if($("lgT").checked&&S.tlog&&acq){const r=tempAt(acq);if(r&&!r.err&&isFinite(r.meas))parts.push(`T ${fmtT(r.meas,true)}`);}
+  if($("lgP").checked&&S.plog&&acq){const r=logAt(S.plog,acq);if(r&&!r.err)parts.push(S.plog.cols.map(c=>`${c.name} ${fmtP(c.v[r.i])}`).join(" ")+(S.plog.cols[0]&&S.plog.cols[0].unit?" "+S.plog.cols[0].unit:""));}
+  return parts.length?`Experimental (${parts.join(" · ")})`:"Experimental";}
+for(const id of ["lgName","lgType","lgTime","lgT","lgP"])document.getElementById(id).addEventListener("change",()=>drawChart());
 function drawChart(target,tdpr){
   const exp=target instanceof HTMLCanvasElement,cv=exp?target:cvC;/* target is an Event when used as an event handler */const ctx=cv.getContext("2d");if(!exp)sizeCanvas(cvC);const cw=cv.width,ch=cv.height,dpr=exp?tdpr:cw/Math.max(1,cvC.getBoundingClientRect().width);
   ctx.clearRect(0,0,cw,ch); const P=S.profile; if(!P)return;
@@ -923,7 +973,7 @@ function drawChart(target,tdpr){
   const pkLines=$("pkLines").checked,pkFull=$("pkFull").checked,MATCH="#2fbf71",cmV=+$("cmin").value||0,sV=phaseScale();
   const cifD=S.phases.filter(phVisible).flatMap(ph=>ph.lines.filter(x=>x.I>=cmV).map(x=>x.d*sV));
   { /* keep labels out of the legend box (top right) */
-    const lt=[`Experimental (${S.name||"pattern"}) · T 000.0 °C`].concat($("cSticks").checked?S.phases.filter(phVisible).map(phs=>(phs.legend||phs.label)+(phs.show?"":"  (preview)")):[]);
+    const lt=[expLegend()+"  "].concat($("cSticks").checked?S.phases.filter(phVisible).map(phs=>(phs.legend||phs.label)+(phs.show?"":"  (preview)")):[]);
     ctx.font=`${11*dpr}px "IBM Plex Sans",sans-serif`;const lw=Math.max(...lt.map(t=>ctx.measureText(t).width));placed.push({x0:L+pw-lw-30*dpr,x1:L+pw,y0:T+36*dpr,y1:T+40*dpr+lt.length*16*dpr});}
   const pkFont=`600 ${11*dpr}px "IBM Plex Mono",monospace`,expLabs=[];ctx.font=pkFont;
   for(const p of S.peaks){const xv=mode==="d"?p.d:mode==="tt"?p.tt:mode==="q"?p.q:p.r;if(xv<lo||xv>hi)continue;
@@ -943,8 +993,7 @@ function drawChart(target,tdpr){
       ctx.save();ctx.fillStyle=c.color;ctx.translate(pos.ax,pos.ay);ctx.rotate(-Math.PI/2);ctx.textAlign="left";ctx.textBaseline="middle";ctx.fillText(c.txt,0,0);ctx.restore();}
   }
   { /* legend: the experimental curve, then every shown phase */
-    const tt0=(()=>{if(!/both|temp/.test($("showInfo").value))return "";const r=tempAt(S.acqStr||(S.real&&S.real.acq)||"");return r&&!r.err&&isFinite(r.meas)?` · T ${fmtT(r.meas,true)}`:"";})();
-    const ent=[{c:acc,t:`Experimental (${S.name||"pattern"})${tt0}`,curve:true}].concat($("cSticks").checked?S.phases.filter(phVisible).map(phs=>({c:phs.color,t:(phs.legend||phs.label)+(phs.show?"":"  (preview)")})):[]);
+    const ent=[{c:acc,t:expLegend(),curve:true}].concat($("cSticks").checked?S.phases.filter(phVisible).map(phs=>({c:phs.color,t:(phs.legend||phs.label)+(phs.show?"":"  (preview)")})):[]);
     ctx.globalAlpha=1;ctx.font=`${11*dpr}px "IBM Plex Sans",sans-serif`;ctx.textAlign="right";ctx.textBaseline="top";
     ent.forEach((e,i)=>{const y=T+40*dpr+i*16*dpr,tw=ctx.measureText(e.t).width;ctx.fillStyle=css.getPropertyValue("--panel").trim();ctx.globalAlpha=.85;ctx.fillRect(L+pw-tw-26*dpr,y-2*dpr,tw+24*dpr,15*dpr);ctx.globalAlpha=1;
       if(e.curve){ctx.strokeStyle=e.c;ctx.lineWidth=2*dpr;ctx.beginPath();ctx.moveTo(L+pw-tw-22*dpr,y+5*dpr);ctx.lineTo(L+pw-tw-10*dpr,y+5*dpr);ctx.stroke();}
@@ -1063,7 +1112,7 @@ $("svset").addEventListener("click",()=>{const P=S.profile;saveFile(base()+"_cen
 
 /* ============================================================== open files */
 async function openFile(f){
-  if(!f)return;S.lastFile=f;const ftype=$("ftype").value; setStatus("Reading "+f.name+"…"); document.body.classList.add("busy"); await new Promise(r=>setTimeout(r,20));
+  if(!f)return;S.lastFile=f;S.centreTouched=false;const ftype=$("ftype").value; setStatus("Reading "+f.name+"…"); document.body.classList.add("busy"); await new Promise(r=>setTimeout(r,20));
   try{
     const ext=f.name.split(".").pop().toLowerCase();
     if(ext==="dm4"||ext==="dm3"){const buf=await f.arrayBuffer();const r=parseDM(buf);
@@ -1071,7 +1120,7 @@ async function openFile(f){
       if(sc!=null){if(u==="1/nm"||u==="nm^-1"){}else if(u==="1/Å"||u==="1/A"||u==="Å^-1"){sc*=10;}else if(u==="1/µm"||u==="1/um"){sc/=1000;}else{sc=null;}}
       $("xlo").value="";$("xhi").value="";
       const ru=REAL_UNITS[r.units.replace(/\s/g,"")];
-      if(!r.complex&&(ftype==="real"||(ftype==="auto"&&ru))){setReal(r.W,r.H,r.data,{name:f.name,pix:ru&&r.scale?r.scale*ru:null,kv:r.kv,acq:r.acq});document.body.classList.remove("busy");return;}
+      if(!r.complex&&(ftype==="real"||(ftype==="auto"&&ru))){await setReal(r.W,r.H,r.data,{name:f.name,pix:ru&&r.scale?r.scale*ru:null,kv:r.kv,acq:r.acq});document.body.classList.remove("busy");return;}
       // FFT (complex image): centre = zero-frequency pixel, no beam stop to mask
       const fftC=r.complex?[Math.floor(r.W/2),Math.floor(r.H/2)]:null;   // zero frequency of a centred FFT
       setImage(r.W,r.H,r.data,{name:f.name,scale:sc,kv:r.kv,units:r.units,fft:r.complex,center:fftC,acq:r.acq});
@@ -1081,7 +1130,7 @@ async function openFile(f){
       if(!d){const bmp=await createImageBitmap(f);const c=document.createElement("canvas");c.width=bmp.width;c.height=bmp.height;const g=c.getContext("2d");g.drawImage(bmp,0,0);
         const px=g.getImageData(0,0,c.width,c.height).data;d=new Float32Array(c.width*c.height);for(let i=0;i<d.length;i++)d[i]=(px[4*i]+px[4*i+1]+px[4*i+2])/3;IW=c.width;IH=c.height;}
       $("xlo").value="";$("xhi").value="";
-      if(ftype==="real"){setReal(IW,IH,d,{name:f.name,pix:+$("rsPix").value||null,kv:null});document.body.classList.remove("busy");return;}
+      if(ftype==="real"){await setReal(IW,IH,d,{name:f.name,pix:+$("rsPix").value||null,kv:null});document.body.classList.remove("busy");return;}
       const c={width:IW,height:IH};
       setImage(c.width,c.height,d,{name:f.name,scale:null,units:""});setStatus("Image loaded. Enter the calibration (nm⁻¹ per pixel) before computing.");
     }
@@ -1555,7 +1604,7 @@ async function rsCompute(){const R=S.real;if(!R)return;const N=+$("rsN").value,p
 function setReal(W,H,data,meta){S.real={W,H,data,name:meta.name,kv:meta.kv,acq:meta.acq||"",x0:0,y0:0};$("rsPanel").hidden=false;
   $("rsPix").value=meta.pix>0?+meta.pix.toPrecision(8):"";$("rsName").textContent=meta.name+(meta.acq?` · acquired ${meta.acq}`:"")+` · ${W} × ${H} px`+(meta.pix>0?` · ${(+meta.pix).toPrecision(5)} nm/px (from file)`:" · pixel size not in file");
   const sel=$("rsN");sel.textContent="";const ns=rsSizes();for(const n of ns){const o=document.createElement("option");o.value=n;o.textContent=n+" × "+n+(n===ns[ns.length-1]?" (largest)":"");sel.appendChild(o);}
-  sel.value=String(ns[ns.length-1]);rsClampROI(W/2,H/2);rsPrepare();rsDraw();rsCompute();}
+  sel.value=String(ns[ns.length-1]);rsClampROI(W/2,H/2);rsPrepare();rsDraw();return rsCompute();}
 const rsPt=e=>{const k=cvR.width/cvR.getBoundingClientRect().width,R=S.real;return [(e.offsetX*k-RS.ox)/RS.k,(e.offsetY*k-RS.oy)/RS.k];};
 cvR.addEventListener("pointerdown",e=>{if(!S.real)return;RS.drag=true;cvR.setPointerCapture(e.pointerId);const [x,y]=rsPt(e);rsClampROI(x,y);rsDraw();});
 cvR.addEventListener("pointermove",e=>{if(!RS.drag)return;const [x,y]=rsPt(e);rsClampROI(x,y);rsDraw();});
@@ -1754,12 +1803,17 @@ function brInfo(it){const out=[];if(!it.acq)return out;
   if(S.tlog){const r=tempAt(it.acq);if(r&&!r.err)out.push(`T set ${fmtT(r.set)} · T meas ${fmtT(r.meas,true)}`);}
   if(S.plog){const r=logAt(S.plog,it.acq);if(r&&!r.err)out.push(S.plog.cols.map(c=>`${c.name} ${fmtP(c.v[r.i])}`).join(" · ")+(S.plog.cols[0]&&S.plog.cols[0].unit?" "+S.plog.cols[0].unit:""));}
   return out;}
+/* order by measured temperature from the log (images without a temperature go last), ties by time */
+function measT(it){if(!S.tlog||!it.acq)return NaN;const r=tempAt(it.acq);return r&&!r.err&&isFinite(r.meas)?r.meas:NaN;}
+function byTemp(a,b){const ta=measT(a),tb=measT(b);return ((isFinite(ta)?ta:Infinity)-(isFinite(tb)?tb:Infinity))||((isFinite(a.ms)?a.ms:Infinity)-(isFinite(b.ms)?b.ms:Infinity))||a.rel.localeCompare(b.rel,undefined,{numeric:true});}
 function brOrder(){const k=$("brSort").value,L=BR.items.slice();
-  if(k==="name")L.sort((a,b)=>a.rel.localeCompare(b.rel,undefined,{numeric:true}));else L.sort((a,b)=>((isFinite(a.ms)?a.ms:Infinity)-(isFinite(b.ms)?b.ms:Infinity))||a.rel.localeCompare(b.rel,undefined,{numeric:true}));
+  if(k==="temp")L.sort(byTemp);else if(k==="name")L.sort((a,b)=>a.rel.localeCompare(b.rel,undefined,{numeric:true}));else L.sort((a,b)=>((isFinite(a.ms)?a.ms:Infinity)-(isFinite(b.ms)?b.ms:Infinity))||a.rel.localeCompare(b.rel,undefined,{numeric:true}));
   const kind=$("brKind").value;return L.filter(it=>kind==="all"||!it.done||it.kind===kind||(kind==="diff"&&it.kind==="fft"));}
 function brRender(){const grid=$("brGrid");grid.textContent="";const L=brOrder();
   $("brTitle").textContent=`${BR.dir||"Images"} · ${BR.items.length} file${BR.items.length!==1?"s":""}`+(BR.items.some(i=>!i.done)?` · reading ${BR.items.filter(i=>i.done).length}/${BR.items.length}…`:"");
   for(const it of L){const card=document.createElement("button");card.className="brcard"+(it.file===S.lastFile?" cur":"");card.type="button";
+    const tick=document.createElement("label");tick.className="brtick";tick.innerHTML=`<input type="checkbox" ${it.tick?"checked":""}> compare`;tick.addEventListener("click",ev=>ev.stopPropagation());
+    tick.querySelector("input").addEventListener("change",ev=>{it.tick=ev.target.checked;card.classList.toggle("ticked",it.tick);brTickCount();});card.appendChild(tick);if(it.tick)card.classList.add("ticked");
     const box=document.createElement("div");box.className="brthumb";if(it.done&&it.thumb){box.appendChild(thumbCanvas(it));}else box.textContent=it.err?"⚠ "+it.err:"reading…";card.appendChild(box);
     const t=document.createElement("div");t.className="brtxt";
     const kindTxt={diff:"diffraction",fft:"FFT",real:"image → FFT"}[it.kind]||"";
@@ -1767,7 +1821,8 @@ function brRender(){const grid=$("brGrid");grid.textContent="";const L=brOrder()
     t.querySelector(".tm").textContent=it.acq?(it.acqFromFile?"file time ":"")+it.acq:"";t.querySelector(".kd").textContent=[kindTxt,it.W?`${it.W}×${it.H}`:"",it.cal||""].filter(Boolean).join(" · ");
     for(const l of brInfo(it)){const s=document.createElement("span");s.className="lg";s.textContent=l;t.appendChild(s);}
     card.appendChild(t);card.addEventListener("click",()=>brOpen(it));grid.appendChild(card);}
-  $("brPrev").disabled=$("brNext").disabled=!BR.items.length;$("brShow").hidden=!BR.items.length;$("brShow").textContent=`Image list (${BR.items.length})`;}
+  brTickCount();
+  imgSelRender();$("brShow").hidden=!BR.items.length;$("brShow").textContent=`Image list (${BR.items.length})`;}
 function brOpen(it){$("brModal").hidden=true;openFile(it.file);setTimeout(()=>{brRender();},50);}
 function brStep(k){const L=brOrder().filter(i=>i.done&&!i.err);if(!L.length)return;let i=L.findIndex(x=>x.file===S.lastFile);i=i<0?0:(i+k+L.length)%L.length;openFile(L[i].file);
   setStatus(`Image ${i+1} of ${L.length} (${$("brSort").value==="name"?"by name":"by time"}): ${L[i].rel}`);}
@@ -1781,15 +1836,179 @@ $("brPick").addEventListener("click",async e=>{e.preventDefault();
   $("brDir").click();});
 $("brDir").addEventListener("change",e=>{const fs=[...e.target.files];const root=(fs[0]&&fs[0].webkitRelativePath||"").split("/")[0];
   brLoad(fs.map(f=>({file:f,rel:(f.webkitRelativePath||f.name).split("/").slice(1).join("/")||f.name})),root||"folder");e.target.value="";});
-$("brShow").addEventListener("click",()=>{$("brModal").hidden=false;brRender();});
+$("brShow").addEventListener("click",()=>{if(S.cmp.length){const f=new Set(S.cmp.map(e=>e.file));for(const i of BR.items)i.tick=f.has(i.file);}$("brModal").hidden=false;brRender();});
 $("brClose").addEventListener("click",()=>{$("brModal").hidden=true;});
 $("brModal").addEventListener("click",e=>{if(e.target===$("brModal"))$("brModal").hidden=true;});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("brModal").hidden){$("brModal").hidden=true;e.stopPropagation();}},true);
 /* Esc un-highlights the highlighted CIF phase (before anything else uses Esc) */
 document.addEventListener("keydown",e=>{if(e.key!=="Escape"||S.focus==null||!$("brModal").hidden)return;const tag=(e.target.tagName||"").toLowerCase();if(tag==="input"&&/text|number|search/.test(e.target.type)||tag==="textarea")return;
   S.focus=null;renderPhases();redrawAll();drawChart();e.preventDefault();e.stopPropagation();},true);
+function brTickCount(){const n=BR.items.filter(i=>i.tick).length;$("brCompare").textContent=n===1?"Open ticked (1)":`Compare ticked (${n})`;$("brCompare").disabled=!n;}
+$("brTickAll").addEventListener("click",()=>{for(const it of brOrder())it.tick=true;brRender();});
+$("brTickNone").addEventListener("click",()=>{for(const it of BR.items)it.tick=false;brRender();});
+$("brCompare").addEventListener("click",async()=>{const L=BR.items.filter(i=>i.tick&&i.done&&!i.err);$("brModal").hidden=true;
+  if(L.length===1){cmpSet([]);await openFile(L[0].file);setStatus("Only one image ticked: opened it (tick two or more to compare).");return;}
+  cmpSet(L);$("cmpPanel").scrollIntoView({behavior:"smooth",block:"start"});cmpRunAll(true);});
 $("brSort").addEventListener("change",brRender);$("brKind").addEventListener("change",brRender);
-$("brPrev").addEventListener("click",()=>brStep(-1));$("brNext").addEventListener("click",()=>brStep(1));
+/* image drop-down (top left): the comparison images, or all images of the browsed folder before any comparison */
+let IMGSEL=[];
+function imgSelRender(){const sels=[...document.querySelectorAll("select.imgsel")];if(!sels.length)return;const useCmp=S.cmp&&S.cmp.length;
+  IMGSEL=useCmp?cmpOrder().map(e=>({file:e.file,rel:e.rel,acq:e.acq,e})):brOrder().filter(i=>i.done&&!i.err).map(i=>({file:i.file,rel:i.rel,acq:i.acq}));
+  const opts=[];let cur=-1;
+  IMGSEL.forEach((it,k)=>{const T=S.tlog&&it.acq?tempAt(it.acq):null;
+    opts.push([String(k),`${k+1}. ${it.rel}`+(it.acq?`  ·  ${it.acq}`:"")+(T&&!T.err&&isFinite(T.meas)?`  ·  ${T.meas.toFixed(1)} °C`:"")+(it.e&&it.e.cen==="auto"&&it.e.prof?"  ⚠":"")]);if(it.file===S.lastFile)cur=k;});
+  if(IMGSEL.length&&cur<0)opts.unshift(["",useCmp?"— choose an image to compare —":"— choose an image —"]);
+  for(const sel of sels){sel.textContent="";if(!IMGSEL.length){const o=document.createElement("option");o.textContent="— no images —";sel.appendChild(o);sel.disabled=true;continue;}
+    sel.disabled=false;for(const [v,t] of opts){const o=document.createElement("option");o.value=v;o.textContent=t;sel.appendChild(o);}sel.value=cur<0?"":String(cur);}}
+for(const sel of document.querySelectorAll("select.imgsel"))sel.addEventListener("change",async()=>{const it=IMGSEL[+sel.value];if(sel.value===""||!it)return;
+  /* all image menus move together at once, before the image has finished loading */
+  for(const o of document.querySelectorAll("select.imgsel")){if(o!==sel){if(![...o.options].some(x=>x.value===sel.value))imgSelRender();o.value=sel.value;}}
+  setStatus(`Opening ${it.rel}…`);
+  if(it.e){try{await cmpOpen(it.e,false);}catch(err){it.e.err=err.message;}}else await openFile(it.file);imgSelRender();});
+
+/* ============================================================== compare profiles of several images */
+S.cmp=[];S.cmpSeq=0;S.cmpActive=null;S.centreTouched=false;
+const CMP_COL=["#2a9df4","#e4572e","#e0a800","#9b5de5","#14b8a6","#ff6f91","#8d6e63","#00bcd4","#9e9d24","#ff9f1c","#3f51b5","#d81b60"];
+const GRAD=["#3b0f70","#6a1c81","#9c2e7f","#cd4071","#f1605d","#fd9668","#e8a33c"];
+function gradCol(t){const n=GRAD.length-1,i=Math.min(n-1,Math.floor(t*n)),f=t*n-i;const a=parseInt(GRAD[i].slice(1),16),b=parseInt(GRAD[i+1].slice(1),16);
+  const m=(s)=>Math.round(((a>>s)&255)*(1-f)+((b>>s)&255)*f);return `rgb(${m(16)},${m(8)},${m(0)})`;}
+function cmpOrder(){const k=$("cmpSort").value,L=S.cmp.slice();if(k==="custom"){}else if(k==="temp")L.sort(byTemp);else if(k==="name")L.sort((a,b)=>a.rel.localeCompare(b.rel,undefined,{numeric:true}));
+  else L.sort((a,b)=>((isFinite(a.ms)?a.ms:Infinity)-(isFinite(b.ms)?b.ms:Infinity))||a.rel.localeCompare(b.rel,undefined,{numeric:true}));if($("cmpRev").checked)L.reverse();return L;}
+function cmpColor(e){const L=cmpOrder().filter(x=>x.show&&x.prof);if($("cmpCol").value==="grad"&&L.length>1){const i=L.indexOf(e);return gradCol(i<0?0:i/(L.length-1));}return e.color;}
+function cmpLabel(e){const parts=[["clName","name"],["clType","type"],["clTime","time"],["clT","temp"],["clP","pres"]].filter(([id])=>$(id).checked).map(x=>x[1]),out=[];
+  for(const k of parts){if(k==="name")out.push(e.rel);else if(k==="type")out.push(e.kind==="diff"?"SAED":"FFT");else if(k==="time"){if(e.acq)out.push(e.acq.replace(/\s+/g," "));}
+    else if(k==="temp"){const r=S.tlog&&e.acq?tempAt(e.acq):null;if(r&&!r.err&&isFinite(r.meas))out.push(`${r.meas.toFixed(1)} °C`);}
+    else if(k==="pres"){const r=S.plog&&e.acq?logAt(S.plog,e.acq):null;if(r&&!r.err)out.push(S.plog.cols.map(c=>`${c.name} ${fmtP(c.v[r.i])}`).join(" ")+(S.plog.cols[0]&&S.plog.cols[0].unit?" "+S.plog.cols[0].unit:""));}}
+  return out.length?out.join(" · "):e.rel;}
+function cmpSet(items){const keep=new Set(items.map(i=>i.file));S.cmp=S.cmp.filter(e=>keep.has(e.file));if(S.cmpActive&&!keep.has(S.cmpActive.file))S.cmpActive=null;return cmpAdd(items);}
+function cmpVis(){$("cmpPanel").hidden=S.cmp.length<2;}
+function cmpAdd(items){let n=0;for(const it of items){if(S.cmp.some(e=>e.file===it.file))continue;
+    S.cmp.push({id:++S.cmpSeq,file:it.file,rel:it.rel,acq:it.acq||"",ms:it.ms,kind:it.kind,prof:null,cen:it.kind==="diff"?"auto":"fft",show:true,color:CMP_COL[(S.cmpSeq-1)%CMP_COL.length]});n++;}
+  cmpVis();cmpRender();return n;}
+/* called at the end of every profile computation: the open image's profile goes into its comparison entry */
+function cmpCapture(manual){const e=S.cmp.find(x=>x.file===S.lastFile);if(!e||!S.profile)return;const P=S.profile;
+  e.prof={D:Float64Array.from(P.D),TT:Float64Array.from(P.TT),Q:Float64Array.from(P.Q),I:Float64Array.from(P.I),bg:Float64Array.from(P.bg)};e.cx=P.cx;e.cy=P.cy;e.sc=P.sc;
+  if(S.isFFT)e.cen="fft";else if(!S.cmpBatch&&(manual||S.centreTouched))e.cen="set";e.err="";
+  S.cmpActive=e;cmpRender();}
+async function cmpOpen(e,batch){S.cmpActive=e;S.centreTouched=false;await openFile(e.file);
+  if(!S.img||S.lastFile!==e.file)throw new Error("could not open");
+  if(batch&&!S.isFFT&&e.kind==="diff"&&!recall()&&!e.prof){$("lock").checked=false;await refine();}   // first time for an SAED: auto-centre + auto-refine as a starting point
+  clearTimeout(profTimer);$("lock").checked=false;compute({auto:true});}
+async function cmpRunAll(onlyMissing){if(S.cmpBatch)return;S.cmpBatch=true;const L=cmpOrder().filter(e=>!onlyMissing||!e.prof);let k=0;
+  try{for(const e of L){k++;$("cmpStatus").textContent=`Computing ${k} / ${L.length}: ${e.rel}…`;try{await cmpOpen(e,true);}catch(err){e.err=err.message;}cmpRender();}}
+  finally{S.cmpBatch=false;}
+  const n=S.cmp.filter(e=>e.cen==="auto").length;$("cmpStatus").textContent=`${S.cmp.filter(e=>e.prof).length} profiles ready.`+(n?` ${n} SAED pattern${n>1?"s have":" has"} an automatic centre (⚠): click “open” to check / set it — the profile updates as you adjust.`:"");
+  cmpRender();}
+function cmpRender(){const tb=$("cmpRows");tb.textContent="";
+  const ORD=cmpOrder(),stackV=$("cmpLay").value==="stack",VIEW=stackV?ORD.slice().reverse():ORD;
+  const moveTo=(e,to)=>{/* to = index in VIEW */const v=VIEW.filter(x=>x!==e);v.splice(Math.max(0,Math.min(v.length,to)),0,e);const ord=stackV?v.reverse():v;
+    S.cmp=ord.slice();$("cmpRev").checked=false;$("cmpSort").value="custom";cmpRender();};
+  for(const e of VIEW){const tr=document.createElement("tr");tr.draggable=true;tr.dataset.k=String(VIEW.indexOf(e));if(e===S.cmpActive&&e.file===S.lastFile)tr.className="focus";
+    const T=S.tlog&&e.acq?tempAt(e.acq):null,P=S.plog&&e.acq?logAt(S.plog,e.acq):null;
+    const cen=e.cen==="fft"?"zero freq. (FFT)":e.prof?`(${e.cx.toFixed(1)}, ${e.cy.toFixed(1)}) `+(e.cen==="set"?"✓ set":"⚠ auto"):"–";
+    tr.innerHTML=`<td style="text-align:center;white-space:nowrap"><span class="grip" title="Drag to reorder">⠿</span> <button class="up" title="Move up" aria-label="move up">▲</button><button class="dn" title="Move down" aria-label="move down">▼</button></td><td style="text-align:center"><input type="checkbox" ${e.show?"checked":""} aria-label="show"></td><td><span class="sw"></span></td><td style="text-align:left;white-space:normal"><b></b></td><td></td><td></td><td></td><td></td><td></td><td style="white-space:nowrap"><button class="op">open</button> <button class="x" title="Remove from comparison" aria-label="remove">×</button></td>`;
+    tr.querySelector(".sw").style.background=cmpColor(e);tr.querySelector("b").textContent=e.rel+(e.err?"  ⚠ "+e.err:"");
+    tr.children[4].textContent=e.acq||"";tr.children[5].textContent=T&&!T.err?`${fmtT(T.set)} / ${fmtT(T.meas,true)}`:"";
+    tr.children[6].textContent=P&&!P.err?S.plog.cols.map(c=>`${c.name} ${fmtP(c.v[P.i])}`).join(" · "):"";
+    tr.children[7].textContent={diff:"SAED",fft:"FFT",real:"image → FFT"}[e.kind]||e.kind||"";tr.children[8].textContent=cen;if(e.cen==="auto"&&e.prof)tr.children[8].style.color="var(--warn)";
+    tr.querySelector("input").addEventListener("change",ev=>{e.show=ev.target.checked;cmpRender();});
+    const k=VIEW.indexOf(e);tr.querySelector(".up").addEventListener("click",()=>moveTo(e,k-1));tr.querySelector(".dn").addEventListener("click",()=>moveTo(e,k+1));
+    tr.addEventListener("dragstart",ev=>{S.cmpDrag=e;ev.dataTransfer.effectAllowed="move";try{ev.dataTransfer.setData("text/plain",e.rel);}catch(_){}tr.classList.add("dragging");});
+    tr.addEventListener("dragend",()=>{tr.classList.remove("dragging");S.cmpDrag=null;});
+    tr.addEventListener("dragover",ev=>{if(!S.cmpDrag)return;ev.preventDefault();const r=tr.getBoundingClientRect();tr.classList.toggle("dropAbove",ev.clientY<r.top+r.height/2);tr.classList.toggle("dropBelow",ev.clientY>=r.top+r.height/2);});
+    tr.addEventListener("dragleave",()=>tr.classList.remove("dropAbove","dropBelow"));
+    tr.addEventListener("drop",ev=>{ev.preventDefault();const d=S.cmpDrag;tr.classList.remove("dropAbove","dropBelow");if(!d||d===e)return;const r=tr.getBoundingClientRect(),below=ev.clientY>=r.top+r.height/2;
+      let to=k+(below?1:0);if(VIEW.indexOf(d)<to)to--;moveTo(d,to);});
+    tr.querySelector(".op").addEventListener("click",async()=>{try{await cmpOpen(e,false);}catch(err){e.err=err.message;cmpRender();}$("mainWrap").scrollIntoView({behavior:"smooth",block:"start"});
+      $("cmpStatus").textContent=e.kind==="diff"?`“${e.rel}” is open above: set the centre (Auto-refine, arrows or click) — its comparison profile updates as you go.`:`“${e.rel}” is open above.`;});
+    tr.querySelector(".x").addEventListener("click",()=>{S.cmp=S.cmp.filter(x=>x!==e);if(S.cmpActive===e)S.cmpActive=null;const bi=BR.items.find(i=>i.file===e.file);if(bi)bi.tick=false;cmpVis();cmpRender();});
+    tb.appendChild(tr);}
+  $("cmpCount").textContent=`${S.cmp.length} image${S.cmp.length!==1?"s":""}, ${S.cmp.filter(e=>e.prof).length} profiles`;
+  for(const b of ["cmpSvPng","cmpSvTxt"])$(b).disabled=!S.cmp.some(e=>e.prof);drawCmp();if(typeof imgSelRender==="function")imgSelRender();}
+/* ---- comparison plot */
+const cvK=$("cmpChart");let cmpGeom=null,cmpDrag=null,cmpSup=false,cmpHover=null;
+const cmpX=(e,mode)=>mode==="d"?e.prof.D:mode==="tt"?e.prof.TT:e.prof.Q;
+function cmpSeries(){const mode=$("cmpXm").value,bgs=$("cmpBg").checked,nm=$("cmpNorm").value,n1=Math.min(+$("cmpNd").value,+$("cmpNd2").value),n2=Math.max(+$("cmpNd").value,+$("cmpNd2").value);
+  let lo=+$("cmpLo").value,hi=+$("cmpHi").value;const L=cmpOrder().filter(e=>e.show&&e.prof);
+  if(!(hi>lo)&&L.length){lo=Infinity;hi=-Infinity;for(const e of L){const X=cmpX(e,mode);for(const v of X){if(mode==="d"&&v>8)continue;if(v<lo)lo=v;if(v>hi)hi=v;}}}
+  const out=L.map(e=>{const X=cmpX(e,mode),Y=Array.from(e.prof.I,(v,i)=>bgs?v-e.prof.bg[i]:v);let f=1;
+    if(nm==="max"){let m=-Infinity;for(let i=0;i<X.length;i++)if(X[i]>=lo&&X[i]<=hi&&Y[i]>m)m=Y[i];f=m>0?1/m:1;}
+    else if((nm==="rmax"||nm==="rarea")&&n2>n1){const D=e.prof.D;let m=-Infinity,a=0;for(let i=0;i<D.length;i++)if(D[i]>=n1&&D[i]<=n2&&isFinite(Y[i])){if(Y[i]>m)m=Y[i];a+=Y[i];}
+      const ref=nm==="rmax"?m:a;f=ref>0?1/ref:1;}
+    return {e,X,Y:Y.map(v=>v*f)};});
+  return {mode,lo,hi,out};}
+function drawCmp(target,tdpr){const exp=target instanceof HTMLCanvasElement,cv=exp?target:cvK;if(!exp){if($("cmpPanel").hidden)return;sizeCanvas(cvK);}
+  const ctx=cv.getContext("2d"),cw=cv.width,ch=cv.height,dpr=exp?tdpr:cw/Math.max(1,cvK.getBoundingClientRect().width);
+  const css=getComputedStyle(document.documentElement),ink=css.getPropertyValue("--ink").trim(),muted=css.getPropertyValue("--muted").trim(),line=css.getPropertyValue("--line").trim(),panel=css.getPropertyValue("--panel").trim();
+  ctx.fillStyle=panel||"#fff";ctx.fillRect(0,0,cw,ch);const {mode,lo,hi,out}=cmpSeries();
+  if(!out.length||!(hi>lo)){ctx.fillStyle=muted;ctx.font=`${13*dpr}px "IBM Plex Sans",sans-serif`;ctx.textAlign="center";ctx.fillText("No profiles yet: tick images in “Browse folder” and press “Compare ticked”.",cw/2,ch/2);cmpGeom=null;return;}
+  const stacked=$("cmpLay").value==="stack",off=+$("cmpOff").value||0;
+  let gmax=0;for(const s of out)for(let i=0;i<s.X.length;i++)if(s.X[i]>=lo&&s.X[i]<=hi&&isFinite(s.Y[i]))gmax=Math.max(gmax,s.Y[i]);
+  const step=stacked?off*(gmax||1):0;
+  let ymin=Infinity,ymax=-Infinity;out.forEach((s,k)=>{for(let i=0;i<s.X.length;i++){if(s.X[i]<lo||s.X[i]>hi)continue;const v=s.Y[i]+k*step;if(v<ymin)ymin=v;if(v>ymax)ymax=v;}});
+  if(!(ymax>ymin)){ymin=0;ymax=1;}const pad=(ymax-ymin)*0.04;ymin-=pad;ymax+=pad;
+  const labW=stacked?Math.min(260*dpr,cw*0.25):0,Lm=64*dpr,Rm=14*dpr+labW,T=14*dpr,B=40*dpr,pw=cw-Lm-Rm,ph=ch-T-B;
+  const sx=v=>Lm+(v-lo)/(hi-lo)*pw,sy=v=>T+ph-(v-ymin)/(ymax-ymin)*ph;cmpGeom={L:Lm,pw,T,ph,lo,hi,mode,dpr};
+  ctx.font=`${11*dpr}px "IBM Plex Mono",monospace`;ctx.fillStyle=muted;ctx.strokeStyle=line;ctx.lineWidth=1*dpr;ctx.textAlign="center";ctx.textBaseline="top";
+  for(const v of niceTicks(lo,hi,8)){const x=sx(v);ctx.beginPath();ctx.moveTo(x,T);ctx.lineTo(x,T+ph);ctx.stroke();ctx.fillText(String(+v.toPrecision(6)),x,T+ph+6*dpr);}
+  ctx.textAlign="right";ctx.textBaseline="middle";if(!stacked)for(const v of niceTicks(ymin,ymax,5)){const y=sy(v);ctx.beginPath();ctx.moveTo(Lm,y);ctx.lineTo(Lm+pw,y);ctx.stroke();ctx.fillText(String(+v.toPrecision(4)),Lm-6*dpr,y);}
+  ctx.fillStyle=ink;ctx.textAlign="center";ctx.textBaseline="bottom";ctx.font=`${12*dpr}px "IBM Plex Sans",sans-serif`;ctx.fillText({d:"d (Å)",tt:"2θ (°)",q:"q (nm⁻¹)"}[mode],Lm+pw/2,ch-2*dpr);
+  ctx.save();ctx.translate(14*dpr,T+ph/2);ctx.rotate(-Math.PI/2);ctx.textBaseline="top";
+  ctx.fillText(($("cmpNorm").value!=="none"?"normalised ":"")+($("cmpBg").checked?"I − background":"I")+(stacked?" (offset)":""),0,0);ctx.restore();
+  ctx.save();ctx.beginPath();ctx.rect(Lm,T,pw,ph);ctx.clip();
+  if(/^r/.test($("cmpNorm").value)){const n1=+$("cmpNd").value,n2=+$("cmpNd2").value,tx=d=>mode==="d"?d:mode==="q"?10/d:2*Math.asin(Math.min(1,lambdaA(+$("kv").value||300)/(2*d)))*180/Math.PI;
+    if(n1>0&&n2>0){const a=sx(tx(n1)),b=sx(tx(n2));ctx.fillStyle=css.getPropertyValue("--accent");ctx.globalAlpha=.08;ctx.fillRect(Math.min(a,b),T,Math.abs(b-a),ph);ctx.globalAlpha=1;}}
+  /* CIF sticks of the shown phases, along the bottom */
+  if($("cmpSticks").checked&&typeof phVisible==="function"){const sV=phaseScale(),cmV=+$("cmin").value||0,kv=out[0].e.prof?null:null;
+    for(const phs of S.phases.filter(phVisible)){ctx.strokeStyle=phs.color;ctx.globalAlpha=.8;ctx.lineWidth=1.3*dpr;
+      for(const ln of phs.lines){if(ln.I<cmV)continue;const d=ln.d*sV,xv=mode==="d"?d:mode==="q"?10/d:2*Math.asin(Math.min(1,lambdaA(+$("kv").value||300)/(2*d)))*180/Math.PI;if(xv<lo||xv>hi)continue;
+        const x=sx(xv),full=$("cmpStFull").checked,h=full?ph:ln.I/100*ph*(+$("cmpStH").value||25)/100;ctx.globalAlpha=full?0.25+0.65*Math.min(1,ln.I/60):.8;
+        ctx.beginPath();ctx.moveTo(x,T+ph);ctx.lineTo(x,T+ph-h);ctx.stroke();}}ctx.globalAlpha=1;}
+  out.forEach((s,k)=>{ctx.strokeStyle=cmpColor(s.e);ctx.lineWidth=(s.e===S.cmpActive?2:1.3)*dpr;ctx.beginPath();let first=true;
+    for(let i=0;i<s.X.length;i++){if(s.X[i]<lo||s.X[i]>hi||!isFinite(s.Y[i])){first=true;continue;}const x=sx(s.X[i]),y=sy(s.Y[i]+k*step);if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);}ctx.stroke();});
+  if(cmpDrag&&cmpDrag.moved){const a=Math.max(Lm,Math.min(cmpDrag.x0,cmpDrag.x1)),b=Math.min(Lm+pw,Math.max(cmpDrag.x0,cmpDrag.x1));ctx.fillStyle=css.getPropertyValue("--accent");ctx.globalAlpha=.15;ctx.fillRect(a,T,b-a,ph);ctx.globalAlpha=1;}
+  if(cmpHover!=null&&!exp){ctx.strokeStyle=muted;ctx.setLineDash([3*dpr,3*dpr]);ctx.beginPath();ctx.moveTo(cmpHover,T);ctx.lineTo(cmpHover,T+ph);ctx.stroke();ctx.setLineDash([]);
+    const xv=lo+(cmpHover-Lm)/pw*(hi-lo),dd=mode==="d"?xv:mode==="q"?10/xv:(lambdaA(+$("kv").value||300)/(2*Math.sin(xv*Math.PI/360)));ctx.fillStyle=ink;ctx.font=`${11*dpr}px "IBM Plex Mono",monospace`;ctx.textAlign="left";ctx.textBaseline="top";ctx.fillText(`d ${dd.toFixed(4)} Å`,Math.min(cmpHover+6*dpr,Lm+pw-90*dpr),T+4*dpr);}
+  ctx.restore();
+  ctx.font=`${11*dpr}px "IBM Plex Sans",sans-serif`;
+  if(stacked){ctx.textAlign="left";ctx.textBaseline="middle";out.forEach((s,k)=>{let y=null;for(let i=s.X.length-1;i>=0;i--){if(s.X[i]>=lo&&s.X[i]<=hi&&isFinite(s.Y[i])){y=sy(s.Y[i]+k*step);break;}}
+      if(y==null)return;ctx.fillStyle=cmpColor(s.e);const t=cmpLabel(s.e);let tt=t;while(ctx.measureText(tt).width>labW-12*dpr&&tt.length>4)tt=tt.slice(0,-2);if(tt!==t)tt+="…";ctx.fillText(tt,Lm+pw+8*dpr,Math.max(T+6*dpr,Math.min(T+ph-6*dpr,y)));});}
+  const cifL=$("cmpSticks").checked&&typeof phVisible==="function"?S.phases.filter(phVisible):[];
+  {/* CIF legend: top left inside the plot */ctx.textAlign="left";ctx.textBaseline="top";cifL.forEach((phs,k)=>{const y=T+8*dpr+k*16*dpr,t=(phs.legend||phs.label).trim()+(phs.show?"":"  (preview)"),tw=ctx.measureText(t).width;
+      ctx.fillStyle=panel;ctx.globalAlpha=.85;ctx.fillRect(Lm+4*dpr,y-2*dpr,tw+26*dpr,15*dpr);ctx.globalAlpha=1;ctx.fillStyle=phs.color;ctx.fillRect(Lm+8*dpr,y+1*dpr,4*dpr,10*dpr);ctx.fillStyle=ink;ctx.fillText(t,Lm+20*dpr,y);});}
+  if(!stacked){ctx.textAlign="right";ctx.textBaseline="top";out.forEach((s,k)=>{const y=T+8*dpr+k*16*dpr,t=cmpLabel(s.e),tw=ctx.measureText(t).width;ctx.fillStyle=panel;ctx.globalAlpha=.85;ctx.fillRect(Lm+pw-tw-28*dpr,y-2*dpr,tw+26*dpr,15*dpr);ctx.globalAlpha=1;
+      ctx.strokeStyle=cmpColor(s.e);ctx.lineWidth=2*dpr;ctx.beginPath();ctx.moveTo(Lm+pw-tw-24*dpr,y+5*dpr);ctx.lineTo(Lm+pw-tw-10*dpr,y+5*dpr);ctx.stroke();ctx.fillStyle=ink;ctx.fillText(t,Lm+pw-4*dpr,y);});}}
+const kPx=e=>e.offsetX*(cvK.width/cvK.getBoundingClientRect().width);
+function cmpRange(a,b){if(!(b>a))return;$("cmpLo").value=+a.toPrecision(6);$("cmpHi").value=+b.toPrecision(6);drawCmp();}
+cvK.addEventListener("pointerdown",e=>{if(!cmpGeom||e.button!==0)return;cmpDrag={x0:kPx(e),x1:kPx(e),moved:false};cvK.setPointerCapture(e.pointerId);});
+cvK.addEventListener("pointermove",e=>{cmpHover=kPx(e);if(cmpDrag){cmpDrag.x1=cmpHover;if(Math.abs(cmpDrag.x1-cmpDrag.x0)>6*cmpGeom.dpr)cmpDrag.moved=true;}drawCmp();});
+cvK.addEventListener("pointerup",()=>{if(!cmpDrag)return;const d=cmpDrag;cmpDrag=null;if(d.moved&&cmpGeom){const g=cmpGeom,f=x=>g.lo+(Math.max(g.L,Math.min(g.L+g.pw,x))-g.L)/g.pw*(g.hi-g.lo);cmpRange(f(Math.min(d.x0,d.x1)),f(Math.max(d.x0,d.x1)));}else drawCmp();});
+cvK.addEventListener("pointerleave",()=>{cmpHover=null;drawCmp();});
+cvK.addEventListener("wheel",e=>{if(!cmpGeom)return;e.preventDefault();const g=cmpGeom,px=kPx(e);if(px<g.L||px>g.L+g.pw)return;const xc=g.lo+(px-g.L)/g.pw*(g.hi-g.lo),k=e.deltaY<0?0.8:1.25;cmpRange(xc-(xc-g.lo)*k,xc+(g.hi-xc)*k);},{passive:false});
+cvK.addEventListener("dblclick",()=>{$("cmpLo").value="";$("cmpHi").value="";drawCmp();});
+$("cmpReset").addEventListener("click",()=>{$("cmpLo").value="";$("cmpHi").value="";drawCmp();});
+$("cmpXm").addEventListener("change",()=>{$("cmpLo").value="";$("cmpHi").value="";drawCmp();});
+for(const id of ["cmpLo","cmpHi","cmpNd","cmpNd2","cmpOff"])$(id).addEventListener("change",drawCmp);
+$("cmpOff").addEventListener("input",drawCmp);
+for(const id of ["cmpBg","cmpSticks","cmpRev","cmpStFull"])$(id).addEventListener("change",()=>{$("cmpStWrap").hidden=!$("cmpSticks").checked;cmpRender();});
+$("cmpStH").addEventListener("input",()=>{$("cmpStHv").textContent=$("cmpStH").value+" %";drawCmp();});
+for(const id of ["clName","clType","clTime","clT","clP"])$(id).addEventListener("change",()=>cmpRender());
+for(const id of ["cmpLay","cmpNorm","cmpCol","cmpSort"])$(id).addEventListener("change",()=>{$("cmpOffWrap").hidden=$("cmpLay").value!=="stack";$("cmpNdWrap").hidden=!/^r/.test($("cmpNorm").value);cmpRender();});
+$("cmpRun").addEventListener("click",()=>cmpRunAll(false));
+$("cmpClear").addEventListener("click",()=>{S.cmp=[];S.cmpActive=null;for(const i of BR.items)i.tick=false;cmpVis();cmpRender();});
+new ResizeObserver(()=>drawCmp()).observe($("cmpWrap"));
+$("cmpSvPng").addEventListener("click",async()=>{const w=cvK.width,h=cvK.height,k=Math.max(1,2000/w),c=document.createElement("canvas");c.width=Math.round(w*k);c.height=Math.round(h*k);
+  drawCmp(c,(cvK.width/cvK.getBoundingClientRect().width)*k);const blob=await new Promise(r=>c.toBlob(r,"image/png"));saveFile("profile_comparison.png",blob);});
+$("cmpSvTxt").addEventListener("click",()=>{const {mode,lo,hi,out}=cmpSeries();if(!out.length)return;
+  /* common grid, linear in q (the profiles are linear in radius), over the range shown */
+  const toQ=v=>mode==="d"?10/v:mode==="q"?v:(2*Math.sin(v*Math.PI/360)/lambdaA(+$("kv").value||300))*10;
+  const q0=Math.min(toQ(lo),toQ(hi)),q1=Math.max(toQ(lo),toQ(hi)),N=1500,lam=lambdaA(+$("kv").value||300);
+  const interp=(s,q)=>{const Q=s.e.prof.Q;let a=0,b=Q.length-1;if(q<Q[0]||q>Q[b])return NaN;while(b-a>1){const m=(a+b)>>1;if(Q[m]<q)a=m;else b=m;}const t=(q-Q[a])/(Q[b]-Q[a]||1);return s.Y[a]*(1-t)+s.Y[b]*t;};
+  const head=["# d-Spacing Compare · "+out.length+" profiles · "+($("cmpBg").checked?"background subtracted":"raw")+" · normalisation: "+$("cmpNorm").value+(/^r/.test($("cmpNorm").value)?` in d = ${$("cmpNd").value}–${$("cmpNd2").value} Å`:"")];
+  out.forEach((s,k)=>{const T=S.tlog&&s.e.acq?tempAt(s.e.acq):null;head.push(`# I${k+1}: ${s.e.rel} · ${s.e.acq||""}`+(T&&!T.err?` · T ${fmtT(T.meas,true)}`:"")+` · centre ${s.e.cen==="fft"?"FFT zero freq.":`(${s.e.cx.toFixed(2)}, ${s.e.cy.toFixed(2)})`}`);});
+  head.push(["d(A)","2theta(deg)","q(1/nm)"].concat(out.map((_,k)=>"I"+(k+1))).join("\t"));const rows=[];
+  for(let j=0;j<N;j++){const q=q1-(q1-q0)*j/(N-1),d=10/q,tt=2*Math.asin(Math.min(1,lam/(2*d)))*180/Math.PI;rows.push([d.toFixed(5),tt.toFixed(5),q.toFixed(5)].concat(out.map(s=>{const v=interp(s,q);return isFinite(v)?v.toPrecision(6):"NaN";})).join("\t"));}
+  saveFile("profile_comparison.txt",head.concat(rows).join("\n")+"\n");});
 
 </script>
 
