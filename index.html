@@ -149,8 +149,10 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
 @keyframes logBlinkW{0%,100%{box-shadow:0 0 0 3px color-mix(in srgb,var(--warn) 15%,transparent);border-color:var(--warn)}50%{box-shadow:0 0 0 8px color-mix(in srgb,var(--warn) 60%,transparent);border-color:var(--warn)}}
 .logBox.blink3{animation:logBlink .55s ease-in-out 3}
 .logBox.blinkOn{animation:logBlinkW 1.1s ease-in-out infinite;border-color:var(--warn)}
+.logBox,.lpBox{align-self:flex-start}.rsProg{margin-right:auto;margin-left:auto;display:inline-flex;flex-direction:column;align-items:center;gap:4px;font:700 1.35rem var(--f-body);color:var(--accent);transition:opacity .6s}.rsProg[hidden]{display:none}.rsProg.fade{opacity:0}.rsProgBar{width:16rem;height:6px;border-radius:3px;background:color-mix(in srgb,var(--accent) 18%,transparent);overflow:hidden}.rsProgBar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}.rsProg.done{color:var(--ok,#16a37f)}.rsProg.done .rsProgBar i{background:var(--ok,#16a37f)}
+.lpBox{flex:1 1 560px;min-width:420px;display:flex;flex-direction:column;gap:4px;border:1.5px solid var(--accent);border-radius:var(--r);padding:6px 10px;background:var(--panel)}.lpBox[hidden]{display:none}.lpBar{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:.82rem}.lpBar .lpTtl{font:600 .7rem var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--accent);margin-right:auto}.lpBar button{padding:1px 7px}.lpBar input[type=time]{width:auto;padding:1px 4px}.lpCv{width:100%;height:170px;display:block;touch-action:none;cursor:crosshair}.lpCv[hidden]{display:none}.lpHelp{font-size:.72rem}.lpBtn[aria-pressed=true]{background:var(--accent);color:#fff}
 .logBox .logMis{grid-column:1/-1;color:var(--warn);font-weight:600;font-size:.8rem}
-.logBox{display:grid;grid-template-columns:auto auto auto auto auto auto auto auto minmax(12rem,auto);gap:6px 8px;align-items:center;border:1.5px solid var(--accent);border-radius:var(--r);padding:8px 12px;background:var(--panel);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 12%,transparent)}
+.logBox{display:grid;grid-template-columns:auto auto auto auto auto auto auto auto auto minmax(12rem,auto);gap:6px 8px;align-items:center;border:1.5px solid var(--accent);border-radius:var(--r);padding:8px 12px;background:var(--panel);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 12%,transparent)}
 .logBox>.logRow{display:contents}.logBox .logTtl{grid-column:1/-1;font:600 .7rem var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--accent)}
 .logBox .keys.logOn{justify-self:start;color:var(--ink);font-weight:600;background:color-mix(in srgb,var(--accent) 16%,transparent);border:1px solid var(--accent);border-radius:999px;padding:2px 10px}
 .logBox .keys.logWarn{justify-self:start;color:var(--warn);font-weight:600;border:1px solid var(--warn);border-radius:999px;padding:2px 10px}
@@ -192,7 +194,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
   <div id="welcome" class="welcome">Welcome Back Praneeth</div>
   <header class="top">
     <span class="row2" style="gap:6px"><button class="primary" id="brPick" title="Choose a folder: every image in it (and its sub-folders) is listed with time, temperature and pressure; pick one to analyse">📂 Browse folder…</button><input id="brDir" type="file" webkitdirectory directory multiple hidden>
-      <button id="brShow" hidden title="Reopen the image list">Image list</button><span class="row2" style="gap:6px;border-left:2px solid var(--line);padding-left:8px" title="Notes file of the browsed folder (folder name + _notes.txt)"><label title="Save the notes file into the image folder automatically after every change"><input id="hdNotesAuto" type="checkbox" checked> auto-save notes</label><button id="hdNotesSave" hidden title="Save the notes file now">💾 save notes</button><button id="hdNotesOpen" title="Open the saved notes file of this folder (read-only view in a new tab)">📖 open notes</button></span>
+      <button id="brShow" hidden title="Reopen the image list">Image list</button><span class="row2" style="gap:6px;border-left:2px solid var(--line);padding-left:8px" title="Notes file of the browsed folder (folder name + _notes.txt)"><label title="Save the notes file into the image folder automatically after every change"><input id="hdNotesAuto" type="checkbox" checked> auto-save notes</label><button id="hdNotesSave" hidden title="Save the notes file now">💾 save notes</button><button id="hdNotesOpen" title="Open the saved notes file of this folder (read-only view in a new tab)">📖 open notes</button><span id="hdNotesLoc" class="keys" style="font-size:.78rem;max-width:30rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="Notes file: folder / file name">notes file: — (browse a folder)</span></span>
 <label class="btn primary" for="file">Open .dm4 / .dm3 / image<input id="file" type="file" accept=".dm4,.dm3,.png,.jpg,.jpeg,.tif,.tiff"></label>
       <label class="row2" title="Auto: DM files calibrated in nm / Å / µm are real-space images (an FFT is computed), 1/nm files are patterns. Plain PNG/JPG/TIF are treated as patterns unless you choose “real-space image”.">file is
       <select id="ftype" style="width:auto"><option value="auto">auto-detect</option><option value="diff">a diffraction pattern / FFT</option><option value="real">a real-space image → compute FFT</option></select></label>
@@ -206,17 +208,28 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <label class="btn" for="tIn" title="Heater / temperature log with a Time column and T set / T measured columns (.xlsx or .csv). Each image is matched to the log entry nearest its acquisition time.">Load temperature log…<input id="tIn" type="file" accept=".xlsx,.csv,.txt"></label>
       <label for="tOff" title="Add this many seconds to the image time before looking it up in the log (if the two computers' clocks differ)">clock offset</label><input id="tOff" type="number" step="1" value="0" style="width:4.5rem"><span class="keys">s</span>
       <label for="tTol" title="Largest allowed gap between the image time and the nearest log entry">max gap</label><input id="tTol" type="number" step="1" min="1" value="10" style="width:4rem"><span class="keys">s</span>
-      <button id="tClear" title="Forget the log">clear</button>
+      <button id="tClear" title="Forget the log">clear</button><button class="lpBtn" id="lpTBtn" aria-pressed="false" title="Plot temperature (T set, T measured) against the acquisition time of day, to the right of this box">📈</button>
       <span class="keys" id="tStatus">no log loaded</span>
     </div>
     <div class="logRow">
       <label class="btn" for="pIn" title="Pressure log (.txt / .csv / .xlsx) with a Time column and one column per gauge (e.g. MC1, MC2); values may carry units such as “3.80E-04 Pa”">Load pressure log…<input id="pIn" type="file" accept=".txt,.csv,.tsv,.log,.xlsx"></label>
       <label for="pOff" title="Add this many seconds to the image time before looking it up in the pressure log (if the two computers' clocks differ)">clock offset</label><input id="pOff" type="number" step="1" value="0" style="width:4.5rem"><span class="keys">s</span>
       <label for="pTol" title="Largest allowed gap between the image time and the nearest pressure-log entry">max gap</label><input id="pTol" type="number" step="1" min="1" value="10" style="width:4rem"><span class="keys">s</span>
-      <button id="pClear" title="Forget the pressure log">clear</button>
+      <button id="pClear" title="Forget the pressure log">clear</button><button class="lpBtn" id="lpPBtn" aria-pressed="false" title="Plot the pressure gauges (choose MC1 / MC2 …) against the acquisition time of day, to the right of this box">📈</button>
       <span class="keys" id="pStatus">no pressure log loaded</span>
       <select id="showInfo" hidden style="width:auto"><option value="both">temperature + pressure</option><option value="temp">temperature</option><option value="pres">pressure</option><option value="none">nothing (time only)</option></select>
     </div>
+    </div>
+    <div class="lpBox" id="lpBox" hidden>
+      <div class="lpBar"><b class="lpTtl">Logs vs time of day</b>
+        <span class="row2" id="lpTOpts"><label><input id="lpTset" type="checkbox" checked> T set</label><label><input id="lpTmeas" type="checkbox" checked> T measured</label></span>
+        <span class="row2" id="lpMC" title="Which pressure gauges to plot"></span><label id="lpLogL" title="Logarithmic pressure axis"><input id="lpLog" type="checkbox" checked> log p</label><label id="lpUnitL" class="row2" title="Pressure unit of the plots. “as in file” uses the unit written in the pressure log; the others convert from it">unit <select id="lpUnit" style="width:auto"><option value="">as in file</option><option value="Pa">Pa</option><option value="mbar">mbar</option><option value="Torr">Torr</option></select></label>
+        <label title="Mark the acquisition time of every image of the browsed folder (the open image in bold); click a mark to open that image"><input id="lpImg" type="checkbox" checked> image times</label>
+        <span class="row2" title="Time interval shown (time of day); type a time or drag over the plot"><input id="lpFrom" type="time" step="1"><span class="keys">–</span><input id="lpTo" type="time" step="1"></span>
+        <button id="lpFit" title="Zoom to the time span of the images">⇔ images</button><button id="lpCur" title="Centre on the open image (±5 min)">◎ this image</button><button id="lpAll" title="Whole log (or double-click the plot)">↺ full</button>
+        <button id="lpCopy" title="Copy the plots to the clipboard">📋</button><button id="lpSave" title="Save the plots as PNG">💾</button><button id="lpClose" title="Close the plots">✕</button></div>
+      <canvas id="lpT" class="lpCv"></canvas><div id="lpPs" style="display:flex;flex-direction:column;gap:4px"></div>
+      <div class="keys lpHelp">click the plot, then wheel = zoom time · drag = zoom to that interval · Shift-drag or right-drag = pan · double-click = whole log · click an image mark = open it</div>
     </div>
       <div class="fileinfo" id="fileinfo"></div>
 </header>
@@ -243,7 +256,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <canvas id="rsCv" aria-label="Real-space image; drag to place the FFT region" style="display:block;width:100%;height:100%;cursor:crosshair;touch-action:none"></canvas></div>
     <div class="row2" style="justify-content:flex-end;gap:12px"><span class="row2" style="gap:6px" title="Size of the information box text on the image. Drag the box on the image to move it; mouse wheel over it also resizes it"><span class="keys">info text</span><input id="rsInfoSc" type="number" min="30" max="400" step="10" value="100" style="width:4.2rem"><span class="keys">%</span><button id="rsInfoReset" title="Put the information box back at the top right, at 100 %">↺ text</button></span><label title="Also draw the yellow FFT region square on the saved image"><input id="rsSaveRoi" type="checkbox"> with FFT region</label>
 <span class="row2 infoSel" style="gap:6px" title="What the information box on the images shows"><span class="keys">on image:</span><label><input type="checkbox" data-k="name"> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date"> date</label><label><input type="checkbox" data-k="time" checked> time</label><label><input type="checkbox" data-k="Ts" checked> T set</label><label><input type="checkbox" data-k="T"> T meas</label><label><input type="checkbox" data-k="P"> pressure</label><label title="Gas flow"><input type="checkbox" data-k="gas"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><input class="gasN" type="text" placeholder="gas" title="Gas name, written after SCCM (e.g. PH3)" style="width:5.5rem"><label><input type="checkbox" data-k="log" checked> log times</label></span><span class="spacer"></span>
-      <button id="rsSave" title="Saves the real-space image (up to 2048 px) with scale bar, acquisition time and temperature">Save image (.png)</button><button class="cpBtn" data-cv="rsCv" data-src="rsSave" title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button></div>
+      <span id="rsProg" class="rsProg" hidden aria-live="polite"><span class="rsProgT"></span><span class="rsProgBar"><i></i></span></span><button id="rsSave" title="Saves the real-space image (up to 2048 px) with scale bar, acquisition time and temperature">Save image (TIFF / PNG)…</button><button class="cpBtn" data-cv="rsCv" data-src="rsSave" title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button></div>
     <div class="keys"><kbd>click</kbd> or <kbd>drag</kbd> on the image to place the square FFT region (yellow) · the FFT amplitude |F| is shown below as the pattern, centred at zero frequency, and everything else (centre, profile, peaks, CIF matching) works on it as on an SAED pattern · calibration = 1 / (FFT size × pixel size). <span id="rsStatus" style="color:var(--ink)"></span></div>
   </section>
   <section class="panel" id="gifPanel" hidden style="display:grid;gap:10px">
@@ -262,7 +275,14 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <button id="gifSave" disabled>Download GIF</button>
     </div>
     <div class="chartbar gifTxt"><span class="keys">on GIF:</span><label><input type="checkbox" data-k="name"> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date"> date</label><label><input type="checkbox" data-k="time"> time</label><label><input type="checkbox" data-k="Ts"> T set</label><label><input type="checkbox" data-k="T"> T meas</label><label><input type="checkbox" data-k="P"> pressure</label><label title="Gas flow"><input type="checkbox" data-k="gas"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><input class="gasN" type="text" placeholder="gas" title="Gas name, written after SCCM (e.g. PH3)" style="width:5.5rem"><label><input type="checkbox" data-k="log"> log times</label><label title="Time since the earliest image of the GIF (from the acquisition times), in seconds"><input type="checkbox" data-k="elapsed"> clock (s from first)</label><label><input type="checkbox" data-k="count"> frame number</label></div>
-    <div class="chartbar"><button id="gifPrev" aria-label="previous frame">◀</button><button id="gifPause" aria-pressed="false">❚❚ pause</button><button id="gifNext" aria-label="next frame">▶</button><span class="keys" id="gifFrame"></span><span class="spacer"></span><span class="status" id="gifStatus">Uses the images shown in Compare profiles, in their order (drag rows to reorder). Tick “on GIF” items to add text to the frames.</span></div>
+    <div class="chartbar" id="gifSelBar" hidden><span class="keys">frames in the GIF:</span><button id="gifSelAll" style="padding:2px 8px">all</button><button id="gifSelNone" style="padding:2px 8px">none</button><span class="keys" id="gifSelN"></span><span id="gifSelList" class="row2" style="gap:4px;flex-wrap:wrap"></span></div>
+    <div class="chartbar"><button id="gifPrev" aria-label="previous frame">◀</button><button id="gifPause" aria-pressed="false">❚❚ pause</button><button id="gifNext" aria-label="next frame">▶</button><input id="gifSlider" type="range" min="1" max="1" value="1" step="1" style="width:min(22rem,40vw)" title="Go through the frames (the frames chosen below, with the same labels as the GIF)"><button class="cpBtn" data-cv="gifCv" title="Copy the frame on screen (with its labels) to the clipboard, to paste with Ctrl+V">📋 Copy frame</button><span class="keys" id="gifFrame"></span><span class="spacer"></span><span class="status" id="gifStatus">Uses the images shown in Compare profiles, in their order (drag rows to reorder). Tick “on GIF” items to add text to the frames.</span></div>
+    <div class="chartbar" id="gifAlnBar"><button id="alnOn" aria-pressed="false" title="Align the frames before playing / making the GIF: each frame is shown over the reference frame; drag it (or use the arrow keys) until they match">⧉ align frames</button><span class="row2 alnOpt" style="gap:6px"><label for="alnRef" class="keys">reference</label><select id="alnRef" style="width:auto;max-width:16rem" title="The frame every other frame is aligned to"></select>
+      <label class="row2" title="How strongly the frame being aligned shows over the reference">overlay <input id="alnOp" type="range" min="0" max="100" step="1" value="50" style="width:6rem"><span class="keys" id="alnOpN">50 %</span></label>
+      <label title="Show the difference between the frame and the reference: matching features turn dark"><input id="alnDiff" type="checkbox"> difference</label>
+      <button id="alnAuto" title="Find the shift of every selected frame to the reference automatically (phase correlation); fine-tune by dragging">⟲ auto-align</button><button id="alnRes1" title="Remove the shift of this frame" style="padding:2px 8px">↺ this frame</button><button id="alnResA" title="Remove the shifts of all frames" style="padding:2px 8px">↺ all</button></span>
+      <label title="Crop every frame to the area that all the (shifted) frames cover, so the GIF has no black edges"><input id="alnCrop" type="checkbox" checked> crop to common area</label><span class="keys" id="alnStat">align: off</span></div>
+    <div class="chartbar" id="gifLabBar"><button id="gifMove" aria-pressed="false" title="Drag the texts on the frame (information box, frame counter, your labels) to a new place; the same place is used on every frame and in the GIF">✥ move text</button><label class="row2" title="Size of all the texts on the frames">text size <input id="gifTs" type="range" min="0.5" max="3" step="0.05" value="1" style="width:7rem"><span class="keys" id="gifTsN">1.00×</span></label><button id="gifTxtReset" title="Texts back to their default places and size (your labels stay)" style="padding:2px 8px">↺ text</button><span style="border-left:2px solid var(--line);height:1.4em"></span><input id="gifLabTxt" type="text" placeholder="type your own label…" style="width:13rem" title="Your own text, shown on every frame and in the GIF. Enter adds it. Double-click a label on the frame to edit or delete it"><input id="gifLabCol" type="color" value="#ffffff" title="Colour of the new label"><button id="gifLabAdd" title="Add the typed label to the frames (drag it with ✥ move text)">+ label</button><span style="border-left:2px solid var(--line);height:1.4em"></span><span class="keys" id="gifZm" title="Click the frame, then use the mouse wheel to zoom; drag to pan; double-click for the whole frame. The GIF and Copy frame use the zoomed view">🔍 wheel = zoom · drag = pan · double-click = whole frame</span><button id="gifZmReset" hidden style="padding:2px 8px" title="Whole frame (no zoom)">↺ zoom</button></div>
     <div style="display:flex;justify-content:center;background:#07090b;border:1px solid var(--line);border-radius:var(--r);padding:8px"><canvas id="gifCv" width="512" height="512" style="max-width:100%;height:auto;image-rendering:auto"></canvas></div>
   </section>
 
@@ -279,7 +299,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
 <span class="row2 infoSel" style="gap:6px" title="What the information box on the images shows"><span class="keys">on image:</span><label><input type="checkbox" data-k="name"> file name</label><label><input type="checkbox" data-k="type"> type</label><label><input type="checkbox" data-k="date"> date</label><label><input type="checkbox" data-k="time" checked> time</label><label><input type="checkbox" data-k="Ts" checked> T set</label><label><input type="checkbox" data-k="T"> T meas</label><label><input type="checkbox" data-k="P"> pressure</label><label title="Gas flow"><input type="checkbox" data-k="gas"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><input class="gasN" type="text" placeholder="gas" title="Gas name, written after SCCM (e.g. PH3)" style="width:5.5rem"><label><input type="checkbox" data-k="log" checked> log times</label></span>
         <label title="When locked, clicks and arrow keys no longer move the centre; a click measures the spot under the cursor instead"><input id="lock" type="checkbox"> Lock centre <span class="keys">(on after Compute; then click a spot to see its d)</span></label>
         <span class="row2" style="gap:8px"><button id="fullView" title="Show the whole pattern (h)">Full view</button>
-        <button id="svimg" disabled title="Saves the pattern as currently shown, with guide circles and selected rings">Save image with rings (.png)</button><button class="cpBtn" data-cv="main" data-src="svimg" disabled title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button></span>
+        <button id="svimg" disabled title="Saves the pattern as currently shown, with guide circles and selected rings">Save image with rings (TIFF / PNG)…</button><button class="cpBtn" data-cv="main" data-src="svimg" disabled title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button></span>
       </div>
     </div>
 
@@ -288,7 +308,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
         <canvas id="polar" aria-label="Polar unwrap: radius across, azimuth up. Rings are straight vertical lines when the centre is right."></canvas>
         <div class="hud"><span>Polar unwrap · rings straight = centre right</span><span id="hudP"></span></div>
       </div>
-      <div style="display:flex;justify-content:flex-end"><button id="svpolar" disabled title="The polar view as shown, with CIF lines and labels">Save polar view (.png)</button><button class="cpBtn" data-cv="polar" data-src="svpolar" disabled title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button></div>
+      <div style="display:flex;justify-content:flex-end"><button id="svpolar" disabled title="The polar view as shown, with CIF lines and labels">Save polar view (TIFF / PNG)…</button><button class="cpBtn" data-cv="polar" data-src="svpolar" disabled title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button></div>
 
       <div class="panel ctrls">
         <fieldset>
@@ -376,7 +396,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <button id="svfull" disabled>Full profile (.txt)</button>
       <button id="svpk" disabled>Peak list (.csv)</button>
       <button id="svset" disabled>Centre &amp; settings (.json)</button>
-      <button id="svplot" disabled title="The plot as shown: profile, peak markers, CIF sticks and legend, selected rings">Plot with overlays (.png)</button><button class="cpBtn" data-cv="chart" data-src="svplot" disabled title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button>
+      <button id="svplot" disabled title="The plot as shown: profile, peak markers, CIF sticks and legend, selected rings">Plot with overlays (TIFF / PNG)…</button><button class="cpBtn" data-cv="chart" data-src="svplot" disabled title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button>
       <span class="status" id="saveStatus">Files are only written when you press a Save button.</span>
     </div>
   </section>
@@ -394,7 +414,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
     <div id="cmpLgEdit" class="lgedit" hidden></div>
     <div id="cmpWrap" style="position:relative;height:clamp(420px,60vh,820px);min-height:260px;resize:vertical;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)"><button class="plotStar" data-k="cmp" hidden title="Star / unstar the highlighted CIF phase (also the s key while stepping through the CIF list with the arrow keys)">☆ star</button><canvas id="cmpChart" style="display:block;width:100%;height:100%;cursor:crosshair" aria-label="Profile comparison"></canvas></div>
     <div class="keys">zoom: <kbd>wheel</kbd> or <kbd>drag</kbd> across a range, <kbd>double-click</kbd> to reset · FFTs use the zero-frequency centre automatically; SAED patterns start from an automatic centre (⚠) — press <b>open</b>, set the centre on the pattern above, and the profile updates here. <span id="cmpStatus" style="color:var(--ink)"></span></div>
-    <div class="saves"><h2 style="margin-right:6px">Save</h2><button id="cmpSvPng" disabled>Save plot (.png)</button><button class="cpBtn" data-cv="cmpChart" data-src="cmpSvPng" disabled title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button><button id="cmpSvTxt" disabled title="All shown profiles on one common grid (as plotted, without the stacking offset)">Save data (.txt)</button><span class="spacer" style="flex:1"></span><button id="cmpClear" title="Empty the comparison">Clear list</button></div>
+    <div class="saves"><h2 style="margin-right:6px">Save</h2><button id="cmpSvPng" disabled>Save plot (TIFF / PNG)…</button><button class="cpBtn" data-cv="cmpChart" data-src="cmpSvPng" disabled title="Copy this view (with its legend) to the clipboard as an image, to paste with Ctrl+V">📋 Copy</button><button id="cmpSvTxt" disabled title="All shown profiles on one common grid (as plotted, without the stacking offset)">Save data (.txt)</button><span class="spacer" style="flex:1"></span><button id="cmpClear" title="Empty the comparison">Clear list</button></div>
     <div class="tablebox" style="max-height:300px"><table><thead><tr><th title="Drag a row to change the order">order</th><th>show</th><th></th><th style="text-align:left">image</th><th>acquired</th><th>T set / meas</th><th>pressure</th><th>type</th><th>centre</th><th></th></tr></thead><tbody id="cmpRows"></tbody></table></div>
   </section>
 
@@ -442,7 +462,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <h2>3D structure</h2>
       <label><input id="v3on" type="checkbox"> show the highlighted phase in 3D</label>
       <span class="row2" style="gap:4px"><span class="keys">view along</span><button id="v3va">a</button><button id="v3vb">b</button><button id="v3vc">c</button></span>
-      <span class="row2" style="gap:4px"><label title="number of unit cells along a, b, c">unit cells a b c</label><input id="v3na" type="number" min="1" max="10" value="1" style="width:3.4rem" aria-label="cells along a" title="number of unit cells along a (1–10)"><input id="v3nb" type="number" min="1" max="10" value="1" style="width:3.4rem" aria-label="cells along b" title="number of unit cells along b (1–10)"><input id="v3nc" type="number" min="1" max="10" value="1" style="width:3.4rem" aria-label="cells along c" title="number of unit cells along c (1–10)"></span><span class="row2" style="gap:4px"><label for="v3hkl" title="Planes to highlight, e.g. 1 1 0; 0 1 2; -1 0 4 (or 110, 012). Every plane of the family inside the shown cells is drawn.">hkl planes</label><input id="v3hkl" type="text" placeholder="e.g. 1 1 0; 0 1 2" style="width:11rem"><label title="Show the hkl planes"><input id="v3hklOn" type="checkbox" checked> show</label></span>
+      <span class="row2" style="gap:4px"><label title="number of unit cells along a, b, c">unit cells a b c</label><input id="v3na" type="number" min="1" max="10" value="1" style="width:3.4rem" aria-label="cells along a" title="number of unit cells along a (1–10)"><input id="v3nb" type="number" min="1" max="10" value="1" style="width:3.4rem" aria-label="cells along b" title="number of unit cells along b (1–10)"><input id="v3nc" type="number" min="1" max="10" value="1" style="width:3.4rem" aria-label="cells along c" title="number of unit cells along c (1–10)"></span><span class="row2" style="gap:4px"><label for="v3hkl" title="Planes to highlight, e.g. 1 1 0; 0 1 2; -1 0 4 (or 110, 012). Every plane of the family inside the shown cells is drawn.">hkl planes</label><input id="v3hkl" type="text" placeholder="e.g. 1 1 0; 0 1 2" style="width:11rem"><label title="Show the hkl planes"><input id="v3hklOn" type="checkbox" checked> show</label><label title="Animated line between two neighbouring planes of each hkl, perpendicular to them, labelled with (hkl) and the spacing d — stays on top while you rotate"><input id="v3dOn" type="checkbox" checked> d line</label></span>
       <span class="row2"><label for="v3size">atom size</label><input id="v3size" type="range" min="0.15" max="1.6" step="0.05" value="0.5" style="width:7rem"></span>
       <span class="row2"><label><input id="v3bond" type="checkbox" checked> bonds</label><label title="Also bond atoms of the same element (e.g. Cr–Cr, O–O)"><input id="v3same" type="checkbox"> same-element</label><label for="v3tol" title="Bond drawn when distance &lt; tolerance × (r_cov,1 + r_cov,2)">tol</label><input id="v3tol" type="number" min="0.8" max="1.6" step="0.05" value="1.15" style="width:4.2rem"></span>
       <span class="row2"><label><input id="v3cell" type="checkbox" checked> unit cell</label><label title="Also draw atoms on the far faces / edges / corners"><input id="v3edge" type="checkbox" checked> boundary atoms</label><label><input id="v3lab" type="checkbox"> element labels</label><span class="row2" style="gap:4px;margin-left:8px"><label for="v3KeyFs" title="Font size of the element key (top right of the 3D view, and in copies / GIFs)">key size</label><input id="v3KeyFs" type="number" min="6" max="40" step="1" value="13" style="width:4rem"></span><label><input id="v3persp" type="checkbox" checked> perspective</label><label hidden><input id="v3white" type="checkbox"> white background</label></span><span class="row2" style="gap:6px;margin-left:8px" title="Background of this plot — 📋 Copy copies the plot with it (none = transparent)"><label for="pb_v3">background</label><select id="pb_v3" style="width:auto"><option value="theme">as page</option><option value="white">white</option><option value="black">black</option><option value="transparent">none (transparent)</option><option value="custom">colour…</option></select><input id="pb_v3Col" type="color" value="#ffffff" hidden style="width:2.2rem;height:1.7rem;padding:0 2px"></span>
@@ -534,7 +554,7 @@ function txtFlush(){let n=0;while(TXT_DEFER.length&&n++<5000){try{TXT_DEFER.shif
 const MVB={depth:0,name:null,n:0,replay:false};
 /* every other text drawn on a plot becomes its own movable / editable block, named by its text (and its order when the same text repeats) */
 (function(){const P=CanvasRenderingContext2D.prototype,_ft=P.fillText,_st=P.strokeText;
-  const SKIP=/^d [\d.]+ Å|^No profiles yet|^Set the centre|^frame \d+ ·/;
+  const SKIP=/shown on the (image|map)|^d [\d.]+ Å|^No profiles yet|^Set the centre|^frame \d+ ·/;
   function fontOv(ctx,ov){const f=ctx.font,m=f.match(/^(.*?)([\d.]+)px\s+(.*)$/);if(!m)return;let pre=m[1].trim(),fam=m[3];
     if(ov.fam)fam=ov.fam;if(ov.bold!=null)pre=pre.replace(/\b(bold|[1-9]00)\b/g,"").trim()+(ov.bold?" 700":"");if(ov.it!=null)pre=pre.replace(/\bitalic\b/g,"").trim()+(ov.it?" italic":"");
     window.FONT_RAW=true;try{ctx.font=`${ov.it?"italic ":""}${pre.replace(/\bitalic\b/g,"").trim()} ${m[2]}px ${fam}`.trim();}finally{window.FONT_RAW=false;}}
@@ -990,7 +1010,7 @@ $("autoC").addEventListener("click",()=>{if(!S.img||centreLocked())return;const 
   setCentre(c[0],c[1]);setStatus(`Centre found automatically: (${c[0].toFixed(2)}, ${c[1].toFixed(2)}) px. Auto-refine can polish it further.`);});
 $("geoC").addEventListener("click",()=>{if(!S.img||centreLocked())return;const x=S.isFFT?Math.floor(S.W/2):(S.W-1)/2,y=S.isFFT?Math.floor(S.H/2):(S.H-1)/2;
   setCentre(x,y);setStatus(`Centre moved to the image centre (${x.toFixed(2)}, ${y.toFixed(2)}) px.`);});
-$("lock").addEventListener("change",()=>{setStatus($("lock").checked?"Centre locked.":"Centre unlocked: click or use the arrow keys to move it.");drawMain();});
+$("lock").addEventListener("change",()=>{if(!$("lock").checked)setStatus("Centre unlocked: click or use the arrow keys to move it.");else if(/^Centre unlocked/.test(($("status")||{}).textContent||""))setStatus("");drawMain();});
 
 /* ============================================================== profile */
 function setStatus(t,err){const s=$("status");s.textContent=t;s.classList.toggle("err",!!err);}
@@ -1118,7 +1138,7 @@ function expLegend(){const acq=S.acqStr||(S.real&&S.real.acq)||"",parts=[];
   {const a=acqSel(acq,k=>$(k==="date"?"lgDate":"lgTime").checked);if(a)parts.push(a);}
   if(($("lgTs").checked||$("lgT").checked)&&S.tlog&&acq){const r=tempAt(acq);if(r&&!r.err){if($("lgTs").checked&&isFinite(r.set))parts.push(`T set ${fmtT(r.set)}`);if($("lgT").checked&&isFinite(r.meas))parts.push(`T meas ${fmtT(r.meas,true)}`);}}
   if($("lgP").checked&&S.plog&&acq){const r=logAt(S.plog,acq);if(r&&!r.err)parts.push(S.plog.cols.map(c=>`${c.name} ${fmtP(c.v[r.i])}`).join(" ")+(S.plog.cols[0]&&S.plog.cols[0].unit?" "+S.plog.cols[0].unit:""));}
-  if($("lgGas").checked&&gasTxt())parts.push(gasTxt());
+  
   return parts.length?`Experimental (${parts.join(" · ")})`:"Experimental";}
 for(const id of ["lgGas","lgName","lgType","lgDate","lgTime","lgTs","lgT","lgP"])document.getElementById(id).addEventListener("change",()=>drawChart());
 /* compact y tick labels: 6000000 → 6e6, 2500000 → 2.5e6 (keeps them clear of the axis title) */
@@ -1192,7 +1212,7 @@ function drawChart(target,tdpr){
       else{ctx.fillStyle=e.c;ctx.fillRect(L+pw-tw-22*dpr,y+PF*TSc()*0.35,12*dpr,4*dpr);}ctx.fillStyle=ink;ctx.fillText(e.t,L+pw-4*dpr,y);});});}}
   for(const sl of S.sels){const xv=rToX(sl.r,mode);if(xv>=lo&&xv<=hi){const col=sl.color==="#ffffff"?muted:sl.color;ctx.strokeStyle=col;ctx.lineWidth=2*dpr;ctx.setLineDash([6*dpr,4*dpr]);
     ctx.beginPath();ctx.moveTo(sx(xv),T);ctx.lineTo(sx(xv),T+ph);ctx.stroke();ctx.setLineDash([]);
-    if(sl.peak==null){const lab=sl.short.startsWith("spot")||!sl.short.includes("(")?(sl.spot?"spot ":"")+"d "+sl.d.toFixed(3)+" Å":sl.short;ctx.font=`600 ${11*dpr}px "IBM Plex Mono",monospace`;const tw=ctx.measureText(lab).width;
+    if(true){const lab=selLab(sl);ctx.font=`600 ${11*dpr}px "IBM Plex Mono",monospace`;const tw=ctx.measureText(lab).width;
       let x=sx(xv)+5*dpr;if(x+tw>L+pw)x=sx(xv)-5*dpr-tw;ctx.fillStyle=css.getPropertyValue("--panel").trim();ctx.fillRect(x-2*dpr,T+20*dpr,tw+4*dpr,15*dpr);
       ctx.fillStyle=col;ctx.textAlign="left";ctx.textBaseline="top";ctx.fillText(lab,x,T+21*dpr);}}}
   // peaks
@@ -1294,7 +1314,7 @@ const bgTag=()=>$("bgsub").checked?"_bgsub":"";
 function updSaveLabels(){const b=$("bgsub").checked;$("sv2t").textContent=b?"2θ vs I − background (.txt)":"2θ vs I (.txt)";$("svd").textContent=b?"d vs I − background (.txt)":"d vs I (.txt)";}
 updSaveLabels();
 $("svplot").addEventListener("click",async()=>{if(!S.profile)return;
-  const r=cvC.getBoundingClientRect(),k=Math.max(2,2400/Math.max(1,r.width)),c=document.createElement("canvas");c.width=Math.round(r.width*k);c.height=Math.round(r.height*k);
+  const r=cvC.getBoundingClientRect(),k=window.EXPORT?Math.max(1,window.EXPORT.dpi/96):Math.max(2,2400/Math.max(1,r.width)),c=document.createElement("canvas");c.width=Math.round(r.width*k);c.height=Math.round(r.height*k);
   drawChart(c,k);const blob=await new Promise(res=>c.toBlob(res,"image/png"));
   saveFile(base()+"_profile_"+$("xmode").value+(S.phases.some(p=>p.show)&&$("cSticks").checked?"_phases":"")+".png",blob);});
 $("sv2t").addEventListener("click",()=>{const P=S.profile;let t="";for(let i=0;i<P.TT.length;i++)t+=fmt(P.TT[i],6)+"\t"+fmt(Iout(i),5)+"\n";saveFile(base()+"_2theta_I"+bgTag()+".txt",t);});
@@ -1808,6 +1828,7 @@ function v3Draw(target,O){O=O||{};const cv=target||cv3;if(!target){if(!$("v3on")
         const sp=u.map(f=>P(toC(f))),cx=sp.reduce((s,q)=>s+q[0],0)/sp.length,cy=sp.reduce((s,q)=>s+q[1],0)/sp.length;sp.sort((A,B)=>Math.atan2(A[1]-cy,A[0]-cx)-Math.atan2(B[1]-cy,B[0]-cx));
         ctx.beginPath();sp.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.closePath();ctx.fillStyle=col;ctx.globalAlpha=.28;ctx.fill();ctx.globalAlpha=.95;ctx.strokeStyle=col;ctx.stroke();}});
     ctx.restore();ctx.globalAlpha=1;}
+  try{if($("v3hklOn").checked&&$("v3dOn").checked&&V3.cell)v3DLines(ctx,P,dpr,O);}catch(e){}
   if(O.key){const els=[...new Set(A.map(a=>a.el))];const fs=(+$("v3KeyFs").value||13)*dpr;ctx.font=`600 ${fs}px "IBM Plex Mono",monospace`;ctx.textAlign="left";ctx.textBaseline="middle";
     els.forEach((el,k)=>{const y=12*dpr+fs*0.7+k*fs*1.5,x=W-12*dpr-ctx.measureText(el).width-fs*1.4;ctx.fillStyle=elInfo(el).c;ctx.beginPath();ctx.arc(x+fs*0.45,y,fs*0.45,0,2*Math.PI);ctx.fill();ctx.strokeStyle="#0006";ctx.lineWidth=1;ctx.stroke();ctx.fillStyle=ink;ctx.fillText(el,x+fs*1.2,y);});
     if($("v3hklOn").checked)v3HklList().forEach((q,j)=>{const t="("+q.join(" ")+")",k=els.length+j,y=12*dpr+fs*0.7+k*fs*1.5,x=W-12*dpr-ctx.measureText(t).width-fs*1.4;ctx.fillStyle=V3_PCOL[j%V3_PCOL.length];ctx.globalAlpha=.6;ctx.fillRect(x,y-fs*0.4,fs*0.9,fs*0.8);ctx.globalAlpha=1;ctx.fillStyle=ink;ctx.fillText(t,x+fs*1.2,y);});}
@@ -1961,7 +1982,8 @@ cvR.addEventListener("pointerup",e=>{if(RS.ibDrag){e.stopImmediatePropagation();
 cvR.addEventListener("wheel",e=>{if(!S.real||!rsInBox(e))return;e.preventDefault();RSI.sc=Math.max(0.3,Math.min(4,RSI.sc*(e.deltaY<0?1.1:1/1.1)));rsiSave();rsDraw();},{passive:false});
 cvR.addEventListener("pointerdown",e=>{if(!S.real)return;RS.drag=true;cvR.setPointerCapture(e.pointerId);const [x,y]=rsPt(e);rsClampROI(x,y);rsDraw();});
 cvR.addEventListener("pointermove",e=>{if(!RS.drag)return;const [x,y]=rsPt(e);rsClampROI(x,y);rsDraw();});
-cvR.addEventListener("pointerup",()=>{if(!RS.drag)return;RS.drag=false;rsUser($("rsAuto").checked);});
+cvR.addEventListener("pointerup",()=>{if(!RS.drag)return;RS.drag=false;rsUser(false);   /* placing the region never computes: press Compute FFT */
+  const st=$("rsStatus");if(st)st.textContent="FFT region moved — press Compute FFT to compute it.";const g=$("rsGo");if(g){g.classList.remove("rsPend");void g.offsetWidth;g.classList.add("rsPend");}});
 $("rsGo").addEventListener("click",()=>rsUser(true));
 $("rsSave").addEventListener("click",async()=>{const R=S.real;if(!R)return;const f=Math.max(1,Math.ceil(Math.max(R.W,R.H)/2048)),w=Math.floor(R.W/f),h=Math.floor(R.H/f),d=new Float32Array(w*h);
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){let s=0;for(let j=0;j<f;j++)for(let i=0;i<f;i++)s+=R.data[(y*f+j)*R.W+x*f+i];d[y*w+x]=s;}
@@ -2209,7 +2231,9 @@ function brOpen(it){$("brModal").hidden=true;openFile(it.file);setTimeout(()=>{b
 function brStep(k){const L=brOrder().filter(i=>i.done&&!i.err);if(!L.length)return;let i=L.findIndex(x=>x.file===S.lastFile);i=i<0?0:(i+k+L.length)%L.length;openFile(L[i].file);
   setStatus(`Image ${i+1} of ${L.length} (${$("brSort").value==="name"?"by name":"by time"}): ${L[i].rel}`);}
 async function brLoad(entries,dirName){const gen=++BR.gen;BR.dir=dirName;setTimeout(()=>notesFromFolder(gen),0);BR.items=entries.filter(e=>IMG_EXT.test(e.file.name)).map(e=>({file:e.file,rel:e.rel,done:false}));
-  $("brModal").hidden=false;brRender();if(!BR.items.length){$("brTitle").textContent=`No images (.dm4 .dm3 .tif .png .jpg) in “${dirName}”`;return;}
+  brRender();if(!BR.items.length){$("brTitle").textContent=`No images (.dm4 .dm3 .tif .png .jpg) in “${dirName}”`;if(typeof cpToast==="function")cpToast(`No images (.dm4 .dm3 .tif .png .jpg) in “${dirName}”`,true);return;}
+  /* the list is not opened by itself: the Image list button shows how many images were found */
+  if(typeof cpToast==="function")cpToast(`${BR.items.length} image${BR.items.length>1?"s":""} found in “${dirName}” — click Image list to see them`);{const b=$("brShow");b.classList.remove("brNew");void b.offsetWidth;b.classList.add("brNew");}
   let last=0;for(const it of BR.items){if(gen!==BR.gen)return;await scanItem(it);if(performance.now()-last>400){brRender();last=performance.now();}}
   if(gen===BR.gen)brRender();}
 async function brWalk(dir,path,out){for await(const [name,h] of dir.entries()){if(h.kind==="directory")await brWalk(h,path.concat(name),out);else if(IMG_EXT.test(name))out.push({file:await h.getFile(),rel:path.concat(name).join("/")});}}
@@ -2263,7 +2287,7 @@ function cmpLabel(e){const parts=[["clName","name"],["clType","type"],["clDate",
     else if(k==="el"){const ts=S.cmp.filter(x=>x.show).map(x=>acqToMs(x.acq)).filter(isFinite),t=acqToMs(e.acq);if(ts.length&&isFinite(t))out.push(`t = ${fmtSec((t-Math.min(...ts))/1000)} s`);}
     else if(k==="temp"||k==="tset"){const r=S.tlog&&e.acq?tempAt(e.acq):null,v=r&&!r.err?(k==="tset"?r.set:r.meas):NaN;if(isFinite(v))out.push(k==="tset"?`set ${fmtT(v)}`:`${v.toFixed(1)} °C`);}
     else if(k==="pres"){const r=S.plog&&e.acq?logAt(S.plog,e.acq):null;if(r&&!r.err)out.push(S.plog.cols.map(c=>`${c.name} ${fmtP(c.v[r.i])}`).join(" ")+(S.plog.cols[0]&&S.plog.cols[0].unit?" "+S.plog.cols[0].unit:""));}
-    else if(k==="gas"){if(gasTxt())out.push(gasTxt());}}
+    else if(k==="gas"){}}
   return out.length?out.join(" · "):e.rel;}
 function cmpSet(items){const keep=new Set(items.map(i=>i.file));S.cmp=S.cmp.filter(e=>keep.has(e.file));if(S.cmpActive&&!keep.has(S.cmpActive.file))S.cmpActive=null;return cmpAdd(items);}
 function cmpVis(){$("cmpPanel").hidden=S.cmp.length<2;}
@@ -2287,8 +2311,8 @@ async function cmpOpen(e,batch){S.cmpActive=e;S.centreTouched=false;await openFi
   if(batch&&!S.isFFT&&e.kind==="diff"&&!recall()&&!e.prof){$("lock").checked=false;await refine();}   // first time for an SAED: auto-centre + auto-refine as a starting point
   clearTimeout(profTimer);$("lock").checked=false;compute({auto:true});}
 async function cmpRunAll(onlyMissing){if(S.cmpBatch)return;S.cmpBatch=true;const L=cmpOrder().filter(e=>!onlyMissing||!e.prof);let k=0;
-  try{for(const e of L){k++;$("cmpStatus").textContent=`Computing ${k} / ${L.length}: ${e.rel}…`;try{await cmpOpen(e,true);}catch(err){e.err=err.message;}cmpRender();}}
-  finally{S.cmpBatch=false;}
+  try{for(const e of L){k++;$("cmpStatus").textContent=`Computing ${k} / ${L.length}: ${e.rel}…`;rsProg(k-1,L.length);try{await cmpOpen(e,true);}catch(err){e.err=err.message;}cmpRender();}}
+  finally{S.cmpBatch=false;rsProg(L.length,L.length,true);}
   const n=S.cmp.filter(e=>e.cen==="auto").length;$("cmpStatus").textContent=`${S.cmp.filter(e=>e.prof).length} profiles ready.`+(n?` ${n} SAED pattern${n>1?"s have":" has"} an automatic centre (⚠): click “open” to check / set it — the profile updates as you adjust.`:"");
   cmpRender();}
 function cmpRender(){const tb=$("cmpRows");tb.textContent="";
@@ -2350,9 +2374,13 @@ function drawCmp(target,tdpr){const exp=target instanceof HTMLCanvasElement,cv=e
     for(const phs of S.phases.filter(phVisible))for(const ln of phs.lines){if(ln.I<cmV)continue;const d=ln.d*sV,xv=mode==="d"?d:mode==="q"?10/d:2*Math.asin(Math.min(1,lambdaA(+$("kv").value||300)/(2*d)))*180/Math.PI;if(xv<lo||xv>hi)continue;
       C.push({key:phs.id+"|"+ln.d,x:xs(xv),txt:labTxt(ln),c:phs.color,I:ln.I+(phs.id===S.focus?1000:0)});}
     C.sort((a,b)=>b.I-a.I);const rows=[],MAXR=4;
+    /* labels you moved by hand are always kept (they never compete for a row); the others: strongest first, overlapping ones are left out */
+    const clOff=k=>{const o=typeof TXT!=="undefined"&&TXT.cmp&&TXT.cmp.off&&TXT.cmp.off["cl:"+k];return !!(o&&(o[0]||o[1]));};
     for(const L of C){if(!L.txt)continue;const w=ctx.measureText(L.txt).width,cx=Math.max(LMc+w/2,Math.min(LMc+pw0-w/2,L.x));let r=0;
+      const CR=typeof TXT!=="undefined"&&TXT.cmp?(TXT.cmp.clr||(TXT.cmp.clr={})):{};
+      if(clOff(L.key)){LABP.push(Object.assign(L,{cx,w,row:Math.min(MAXR-1,CR[L.key]||0)}));continue;}   /* same row as when it was moved, so it does not jump */
       for(;r<MAXR;r++){const Rw=rows[r]||(rows[r]=[]);if(!Rw.some(q=>cx+w/2+12*dpr>q[0]&&cx-w/2-12*dpr<q[1])){Rw.push([cx-w/2,cx+w/2]);break;}}
-      if(r<MAXR)LABP.push(Object.assign(L,{cx,w,row:r}));}
+      if(r<MAXR){LABP.push(Object.assign(L,{cx,w,row:r}));CR[L.key]=r;}}
     const nr=LABP.length?Math.max(...LABP.map(l=>l.row))+1:0;labBand=nr?nr*lfs*TSc()*1.5+8*dpr:0;}
   const labW=cmpLabWidth(),Lm=LMc,Rm=14*dpr+labW,T=14*dpr+labBand,B=plotB(dpr),pw=cw-Lm-Rm,ph=ch-T-B;
   const sx=v=>Lm+(v-lo)/(hi-lo)*pw,sy=v=>T+ph-(v-ymin)/(ymax-ymin)*ph;cmpGeom={L:Lm,pw,T,ph,lo,hi,mode,dpr};
@@ -2416,7 +2444,7 @@ for(const id of ["cmpLay","cmpNorm","cmpCol","cmpSort"])$(id).addEventListener("
 $("cmpRun").addEventListener("click",()=>cmpRunAll(false));
 $("cmpClear").addEventListener("click",()=>{S.cmp=[];S.cmpActive=null;for(const i of BR.items)i.tick=false;cmpVis();cmpRender();});
 new ResizeObserver(()=>drawCmp()).observe($("cmpWrap"));
-$("cmpSvPng").addEventListener("click",async()=>{const w=cvK.width,h=cvK.height,k=Math.max(1,2000/w),c=document.createElement("canvas");c.width=Math.round(w*k);c.height=Math.round(h*k);
+$("cmpSvPng").addEventListener("click",async()=>{const w=cvK.width,h=cvK.height,k=window.EXPORT?Math.max(0.25,(window.EXPORT.dpi/96)/(cvK.width/Math.max(1,cvK.getBoundingClientRect().width))):Math.max(1,2000/w),c=document.createElement("canvas");c.width=Math.round(w*k);c.height=Math.round(h*k);
   drawCmp(c,(cvK.width/cvK.getBoundingClientRect().width)*k);const blob=await new Promise(r=>c.toBlob(r,"image/png"));saveFile("profile_comparison.png",blob);});
 $("cmpSvTxt").addEventListener("click",()=>{const {mode,lo,hi,out}=cmpSeries();if(!out.length)return;
   /* common grid, linear in q (the profiles are linear in radius), over the range shown */
@@ -2545,11 +2573,17 @@ function gifElapsed(e){const ents=(GIF.ents&&GIF.ents.length?GIF.ents:cmpOrder()
 const fmtSec=v=>Math.abs(v)>=100?v.toFixed(0):Math.abs(v)>=10?v.toFixed(1):v.toFixed(2);
 function gifInfo(e){const L=[];if(GF("elapsed")){const el=gifElapsed(e);if(el!=null)L.push(`t = ${fmtSec(el)} s`);}const nm=[GF("name")?e.rel:"",GF("type")?({diff:"SAED",fft:"FFT",real:$("gifMode").value==="pat"?"FFT of real-space image":"real-space image"}[e.kind]||""):""].filter(Boolean).join(" · ");if(nm)L.push(nm);
   if(acqSel(e.acq,GF))L.push("Acquired "+acqSel(e.acq,GF));L.push(...infoLines(e.acq,GF).filter(l=>!l.err).map(l=>l.txt));return L;}
-function gifCompose(){const T=GIF.size,n=GIF.base.length;GIF.canv=GIF.base.map((b,k)=>{const e=GIF.ents[k],c=document.createElement("canvas");c.width=T;c.height=T;const g=c.getContext("2d");g.drawImage(gifBC(b),0,0);
-    const info=gifInfo(e);if(info.length){const fs=Math.max(10,Math.round(T/42)),lh=Math.round(fs*1.3);g.font=`600 ${fs}px "IBM Plex Mono",monospace`;g.textBaseline="top";
-      const tw=Math.max(...info.map(t=>g.measureText(t).width)),bw=Math.min(T-8,tw+12),bh=lh*info.length+8;g.fillStyle="rgba(0,0,0,.7)";g.fillRect(T-bw-4,4,bw,bh);g.fillStyle="#fff";info.forEach((t,i)=>g.fillText(t,T-bw+2,8+i*lh,bw-10));}
-    if(GF("count")){const fs=Math.max(10,Math.round(T/40));g.font=`600 ${fs}px "IBM Plex Mono",monospace`;g.textBaseline="bottom";const t=`${k+1} / ${n}`;const tw=g.measureText(t).width;g.fillStyle="rgba(0,0,0,.7)";g.fillRect(4,T-fs-12,tw+12,fs+8);g.fillStyle="#fff";g.fillText(t,10,T-8);}
-    return c;});}
+const GL=(()=>{const d={sc:1,info:null,count:null,cus:[]};try{return Object.assign(d,JSON.parse(localStorage.getItem("gif-lab")||"{}"));}catch(e){return d;}})();
+function glSave(){try{localStorage.setItem("gif-lab",JSON.stringify(GL));}catch(e){}}
+function gifBox(g,T,lines,fs,pos,dx,dy,col){const lh=Math.round(fs*1.3);g.font=`600 ${fs}px "IBM Plex Mono",monospace`;g.textBaseline="top";
+  const tw=Math.max(...lines.map(t=>g.measureText(t).width)),bw=Math.min(T-8,tw+12),bh=lh*lines.length+8;
+  let x=pos&&pos.x!=null?pos.x*T:dx(bw,bh),y=pos&&pos.y!=null?pos.y*T:dy(bw,bh);x=Math.max(0,Math.min(T-bw,x));y=Math.max(0,Math.min(T-bh,y));
+  g.fillStyle="rgba(0,0,0,.7)";g.fillRect(x,y,bw,bh);g.fillStyle=col||"#fff";lines.forEach((t,i)=>g.fillText(t,x+6,y+4+i*lh,bw-10));return [x,y,bw,bh];}
+function gifCompose(){const T=GIF.size,n=GIF.base.length,sc=GL.sc||1;GIF.hits=[];GIF.canv=GIF.base.map((b,k)=>{const e=GIF.ents[k],c=document.createElement("canvas");c.width=T;c.height=T;const g=c.getContext("2d");g.drawImage(gifBC(b),0,0);
+    const H=[],info=gifInfo(e);if(info.length)H.push(["info",gifBox(g,T,info,Math.max(8,Math.round(T/42*sc)),GL.info,bw=>T-bw-4,()=>4)]);
+    if(GF("count"))H.push(["count",gifBox(g,T,[`${k+1} / ${n}`],Math.max(8,Math.round(T/40*sc)),GL.count,()=>4,(bw,bh)=>T-bh-4)]);
+    GL.cus.forEach((u,j)=>{if(u&&u.t)H.push(["c"+j,gifBox(g,T,String(u.t).split("\n"),Math.max(8,Math.round(T/36*sc*(u.s||1))),u,bw=>(T-bw)/2,bh=>T/2,u.col)]);});
+    GIF.hits[k]=H;return c;});}
 function gifPatSource(e,T){const P=e.pat;if(!P)throw new Error("no pattern yet — compute its profile first");const z=+$("gifZoom").value||1,side=Math.min(P.w,P.h)/z;
   const c=document.createElement("canvas");c.width=P.w;c.height=P.h;const id=new ImageData(P.w,P.h);for(let i=0;i<P.g.length;i++){const v=P.g[i];id.data[4*i]=id.data[4*i+1]=id.data[4*i+2]=v;id.data[4*i+3]=255;}
   c.getContext("2d").putImageData(id,0,0);return {canvas:c,sx:P.cx-side/2,sy:P.cy-side/2,side};}
@@ -2586,7 +2620,7 @@ async function gifSave(){if(!GIF.canv.length)return;const st=$("gifStatus");st.t
   const frames=GIF.canv.map(c=>{const d=c.getContext("2d").getImageData(0,0,T,T).data,px=new Uint8Array(T*T);for(let i=0;i<T*T;i++)px[i]=Math.round(0.299*d[4*i]+0.587*d[4*i+1]+0.114*d[4*i+2]);return px;});
   const bytes=gifEncode(frames,T,T,pal,Math.round(gifDelay()*100),true);const blob=new Blob([bytes],{type:"image/gif"});
   await saveFile(`comparison_${$("gifMode").value==="pat"?"FFT-patterns":"images"}_${GIF.canv.length}frames_${gifDelay()}s.gif`,blob);st.textContent=`GIF saved (${GIF.canv.length} frames, ${gifDelay()} s per frame, ${(blob.size/1e6).toFixed(1)} MB).`;}
-$("gifMake").addEventListener("click",gifBuild);$("gifSave").addEventListener("click",gifSave);
+$("gifMake").addEventListener("click",()=>{});$("gifSave").addEventListener("click",gifSave);
 $("gifDt").addEventListener("input",()=>{$("gifDtN").value=$("gifDt").value;gifPlay();});$("gifDtN").addEventListener("change",()=>{$("gifDt").value=$("gifDtN").value;gifPlay();});
 $("gifPause").addEventListener("click",()=>{const on=$("gifPause").getAttribute("aria-pressed")!=="true";$("gifPause").setAttribute("aria-pressed",String(on));$("gifPause").textContent=on?"▶ play":"❚❚ pause";gifPlay();});
 $("gifPrev").addEventListener("click",()=>{if(!GIF.canv.length)return;GIF.k=(GIF.k-1+GIF.canv.length)%GIF.canv.length;$("gifPause").setAttribute("aria-pressed","true");$("gifPause").textContent="▶ play";gifPlay();});
@@ -2709,7 +2743,7 @@ const noteKey=it=>(BR.dir||"")+"/"+it.rel;
 function noteGet(it){return NOTES[noteKey(it)]||"";}
 let noteT=0;function noteSet(it,v){const k=noteKey(it);if(v.trim())NOTES[k]=v;else delete NOTES[k];clearTimeout(noteT);noteT=setTimeout(()=>{try{localStorage.setItem("saed-notes",JSON.stringify(NOTES));}catch(e){}},300);if(typeof notesAuto==="function")notesAuto();}
 const notesName=()=>`${(BR.dir||"images").replace(/[\\/:*?"<>|]+/g,"_")}_notes.txt`;
-function notesText(){const L=brOrder().filter(it=>noteGet(it).trim());const out=[`# d-Spacing Studio notes · folder ${BR.dir||""} · saved ${new Date().toLocaleString()}`,`# one block per image: a line “## file name”, then the notes; starred phases: “file | ICSD code | note”`,""];
+function notesText(){const L=brOrder().filter(it=>noteGet(it).trim());const out=[`# d-Spacing Studio notes · folder ${BR.dir||""} · saved ${new Date().toLocaleString()}`,`# this file: ${notesName()} in the image folder “${BR.dir||""}”${BR.dir?` (${BR.dir}/${notesName()})`:""}`,`# one block per image: a line “## file name”, then the notes; starred phases: “file | ICSD code | note”`,""];
   for(const it of L)out.push("## "+it.rel,noteGet(it).replace(/\s+$/,""),"");
   /* starred CIF phases (all remembered stars, also those of CIFs not loaded right now): one line “file | ICSD code” */
   {const g=($("snText").value||"").replace(/\s+$/,"");if(g)out.push("## 📝 general notes",g,"");}
@@ -2867,11 +2901,11 @@ function ulDraw(k,t,d){const L=TXT[k].ul;if(!L||!L.length)return;const exp=t ins
   const ctx=cv.getContext("2d"),css=getComputedStyle(document.documentElement),ink=(css.getPropertyValue("--ink").trim()||"#000");
   ctx.save();ctx.textAlign="left";ctx.textBaseline="top";ctx.font=`600 ${13*dpr}px "IBM Plex Sans",sans-serif`;
   const fs=13*dpr*TSc();let y=G.T+10*dpr;
-  for(const u of L){const tx=(u.t||"").trim();if(!tx){continue;}const x=G.L+G.pw*0.4,w=ctx.measureText(tx).width;
-    mvB(ctx,dpr,ulName(u),[x,y,x+w,y+fs*1.15],()=>{ctx.fillStyle=u.col||ink;ctx.fillText(tx,x,y);});y+=fs*1.5;}
+  for(const u of L){const tx=(u.t||"").trim();if(!tx){continue;}const x=G.L+G.pw*0.4,w=ctx.measureText(tx).width,yy=y;   /* yy: fixed for this label (a moved label is drawn later) */
+    mvB(ctx,dpr,ulName(u),[x,yy,x+w,yy+fs*1.15],()=>{ctx.fillStyle=u.col||ink;ctx.fillText(tx,x,yy);});y+=fs*1.5;}
   ctx.restore();}
-{const _a=drawChart;drawChart=function(t,d){const r=_a(t,d);try{if(S.profile)ulDraw("pk",t,d);}catch(e){}return r;};}
-{const _b=drawCmp;drawCmp=function(t,d){const r=_b(t,d);try{const exp=t instanceof HTMLCanvasElement;if((exp||!$("cmpPanel").hidden)&&S.cmp.some(e=>e.show&&e.prof))ulDraw("cmp",t,d);}catch(e){}return r;};}
+{const _a=drawChart;drawChart=function(t,d){const r=_a(t,d);try{if(S.profile)ulDraw("pk",t,d);}catch(e){}try{if(S.profile&&typeof gasDraw==="function")gasDraw("pk",t,d);}catch(e){}return r;};}
+{const _b=drawCmp;drawCmp=function(t,d){const r=_b(t,d);try{const exp=t instanceof HTMLCanvasElement;if((exp||!$("cmpPanel").hidden)&&S.cmp.some(e=>e.show&&e.prof))ulDraw("cmp",t,d);}catch(e){}try{if(S.cmp.some(e=>e.show&&e.prof))selsCmpDraw(t,d,true);}catch(e){}try{if(typeof gasDraw==="function"&&S.cmp.some(e=>e.show&&e.prof))gasDraw("cmp",t,d);}catch(e){}return r;};}
 function ulUI(k){const box=document.querySelector(`.ulList[data-k="${k}"]`);if(!box)return;box.textContent="";
   for(const u of TXT[k].ul){const w=document.createElement("span");w.className="row2";w.style.gap="3px";
     const inp=document.createElement("input");inp.type="text";inp.value=u.t||"";inp.placeholder="your text";inp.style.width="11rem";inp.className="ulTxt";
@@ -3293,6 +3327,513 @@ const NB_KEY="notesbox-"+SETK;
 const nbEnc=v=>String(v||"").replace(/\s+$/,"").replace(/^## /gm,"​## "),nbDec=v=>String(v||"").replace(/^​## /gm,"## ");
 {const _x=notesText;notesText=function(){const r=_x(),v=nbEnc($("nbText").value);if(!v.trim())return r;return {n:r.n+1,txt:r.txt.replace("\n## ⚙ conditions","\n## 🗒 notes box\n"+v+"\n\n## ⚙ conditions")};};}
 {const _a=notesApply;notesApply=function(got,quiet){if(got&&got["🗒 notes box"]!=null){NB_SET(nbDec(got["🗒 notes box"]));delete got["🗒 notes box"];}return _a(got,quiet);};}
+
+/* ===== image saves as TIFF (or PNG) at a chosen DPI (default 300): plot with overlays, compare plot, image with rings, polar view, real-space image ===== */
+window.EXPORT=null;let EXP_GO=false;
+const CRC_T=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC_T[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+async function pngDpi(blob,dpi){const a=new Uint8Array(await blob.arrayBuffer());if(a.length<33)return blob;const ppm=Math.round(dpi/0.0254),ch=new Uint8Array(21),dv=new DataView(ch.buffer);
+  dv.setUint32(0,9);ch.set([112,72,89,115],4);dv.setUint32(8,ppm);dv.setUint32(12,ppm);ch[16]=1;dv.setUint32(17,crc32(ch.subarray(4,17)));
+  return new Blob([a.subarray(0,33),ch,a.subarray(33)],{type:"image/png"});}
+async function tiffEncode(cv,dpi){const W=cv.width,H=cv.height,d=cv.getContext("2d").getImageData(0,0,W,H).data;let alpha=false;for(let i=3;i<d.length;i+=4)if(d[i]!==255){alpha=true;break;}
+  const spp=alpha?4:3,raw=new Uint8Array(W*H*spp);if(alpha)raw.set(d);else for(let i=0,j=0;i<d.length;i+=4){raw[j++]=d[i];raw[j++]=d[i+1];raw[j++]=d[i+2];}
+  let data=raw,comp=1;try{const buf=await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream("deflate"))).arrayBuffer();data=new Uint8Array(buf);comp=8;}catch(e){}
+  const tags=[[256,4,1,W],[257,4,1,H],[258,3,spp,null],[259,3,1,comp],[262,3,1,2],[273,4,1,null],[277,3,1,spp],[278,4,1,H],[279,4,1,data.length],[282,5,1,null],[283,5,1,null],[284,3,1,1],[296,3,1,2]];if(alpha)tags.push([338,3,1,2]);
+  const dataOff=8,bpsOff=dataOff+data.length+(data.length&1),xOff=bpsOff+spp*2,yOff=xOff+8,ifdOff=yOff+8,total=ifdOff+2+tags.length*12+4,buf=new ArrayBuffer(total),u8=new Uint8Array(buf),v=new DataView(buf);
+  u8[0]=73;u8[1]=73;v.setUint16(2,42,true);v.setUint32(4,ifdOff,true);u8.set(data,dataOff);for(let i=0;i<spp;i++)v.setUint16(bpsOff+2*i,8,true);
+  const num=Math.round(dpi*100);v.setUint32(xOff,num,true);v.setUint32(xOff+4,100,true);v.setUint32(yOff,num,true);v.setUint32(yOff+4,100,true);
+  v.setUint16(ifdOff,tags.length,true);tags.forEach(([tag,type,cnt,val],i)=>{const o=ifdOff+2+i*12;v.setUint16(o,tag,true);v.setUint16(o+2,type,true);v.setUint32(o+4,cnt,true);
+    const vv=tag===258?bpsOff:tag===273?dataOff:tag===282?xOff:tag===283?yOff:val;if(type===3&&!(tag===258))v.setUint16(o+8,vv,true);else v.setUint32(o+8,vv,true);});
+  v.setUint32(ifdOff+2+tags.length*12,0,true);return new Blob([buf],{type:"image/tiff"});}
+{const _tb=HTMLCanvasElement.prototype.toBlob;HTMLCanvasElement.prototype.toBlob=function(cb,type,q){const E=window.EXPORT;
+  if(E&&(!type||type==="image/png")){if(E.fmt==="tiff"){tiffEncode(this,E.dpi).then(cb,()=>_tb.call(this,cb,type,q));return;}return _tb.call(this,b=>{if(!b){cb(b);return;}pngDpi(b,E.dpi).then(cb,()=>cb(b));},type,q);}
+  return _tb.call(this,cb,type,q);};}
+{const _sf=saveFile;saveFile=async function(name,data,...r){const E=window.EXPORT;if(E){window.EXPORT=null;if(E.fmt==="tiff")name=String(name).replace(/\.png$/i,"")+".tif";}return _sf.call(this,name,data,...r);};}
+function expAsk(btn){let p=$("expPop");if(!p){p=document.createElement("div");p.id="expPop";p.style.cssText="position:fixed;z-index:60;background:var(--panel);color:var(--ink);border:1px solid var(--accent);border-radius:8px;padding:10px 12px;box-shadow:0 6px 24px rgba(0,0,0,.25);display:grid;gap:8px;font-size:13px";document.body.appendChild(p);
+    document.addEventListener("pointerdown",e=>{if(!p.hidden&&!p.contains(e.target))p.hidden=true;});p.addEventListener("keydown",e=>{e.stopPropagation();if(e.key==="Escape")p.hidden=true;if(e.key==="Enter")p.querySelector(".ex_go").click();});}
+  let fmt="tiff",dpi=300;try{fmt=localStorage.getItem("exp-fmt")||"tiff";dpi=+localStorage.getItem("exp-dpi")||300;}catch(e){}
+  p.innerHTML=`<b style="font-size:12px;color:var(--muted)">${btn.textContent.replace(/\s*\(.*$/,"").trim()}</b><span class="row2" style="gap:6px">format<select class="ex_f" style="width:auto"><option value="tiff">TIFF</option><option value="png">PNG</option></select>resolution<input class="ex_d" type="number" min="72" max="1200" step="1" style="width:5rem"><span class="keys">DPI</span></span>
+    <span class="keys ex_n"></span><span class="row2" style="gap:6px;justify-content:flex-end"><button class="ex_c">Cancel</button><button class="ex_go primary">Save</button></span>`;
+  const q=c=>p.querySelector(c);q(".ex_f").value=fmt;q(".ex_d").value=dpi;
+  const note=()=>{const plot=btn.id==="svplot"||btn.id==="cmpSvPng";q(".ex_n").textContent=plot?"plots are drawn at this resolution (same size as on screen)":"the image keeps its pixels; the DPI sets its print size";};note();
+  q(".ex_c").addEventListener("click",()=>{p.hidden=true;});
+  q(".ex_go").addEventListener("click",()=>{const f=q(".ex_f").value,d=Math.max(72,Math.min(1200,+q(".ex_d").value||300));try{localStorage.setItem("exp-fmt",f);localStorage.setItem("exp-dpi",String(d));}catch(e){}
+    p.hidden=true;window.EXPORT={fmt:f,dpi:d};EXP_GO=true;btn.click();setTimeout(()=>{window.EXPORT=null;},30000);});
+  p.hidden=false;const r=btn.getBoundingClientRect();p.style.left=Math.max(8,Math.min(window.innerWidth-p.offsetWidth-8,r.left))+"px";p.style.top=Math.max(8,r.top-p.offsetHeight-8)+"px";q(".ex_d").focus();q(".ex_d").select();}
+for(const id of ["svplot","cmpSvPng","svimg","svpolar","rsSave"]){const b=$(id);if(!b)continue;b.addEventListener("click",e=>{if(EXP_GO){EXP_GO=false;return;}e.stopImmediatePropagation();expAsk(b);},true);}
+/* ===== per-box “↺ defaults”: puts only that box's settings back (notes, your labels and lines are kept) ===== */
+const BOX_SKIP=e=>!e.id||SET_EX.has(e.id)||["file","hidden","text","search"].includes(e.type)||e.tagName==="TEXTAREA"||e.closest(".lgedit,.ulList,.vlList,#phaseGroups,#cmpRows,#tmRows,#peaks,#v3gBar .keys")||["tmFps","isSccmOn","isTOn","isnAutoOn","hdNotesAuto","brNotesAuto","v3on"].includes(e.id);
+function boxDefaults(box,k){const ch=[];for(const e of box.querySelectorAll("input,select")){if(BOX_SKIP(e))continue;
+    if(e.type==="checkbox"||e.type==="radio"){if(e.checked!==e.defaultChecked){e.checked=e.defaultChecked;ch.push(e);}}
+    else if(e.tagName==="SELECT"){const o=[...e.options].find(o=>o.defaultSelected)||e.options[0];if(o&&e.value!==o.value){e.value=o.value;ch.push(e);}}
+    else if(e.defaultValue!==""&&e.value!==e.defaultValue){e.value=e.defaultValue;ch.push(e);}}
+  for(const e of ch){e.dispatchEvent(new Event("input",{bubbles:true}));e.dispatchEvent(new Event("change",{bubbles:true}));}
+  if(k&&TXT[k]){Object.assign(TXT[k],{fam:"",scale:1,off:{},sz:{},ov:{}});txtSave();document.querySelectorAll(`.txtFam[data-k="${k}"]`).forEach(x=>x.value="");document.querySelectorAll(`.txtSc[data-k="${k}"]`).forEach(x=>x.value=100);
+    if(k==="pk"&&typeof PKC!=="undefined"){PKC.prof=PKC.peak="";try{localStorage.setItem("pkcol-"+SETK,JSON.stringify(PKC));pkcUI();}catch(e){}}txtRedraw(k);}
+  if(box.id==="v3Panel"&&typeof V3_ELC!=="undefined"){V3_ELC={};V3_PCOL.splice(0,V3_PCOL.length,...PCOL_DEF);try{v3ApplyColors();v3ColSave();v3LegendUI();v3Draw();}catch(e){}}
+  if(box.id==="rsPanel"&&typeof RSI!=="undefined"){RSI.fx=RSI.fy=null;RSI.sc=1;try{rsiSave();if(S.real)rsDraw();}catch(e){}}
+  return ch.length;}
+for(const [sel,k,where] of [["#pkPanel","pk"],["#cmpPanel","cmp"],["#tmPanel","tm"],["#rsPanel",null],["#gifPanel",null],["#phasePanel",null],["#v3Panel",null],[".logBox",null,".logTtl"],[".panel.ctrls",null,"self"]]){
+  const box=document.querySelector(sel);if(!box)continue;const b=document.createElement("button");b.className="boxDef";b.textContent="↺ defaults";b.title="Default settings for this box only (your notes, labels and lines are kept)";b.style.padding="2px 8px";
+  b.addEventListener("click",e=>{e.stopPropagation();if(!confirm("Put the settings of this box back to their defaults?"))return;boxDefaults(box,k&&TXT[k]?k:null);});
+  if(where===".logTtl"){const t=box.querySelector(".logTtl");b.style.marginLeft="10px";t.appendChild(b);}
+  else if(where==="self"){box.style.position="relative";b.style.cssText+=";position:absolute;right:8px;top:6px;z-index:2";box.appendChild(b);}
+  else{const head=box.querySelector(".chartbar");if(!head)continue;const sp=head.querySelector(".spacer");if(sp)sp.after(b);else head.appendChild(b);}}
+/* ===== polar view (and the controls) start level with the pattern, below its image menu ===== */
+function alignPolar(){const s1=document.querySelector(".work>.side"),s2=s1&&s1.nextElementSibling,m=$("mainWrap");if(!s2||!m)return;s2.style.paddingTop="";
+  const a=s1.getBoundingClientRect(),b=s2.getBoundingClientRect(),mm=m.getBoundingClientRect();if(a.width&&Math.abs(a.top-b.top)<3&&b.left>a.right-5)s2.style.paddingTop=Math.max(0,mm.top-a.top)+"px";}
+window.addEventListener("resize",()=>requestAnimationFrame(alignPolar));setTimeout(alignPolar,200);{const w=document.querySelector(".work");if(w)new ResizeObserver(()=>requestAnimationFrame(alignPolar)).observe(w);}
+
+function isCond(){return $("clGas").checked&&gasTxt()?[gasTxt()]:[];}   /* the compare plot moves its CIF legend below this label */
+function gasDraw(k,t,d){const on=k==="pk"?$("lgGas").checked:$("clGas").checked,txt=gasTxt();if(!on||!txt)return;const exp=t instanceof HTMLCanvasElement,cv=exp?t:TXTCV[k];
+  const G=k==="cmp"?cmpGeom:(exp?window.chartGeomExp:chartGeom);if(!G)return;const dpr=exp?d:cv.width/Math.max(1,cv.getBoundingClientRect().width),ctx=cv.getContext("2d"),css=getComputedStyle(document.documentElement);
+  ctx.save();ctx.font=`600 ${12*dpr}px "IBM Plex Mono",monospace`;ctx.textAlign="left";ctx.textBaseline="top";const x=G.L+8*dpr,y=G.T+6*dpr,w=ctx.measureText(txt).width,fh=12*dpr*TSc();
+  mvB(ctx,dpr,"cond",[x-5*dpr,y-4*dpr,x+w+5*dpr,y+fh+4*dpr],()=>{ctx.fillStyle=css.getPropertyValue("--panel").trim()||"#fff";ctx.globalAlpha=.85;ctx.fillRect(x-5*dpr,y-4*dpr,w+10*dpr,fh+8*dpr);ctx.globalAlpha=1;ctx.fillStyle=css.getPropertyValue("--ink").trim()||"#000";ctx.fillText(txt,x,y);});ctx.restore();}
+{const p=document.querySelector("#pkPanel .chartbar");/* the pk legend's CIF list starts at the top right, so the SCCM label sits top left */}
+
+/* ===== GIF: slider through the frames (same labels as the GIF), copy the frame shown, choose which frames go into the GIF ===== */
+{const _c=gifCompose;gifCompose=function(){const B=GIF.base,E=GIF.ents;if(!GIF.sel||GIF.sel.length!==B.length)GIF.sel=B.map(()=>true);const idx=B.map((b,i)=>i).filter(i=>GIF.sel[i]);
+  GIF.idx=idx;GIF.ents0=E;GIF.base=idx.map(i=>B[i]);GIF.ents=idx.map(i=>E[i]);try{_c();}finally{GIF.base=B;GIF.ents=E;}};}
+gifPlay=function(){gifStop();const sl=$("gifSlider");if(!GIF.canv.length){sl.max=1;sl.value=1;$("gifFrame").textContent=GIF.base.length?"no frames selected":"";return;}
+  const cv=$("gifCv"),g=cv.getContext("2d");cv.width=GIF.size;cv.height=GIF.size;sl.max=GIF.canv.length;
+  const show=()=>{const n=GIF.canv.length;GIF.k=((GIF.k%n)+n)%n;g.drawImage(GIF.canv[GIF.k],0,0);const e=GIF.idx&&GIF.ents0?GIF.ents0[GIF.idx[GIF.k]]:null;
+    $("gifFrame").textContent=`frame ${GIF.k+1} / ${n}`+(e?` · ${e.rel}`:"");sl.value=GIF.k+1;};show();
+  if($("gifPause").getAttribute("aria-pressed")==="true")return;GIF.timer=setInterval(()=>{GIF.k++;show();},gifDelay()*1000);};
+$("gifSlider").addEventListener("input",()=>{if(!GIF.canv.length)return;$("gifPause").setAttribute("aria-pressed","true");$("gifPause").textContent="▶ play";GIF.k=(+$("gifSlider").value||1)-1;gifPlay();});
+$("gifSlider").addEventListener("keydown",e=>e.stopPropagation());
+function gifSelUI(){const bar=$("gifSelBar"),L=$("gifSelList");L.textContent="";bar.hidden=!GIF.base.length;
+  GIF.ents.forEach((e,i)=>{const lb=document.createElement("label");lb.className="row2";lb.style.cssText="gap:3px;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.78rem";lb.title=e.rel;
+    const c=document.createElement("input");c.type="checkbox";c.checked=GIF.sel[i]!==false;c.addEventListener("change",()=>{GIF.sel[i]=c.checked;GIF.k=0;gifCompose();gifPlay();gifSelCount();});
+    lb.append(c,document.createTextNode(String(i+1)));L.appendChild(lb);});gifSelCount();}
+function gifSelCount(){const n=(GIF.sel||[]).filter(Boolean).length;$("gifSelN").textContent=`${n} of ${GIF.base.length} frames in the GIF`;$("gifSave").disabled=!n;}
+$("gifSelAll").addEventListener("click",()=>{GIF.sel=GIF.base.map(()=>true);gifSelUI();GIF.k=0;gifCompose();gifPlay();});
+$("gifSelNone").addEventListener("click",()=>{GIF.sel=GIF.base.map(()=>false);gifSelUI();gifCompose();gifPlay();});
+{const _b=gifBuild;gifBuild=async function(...a){const off=new Set((GIF.ents||[]).filter((e,i)=>GIF.sel&&GIF.sel[i]===false).map(e=>e.id));GIF.sel=null;
+  const r=await _b.apply(this,a);GIF.sel=GIF.ents.map(e=>!off.has(e.id));if(off.size){gifCompose();GIF.k=0;gifPlay();}gifSelUI();return r;};}
+$("gifMake").addEventListener("click",()=>gifBuild());
+
+/* ===== marked positions: label = d + what the mark does ===== */
+const SEL_NOTE="ring shown on the image";
+function selLab(sl){const base=sl.short&&sl.short.includes("(")?sl.short:((sl.peak!=null?`peak ${sl.peak+1} · `:sl.spot?"spot · ":"")+`d ${sl.d.toFixed(3)} Å`);return base+" · "+SEL_NOTE;}
+function selsCmpDraw(t,d,lines){const g=cmpGeom;if(!g||!(S.sels||[]).length)return;const exp=t instanceof HTMLCanvasElement,cv=exp?t:cvK,dpr=exp?d:cv.width/Math.max(1,cv.getBoundingClientRect().width),ctx=cv.getContext("2d"),css=getComputedStyle(document.documentElement);
+  const lam=lambdaA(+((typeof tmKv!=="undefined"||$("tmKv"))&&$("tmKv")?$("tmKv").value:$("kv").value)||300);ctx.save();ctx.beginPath();ctx.rect(g.L,g.T,g.pw,g.ph);ctx.clip();
+  for(const sl of S.sels){const dd=sl.d,xv=g.mode==="d"?dd:g.mode==="q"?10/dd:2*Math.asin(Math.min(1,lam/(2*dd)))*180/Math.PI;if(!(xv>=g.lo&&xv<=g.hi))continue;const x=g.L+(xv-g.lo)/(g.hi-g.lo)*g.pw,col=sl.color==="#ffffff"?css.getPropertyValue("--muted"):sl.color;
+    if(lines){ctx.strokeStyle=col;ctx.lineWidth=2*dpr;ctx.setLineDash([6*dpr,4*dpr]);ctx.beginPath();ctx.moveTo(x,g.T);ctx.lineTo(x,g.T+g.ph);ctx.stroke();ctx.setLineDash([]);}
+    const lab=selLab(sl);ctx.font=`600 ${11*dpr}px "IBM Plex Mono",monospace`;const tw=ctx.measureText(lab).width;let lx=x+5*dpr;if(lx+tw>g.L+g.pw)lx=x-5*dpr-tw;
+    ctx.fillStyle=css.getPropertyValue("--panel").trim()||"#fff";ctx.globalAlpha=.85;ctx.fillRect(lx-2*dpr,g.T+20*dpr,tw+4*dpr,15*dpr);ctx.globalAlpha=1;ctx.fillStyle=col;ctx.textAlign="left";ctx.textBaseline="top";ctx.fillText(lab,lx,g.T+21*dpr);}
+  ctx.restore();}
+/* ===== lock: DM3 / DM4 real-space images (their FFT) and the IS stacks lock the calibration and pattern controls by default ===== */
+const LOCKC={on:false,file:null};
+function ctrlLockApply(){const box=document.querySelector(".panel.ctrls");if(box){for(const e of box.querySelectorAll("input,select,button")){if(e.classList.contains("lockBtn"))continue;e.disabled=LOCKC.on;}}
+  for(const id of ["rsPix","tmSc","tmKv","scale","kv","bin"]){const e=$(id);if(e)e.disabled=LOCKC.on;}
+  for(const b of document.querySelectorAll(".lockBtn")){b.textContent=LOCKC.on?"🔒 locked":"🔓 unlocked";b.setAttribute("aria-pressed",String(LOCKC.on));b.title=LOCKC.on?"Locked: centre, guide circles, display and calibration cannot be changed (click to unlock)":"Click to lock the centre, guide circles, display and calibration so they cannot be changed by mistake";}
+  if(LOCKC.on&&$("lock")&&!$("lock").checked&&typeof S!=="undefined"&&S.img){$("lock").checked=true;$("lock").dispatchEvent(new Event("change",{bubbles:true}));}}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".lockBtn");if(!b)return;e.preventDefault();LOCKC.on=!LOCKC.on;LOCKC.user=true;ctrlLockApply();},true);
+window.addEventListener("keydown",e=>{if(!LOCKC.on)return;const t=(e.target.tagName||"").toLowerCase();if(t==="input"||t==="textarea"||t==="select")return;
+  if(["n","m",",",".","k","l","b","+","=","-","_"].includes(e.key)&&!(e.target.closest&&e.target.closest("#v3Panel,#phaseBox"))){e.stopImmediatePropagation();}},true);
+{const box=document.querySelector(".panel.ctrls");if(box){const b=document.createElement("button");b.className="lockBtn";b.style.cssText="position:absolute;right:110px;top:6px;z-index:2;padding:2px 8px";box.style.position="relative";box.appendChild(b);}}
+{const _s=setImage;setImage=function(W,H,data,meta){const r=_s.apply(this,arguments);try{const f=S.lastFile,nm=(f&&f.name)||(meta&&meta.name)||"";
+    if(f!==LOCKC.file||!f){LOCKC.file=f;LOCKC.user=false;}if(!LOCKC.user)LOCKC.on=/\.dm[34]$/i.test(nm)&&!!S.isFFT;setTimeout(ctrlLockApply,0);}catch(e){}return r;};}
+ctrlLockApply();
+
+/* clicking a position in the compare plot marks that d on the pattern (ring) and in the peaks plot, like in the IS app; shift-click adds more */
+{let down=null;cvK.addEventListener("pointerdown",e=>{down={x:e.offsetX,y:e.offsetY};});
+ cvK.addEventListener("click",e=>{if(!down||Math.hypot(e.offsetX-down.x,e.offsetY-down.y)>5)return;if($("cmpNdPick").getAttribute("aria-pressed")==="true")return;
+   const g=cmpGeom;if(!g||!S.img)return;const k=cvK.width/cvK.getBoundingClientRect().width,px=e.offsetX*k,py=e.offsetY*k;if(px<g.L||px>g.L+g.pw||py<g.T||py>g.T+g.ph)return;
+   const xv=g.lo+(px-g.L)/g.pw*(g.hi-g.lo),lam=lambdaA(+$("kv").value||300),d=g.mode==="d"?xv:g.mode==="q"?10/xv:lam/(2*Math.sin(xv*Math.PI/360)),sc=+$("scale").value;
+   if(!(d>0)||!(sc>0))return;selectRing(10/d/sc,null,e.shiftKey||e.ctrlKey||e.metaKey);drawCmp();});}
+{const _s=selectRing;selectRing=function(){const r=_s.apply(this,arguments);try{drawCmp();}catch(e){}return r;};}
+
+/* ===== GIF: zoom into the frame (wheel), pan (drag), double-click = whole frame; the GIF and Copy frame use the zoomed view.
+   ✥ move text drags the texts, text size scales them, + label adds your own texts (double-click one to edit / delete) ===== */
+GIF.view={z:1,cx:.5,cy:.5};
+function gifVClamp(){const v=GIF.view;v.z=Math.min(20,Math.max(1,v.z));const h=.5/v.z;v.cx=Math.min(1-h,Math.max(h,v.cx));v.cy=Math.min(1-h,Math.max(h,v.cy));}
+function gifCrop(b){const v=GIF.view;if(v.z<=1.0001)return b;const T=b.width,sd=T/v.z,c=document.createElement("canvas");c.width=T;c.height=b.height;const g=c.getContext("2d");
+  g.fillStyle="#000";g.fillRect(0,0,T,T);g.imageSmoothingEnabled=true;g.imageSmoothingQuality="high";g.drawImage(b,v.cx*T-sd/2,v.cy*T-sd/2,sd,sd,0,0,T,T);return c;}
+{const _c=gifCompose;gifCompose=function(){const B=GIF.base;if(GIF.view.z<=1.0001)return _c();GIF.base=B.map((b,i)=>!GIF.sel||GIF.sel[i]!==false?gifCrop(b):b);try{return _c();}finally{GIF.base=B;}};}
+function gifZmUI(){const z=GIF.view.z,on=z>1.0001;$("gifZmReset").hidden=!on;$("gifZm").textContent=on?`🔍 zoom ${z.toFixed(2)}× · drag = pan · double-click = whole frame`:"🔍 click the frame, then wheel = zoom · double-click = whole frame";
+  const mv=$("gifMove").getAttribute("aria-pressed")==="true";$("gifCv").style.cursor=mv?"move":on?"grab":"zoom-in";}
+let GIFRAF=0;function gifRedo(){if(GIFRAF)return;GIFRAF=requestAnimationFrame(()=>{GIFRAF=0;if(GIF.base.length){gifCompose();gifPlay();}gifZmUI();});}
+function gifXY(e){const cv=$("gifCv"),r=cv.getBoundingClientRect();return {fx:(e.clientX-r.left)/r.width,fy:(e.clientY-r.top)/r.height,px:(e.clientX-r.left)*cv.width/r.width,py:(e.clientY-r.top)*cv.height/r.height,r};}
+function gifHit(px,py){const H=(GIF.hits||[])[GIF.k]||[];for(let i=H.length-1;i>=0;i--){const [k,[x,y,w,h]]=H[i];if(px>=x-3&&px<=x+w+3&&py>=y-3&&py<=y+h+3)return {k,x,y,w,h};}return null;}
+function glPos(k){if(k==="info"||k==="count"){if(!GL[k])GL[k]={};return GL[k];}return GL.cus[+k.slice(1)];}
+{const cv=$("gifCv");let dr=null;
+  cv.addEventListener("wheel",e=>{if(!GIF.canv.length)return;e.preventDefault();const p=gifXY(e),v=GIF.view,ux=v.cx+(p.fx-.5)/v.z,uy=v.cy+(p.fy-.5)/v.z;
+    v.z*=Math.pow(1.0018,-e.deltaY*(e.deltaMode===1?16:1));gifVClamp();v.cx=ux-(p.fx-.5)/v.z;v.cy=uy-(p.fy-.5)/v.z;gifVClamp();gifRedo();},{passive:false});
+  cv.addEventListener("pointerdown",e=>{if(e.button!==0||!GIF.canv.length)return;const p=gifXY(e);const mv=$("gifMove").getAttribute("aria-pressed")==="true";
+    const h=mv?gifHit(p.px,p.py):null;if(mv&&!h)return;if(!mv&&GIF.view.z<=1.0001)return;
+    dr={x:e.clientX,y:e.clientY,h,ox:h?h.x:0,oy:h?h.y:0,cx:GIF.view.cx,cy:GIF.view.cy,r:p.r};cv.setPointerCapture(e.pointerId);if(!h)cv.style.cursor="grabbing";e.preventDefault();});
+  cv.addEventListener("pointermove",e=>{if(!dr)return;const T=cv.width,dx=e.clientX-dr.x,dy=e.clientY-dr.y;
+    if(dr.h){const P=glPos(dr.h.k);if(!P)return;P.x=Math.max(0,Math.min(1,(dr.ox+dx*T/dr.r.width)/T));P.y=Math.max(0,Math.min(1,(dr.oy+dy*cv.height/dr.r.height)/T));}
+    else{GIF.view.cx=dr.cx-dx/dr.r.width/GIF.view.z;GIF.view.cy=dr.cy-dy/dr.r.height/GIF.view.z;gifVClamp();}gifRedo();});
+  const end=()=>{if(dr&&dr.h)glSave();dr=null;gifZmUI();};cv.addEventListener("pointerup",end);cv.addEventListener("pointercancel",end);
+  cv.addEventListener("dblclick",e=>{const p=gifXY(e),h=gifHit(p.px,p.py);
+    if(h&&h.k[0]==="c"){const j=+h.k.slice(1),u=GL.cus[j],t=prompt("Edit the label (empty = delete it):",u.t);if(t===null)return;if(t.trim())u.t=t;else GL.cus.splice(j,1);glSave();gifRedo();return;}
+    GIF.view={z:1,cx:.5,cy:.5};gifRedo();});}
+$("gifZmReset").addEventListener("click",()=>{GIF.view={z:1,cx:.5,cy:.5};gifRedo();});
+$("gifMove").addEventListener("click",e=>{const b=e.currentTarget,on=b.getAttribute("aria-pressed")!=="true";b.setAttribute("aria-pressed",on);b.classList.toggle("primary",on);gifZmUI();});
+$("gifTs").value=GL.sc||1;$("gifTsN").textContent=(+$("gifTs").value).toFixed(2)+"×";
+$("gifTs").addEventListener("input",()=>{GL.sc=+$("gifTs").value||1;$("gifTsN").textContent=GL.sc.toFixed(2)+"×";glSave();gifRedo();});
+$("gifTxtReset").addEventListener("click",()=>{GL.sc=1;GL.info=null;GL.count=null;GL.cus.forEach(u=>{u.x=null;u.y=null;});$("gifTs").value=1;$("gifTsN").textContent="1.00×";glSave();gifRedo();});
+function gifLabAdd(){const t=$("gifLabTxt").value;if(!t.trim())return;GL.cus.push({t,col:$("gifLabCol").value,s:1,x:null,y:null});$("gifLabTxt").value="";glSave();gifRedo();
+  if(!GIF.base.length)$("gifStatus").textContent="Label added — it appears on the frames once the GIF is made (Make GIF).";}
+$("gifLabAdd").addEventListener("click",gifLabAdd);
+$("gifLabTxt").addEventListener("keydown",e=>{e.stopPropagation();if(e.key==="Enter"){e.preventDefault();gifLabAdd();}});
+gifZmUI();
+
+/* ===== logs vs time of day: temperature (T set / T measured) and pressure gauges (choose MC1 / MC2…), shared time axis,
+   wheel zoom, drag = zoom to an interval, shift/right-drag = pan, double-click = whole log, hover read-out, image-time marks (click = open) ===== */
+const LP=(()=>{try{return Object.assign({t:false,p:false,mc:{}},JSON.parse(localStorage.getItem("lp-state")||"{}"));}catch(e){return {t:false,p:false,mc:{}};}})();
+LP.v=null;LP.hx=null;LP.drag=null;LP.key="";
+function lpSave(){try{localStorage.setItem("lp-state",JSON.stringify({t:LP.t,p:LP.p,mc:LP.mc}));}catch(e){}}
+const lpP2=n=>String(n).padStart(2,"0");
+function lpHMS(ms,sec){const d=new Date(ms);return `${lpP2(d.getUTCHours())}:${lpP2(d.getUTCMinutes())}`+(sec?":"+lpP2(d.getUTCSeconds()):"");}
+function lpFull(){let a=Infinity,b=-Infinity;for(const L of [LP.t&&S.tlog,LP.p&&S.plog])if(L&&L.t.length){a=Math.min(a,L.t[0]);b=Math.max(b,L.t[L.t.length-1]);}
+  if(!isFinite(a))for(const L of [S.tlog,S.plog])if(L&&L.t.length){a=Math.min(a,L.t[0]);b=Math.max(b,L.t[L.t.length-1]);}
+  if(!isFinite(a))return null;if(b-a<10000){a-=5000;b+=5000;}return [a,b];}
+function lpView(){const f=lpFull();if(!f)return null;if(!LP.v)return f;return LP.v;}
+function lpSet(a,b){const f=lpFull();if(!f)return;const span=Math.max(5000,b-a),m=(a+b)/2;a=m-span/2;b=m+span/2;const pad=(f[1]-f[0])*0.5;
+  if(a<f[0]-pad){b+=f[0]-pad-a;a=f[0]-pad;}if(b>f[1]+pad){a-=b-f[1]-pad;b=f[1]+pad;}LP.v=[a,b];lpDraw();}
+function lpImgs(){const out=[],cur=acqToMs(S.acqStr||(S.real&&S.real.acq)||"");
+  for(const it of (typeof BR!=="undefined"&&BR.items)||[]){const t=acqToMs(it.acq);if(isFinite(t))out.push({t,it,cur:isFinite(cur)&&Math.abs(t-cur)<500,name:it.rel});}
+  if(isFinite(cur)&&!out.some(o=>o.cur))out.push({t:cur,it:null,cur:true,name:S.name||"open image"});return out;}
+function lpIdx(T,x){let lo=0,hi=T.length-1;if(hi<0)return -1;if(x<=T[0])return 0;if(x>=T[hi])return hi;while(hi-lo>1){const m=(lo+hi)>>1;if(T[m]<x)lo=m;else hi=m;}return x-T[lo]<=T[hi]-x?lo:hi;}
+function lpSeries(kind){if(kind==="t"){const L=S.tlog;if(!L)return [];const r=[];
+    if($("lpTmeas").checked)r.push({name:"T measured",t:L.t,v:L.meas,col:"#e0533d",dash:[]});if($("lpTset").checked)r.push({name:"T set",t:L.t,v:L.set,col:"#8a94a6",dash:[6,4]});return r;}
+  const P=S.plog;if(!P)return [];const C=["#2a7de1","#16a37f","#c27c0e","#9b59b6","#d6336c","#0aa2c0"];
+  const gi=+String(kind).slice(1);return P.cols.map((c,i)=>({name:c.name,unit:c.unit,t:P.t,v:c.v,col:C[i%C.length],dash:[],i})).filter(x=>x.i===gi);}
+function lpNice(lo,hi,n){const sp=(hi-lo)/n,p=Math.pow(10,Math.floor(Math.log10(sp))),f=sp/p,st=(f<1.5?1:f<3?2:f<7?5:10)*p;const out=[];for(let v=Math.ceil(lo/st)*st;v<=hi+st*1e-9;v+=st)out.push(+v.toPrecision(12));return {ticks:out,st};}
+function lpGeom(cv){const dpr=window.devicePixelRatio||1,w=Math.max(200,cv.clientWidth),h=cv.clientHeight||170;return {dpr,w,h,L:62,R:22,T:10,B:24};}
+function lpDrawOne(cv,kind,ctx0,G0){const css=getComputedStyle(document.documentElement),ink=css.getPropertyValue("--ink").trim()||"#222",mut=css.getPropertyValue("--muted").trim()||"#888",
+    line=css.getPropertyValue("--line").trim()||"#ccc",acc=css.getPropertyValue("--accent").trim()||"#4a40ce",pan=css.getPropertyValue("--panel").trim()||"#fff";
+  const G=G0||lpGeom(cv),ctx=ctx0||cv.getContext("2d");if(!ctx0){cv.width=Math.round(G.w*G.dpr);cv.height=Math.round(G.h*G.dpr);ctx.setTransform(G.dpr,0,0,G.dpr,0,0);}
+  const V=lpView(),pw=G.w-G.L-G.R,ph=G.h-G.T-G.B;cv._g={...G,pw,ph};ctx.fillStyle=pan;ctx.fillRect(0,0,G.w,G.h);if(!V)return;
+  const X=t=>G.L+(t-V[0])/(V[1]-V[0])*pw,ser=lpSeries(kind),lg=kind[0]==="p"&&$("lpLog").checked,fac=kind[0]==="p"?lpFac(ser[0]&&ser[0].unit):1,tf=v=>{v*=fac;return lg?(v>0?Math.log10(v):NaN):v;};
+  let lo=Infinity,hi=-Infinity;for(const s of ser){const i0=Math.max(0,lpIdx(s.t,V[0])-1),i1=Math.min(s.t.length-1,lpIdx(s.t,V[1])+1);for(let i=i0;i<=i1;i++){const y=tf(s.v[i]);if(isFinite(y)){if(y<lo)lo=y;if(y>hi)hi=y;}}}
+  if(!isFinite(lo)){lo=0;hi=1;}if(hi-lo<1e-9){const d=lg?0.5:Math.max(1,Math.abs(lo)*0.02);lo-=d;hi+=d;}else{const d=(hi-lo)*0.07;lo-=d;hi+=d;}
+  const Y=y=>G.T+ph-(y-lo)/(hi-lo)*ph;cv._y={lo,hi,lg};
+  ctx.font='11px "IBM Plex Mono",monospace';ctx.lineWidth=1;
+  /* y grid + labels */
+  ctx.textAlign="right";ctx.textBaseline="middle";
+  if(lg){for(let e=Math.floor(lo);e<=Math.ceil(hi);e++){if(e<lo||e>hi)continue;const y=Y(e);ctx.strokeStyle=line;ctx.beginPath();ctx.moveTo(G.L,y);ctx.lineTo(G.L+pw,y);ctx.stroke();ctx.fillStyle=mut;ctx.fillText("1E"+e,G.L-5,y);}
+    if(Math.ceil(hi)-Math.floor(lo)<=2){const tk=lpNice(Math.pow(10,lo),Math.pow(10,hi),4).ticks;for(const v of tk){if(v<=0)continue;const y=Y(Math.log10(v));if(y<G.T||y>G.T+ph)continue;ctx.strokeStyle=line;ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(G.L,y);ctx.lineTo(G.L+pw,y);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=mut;ctx.fillText(v.toExponential(1).toUpperCase(),G.L-5,y);}}}
+  else for(const v of lpNice(lo,hi,4).ticks){const y=Y(v);ctx.strokeStyle=line;ctx.beginPath();ctx.moveTo(G.L,y);ctx.lineTo(G.L+pw,y);ctx.stroke();ctx.fillStyle=mut;ctx.fillText(kind[0]==="p"&&Math.abs(hi-lo)<0.05?v.toExponential(1).toUpperCase():String(+v.toFixed(3)),G.L-5,y);}
+  /* x ticks: time of day */
+  const steps=[1,2,5,10,15,30,60,120,300,600,900,1800,3600,7200,10800,21600,43200,86400].map(x=>x*1000),want=(V[1]-V[0])/Math.max(2,pw/85);let st=steps.find(x=>x>=want)||86400000;
+  ctx.textAlign="center";ctx.textBaseline="top";for(let t=Math.ceil(V[0]/st)*st;t<=V[1];t+=st){const x=X(t);ctx.strokeStyle=line;ctx.beginPath();ctx.moveTo(x,G.T);ctx.lineTo(x,G.T+ph);ctx.stroke();ctx.fillStyle=mut;ctx.fillText(lpHMS(t,st<60000),x,G.T+ph+5);}
+  ctx.strokeStyle=mut;ctx.strokeRect(G.L+.5,G.T+.5,pw-1,ph-1);
+  /* axis title */
+  ctx.save();ctx.translate(13,G.T+ph/2);ctx.rotate(-Math.PI/2);ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle=ink;ctx.font='600 11px "IBM Plex Mono",monospace';
+  const unit=kind==="t"?"°C":lpUnitName(ser[0]&&ser[0].unit);ctx.fillText(kind==="t"?`T (${unit})`:`${(ser[0]&&ser[0].name)||"p"} (${unit})`,0,0);ctx.restore();
+  ctx.save();ctx.beginPath();ctx.rect(G.L,G.T,pw,ph);ctx.clip();
+  /* image marks */
+  if($("lpImg").checked){const off=(+$(kind==="t"?"tOff":"pOff").value||0)*1000;for(const m of lpImgs()){const x=X(m.t+off);if(x<G.L-2||x>G.L+pw+2)continue;
+    ctx.strokeStyle=acc;ctx.globalAlpha=m.cur?1:.35;ctx.lineWidth=m.cur?2.2:1;ctx.setLineDash(m.cur?[]:[3,3]);ctx.beginPath();ctx.moveTo(x,G.T);ctx.lineTo(x,G.T+ph);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;ctx.lineWidth=1;
+    if(m.cur){ctx.fillStyle=acc;ctx.textAlign="left";ctx.textBaseline="top";ctx.font='600 10px "IBM Plex Mono",monospace';ctx.fillText("this image",x+3,G.T+2);ctx.font='11px "IBM Plex Mono",monospace';}}}
+  /* series (min / max per pixel column when dense) */
+  for(const s of ser){const i0=Math.max(0,lpIdx(s.t,V[0])-1),i1=Math.min(s.t.length-1,lpIdx(s.t,V[1])+1);ctx.strokeStyle=s.col;ctx.lineWidth=1.6;ctx.setLineDash(s.dash);ctx.beginPath();let pen=false;
+    if(i1-i0>pw*3){let cx=-1,mn=0,mx=0;const flush=()=>{if(cx<0)return;if(!pen){ctx.moveTo(cx,Y(mn));pen=true;}else ctx.lineTo(cx,Y(mn));ctx.lineTo(cx,Y(mx));};
+      for(let i=i0;i<=i1;i++){const y=tf(s.v[i]);if(!isFinite(y))continue;const x=Math.round(X(s.t[i]));if(x!==cx){flush();cx=x;mn=mx=y;}else{if(y<mn)mn=y;if(y>mx)mx=y;}}flush();}
+    else for(let i=i0;i<=i1;i++){const y=tf(s.v[i]);if(!isFinite(y)){pen=false;continue;}const x=X(s.t[i]);if(!pen){ctx.moveTo(x,Y(y));pen=true;}else ctx.lineTo(x,Y(y));}
+    ctx.stroke();ctx.setLineDash([]);
+    if(i1-i0<pw/6){ctx.fillStyle=s.col;for(let i=i0;i<=i1;i++){const y=tf(s.v[i]);if(isFinite(y)){ctx.beginPath();ctx.arc(X(s.t[i]),Y(y),2,0,7);ctx.fill();}}}}
+  /* drag selection */
+  if(LP.drag&&LP.drag.mode==="sel"){const a=X(Math.min(LP.drag.t0,LP.drag.t1)),b=X(Math.max(LP.drag.t0,LP.drag.t1));ctx.fillStyle=acc;ctx.globalAlpha=.15;ctx.fillRect(a,G.T,b-a,ph);ctx.globalAlpha=1;ctx.strokeStyle=acc;ctx.strokeRect(a,G.T,b-a,ph);}
+  ctx.restore();
+  /* legend */
+  ctx.textAlign="left";ctx.textBaseline="middle";let lx=G.L+pw-6;const items=ser.map(s=>[s.name,s.col,s.dash]);ctx.font='11px "IBM Plex Mono",monospace';
+  const lw=items.reduce((a,[n])=>a+ctx.measureText(n).width+30,0);lx=G.L+pw-lw-4;ctx.fillStyle=pan;ctx.globalAlpha=.85;ctx.fillRect(lx-4,G.T+3,lw+4,16);ctx.globalAlpha=1;
+  for(const [n,c,d] of items){ctx.strokeStyle=c;ctx.lineWidth=2;ctx.setLineDash(d);ctx.beginPath();ctx.moveTo(lx,G.T+11);ctx.lineTo(lx+18,G.T+11);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=ink;ctx.fillText(n,lx+22,G.T+11);lx+=ctx.measureText(n).width+30;}
+  /* hover read-out */
+  if(LP.hx!=null&&!ctx0&&LP.hx>=V[0]&&LP.hx<=V[1]){const x=X(LP.hx);ctx.strokeStyle=ink;ctx.globalAlpha=.6;ctx.beginPath();ctx.moveTo(x,G.T);ctx.lineTo(x,G.T+ph);ctx.stroke();ctx.globalAlpha=1;
+    const ls=[lpHMS(LP.hx,true)];for(const s of ser){const i=lpIdx(s.t,LP.hx);if(i<0)continue;const v=s.v[i];ls.push(`${s.name} ${kind[0]==="p"?fmtP(v*fac)+" "+unit:(isFinite(v)?v.toFixed(1):"—")}`+(Math.abs(s.t[i]-LP.hx)>60000?" (no entry near)":""));
+      const y=tf(v);if(isFinite(y)){ctx.fillStyle=s.col;ctx.beginPath();ctx.arc(X(s.t[i]),Y(y),3.5,0,7);ctx.fill();}}
+    if(LP.hm&&LP.hm.kind===kind)ls.push("▸ "+LP.hm.name+(LP.hm.it?" (click to open)":""));
+    const w=Math.max(...ls.map(t=>ctx.measureText(t).width))+12,bx=x+10+w>G.L+pw?x-10-w:x+10;ctx.fillStyle=pan;ctx.globalAlpha=.92;ctx.fillRect(bx,G.T+22,w,ls.length*14+6);ctx.globalAlpha=1;ctx.strokeStyle=line;ctx.strokeRect(bx,G.T+22,w,ls.length*14+6);
+    ctx.fillStyle=ink;ctx.textAlign="left";ctx.textBaseline="top";ls.forEach((t,i)=>ctx.fillText(t,bx+6,G.T+25+i*14));}}
+function lpMCUI(){const box=$("lpMC"),P=S.plog,key=P?P.cols.map(c=>c.name).join("|"):"";if(box.dataset.k===key)return;box.dataset.k=key;box.textContent="";
+  if(!P)return;for(const c of P.cols){const l=document.createElement("label"),i=document.createElement("input");i.type="checkbox";i.checked=LP.mc[c.name]!==false;
+    i.addEventListener("change",()=>{LP.mc[c.name]=i.checked;lpSave();lpDraw();});l.append(i," "+c.name);box.appendChild(l);}}
+function lpDraw(){const box=$("lpBox");if(!box)return;const k=[S.tlog&&S.tlog.name+S.tlog.t.length,S.plog&&S.plog.name+S.plog.t.length].join("|");if(k!==LP.key){LP.key=k;LP.v=null;}
+  const showT=LP.t&&!!S.tlog,showP=LP.p&&!!S.plog;$("lpTBtn").setAttribute("aria-pressed",LP.t);$("lpPBtn").setAttribute("aria-pressed",LP.p);
+  $("lpTBtn").disabled=!S.tlog;$("lpPBtn").disabled=!S.plog;box.hidden=!(showT||showP);if(box.hidden)return;
+  $("lpT").hidden=!showT;$("lpPs").style.display=showP?"flex":"none";$("lpTOpts").hidden=!showT;$("lpMC").hidden=!showP;$("lpLogL").hidden=!showP;$("lpUnitL").hidden=!showP;lpMCUI();
+  if(showT)lpDrawOne($("lpT"),"t");
+  const host=$("lpPs"),P=S.plog;if(P)P.cols.forEach((c,i)=>{let cv=document.getElementById("lpP"+i);if(!cv){cv=document.createElement("canvas");cv.id="lpP"+i;cv.className="lpCv";host.appendChild(cv);lpBind(cv,"p"+i);}
+    cv.hidden=!(showP&&LP.mc[c.name]!==false);if(!cv.hidden)lpDrawOne(cv,"p"+i);});
+  for(const cv of [...host.children])if(!P||+cv.id.slice(3)>=P.cols.length)cv.remove();
+  const V=lpView();if(V&&document.activeElement!==$("lpFrom")&&document.activeElement!==$("lpTo")){$("lpFrom").value=lpHMS(V[0],true);$("lpTo").value=lpHMS(V[1],true);}}
+function lpToggle(k){LP[k]=!LP[k];lpSave();lpDraw();if(LP[k])$("lpBox").scrollIntoView({block:"nearest"});}
+$("lpTBtn").addEventListener("click",()=>lpToggle("t"));$("lpPBtn").addEventListener("click",()=>lpToggle("p"));
+$("lpClose").addEventListener("click",()=>{LP.t=LP.p=false;lpSave();lpDraw();});
+for(const id of ["lpTset","lpTmeas","lpLog","lpImg"])$(id).addEventListener("change",lpDraw);
+for(const id of ["tOff","pOff"])$(id).addEventListener("input",lpDraw);
+$("lpAll").addEventListener("click",()=>{LP.v=null;lpDraw();});
+$("lpFit").addEventListener("click",()=>{const f=lpFull()||[-Infinity,Infinity];let m=lpImgs().map(o=>o.t);const inn=m.filter(t=>t>=f[0]-3600000&&t<=f[1]+3600000);if(inn.length)m=inn;if(!m.length){cpToast("No image times yet — browse a folder or open an image",true);return;}const a=Math.min(...m),b=Math.max(...m),p=Math.max(60000,(b-a)*0.08);lpSet(a-p,b+p);});
+$("lpCur").addEventListener("click",()=>{const c=lpImgs().find(o=>o.cur);if(!c){cpToast("The open image has no readable acquisition time",true);return;}lpSet(c.t-300000,c.t+300000);});
+function lpTimeIn(){const V=lpView();if(!V)return;const ref=new Date(V[0]),day=Date.UTC(ref.getUTCFullYear(),ref.getUTCMonth(),ref.getUTCDate());
+  const pt=v=>{const m=String(v).match(/(\d+):(\d+)(?::(\d+))?/);return m?day+((+m[1])*3600+(+m[2])*60+(+(m[3]||0)))*1000:NaN;};let a=pt($("lpFrom").value),b=pt($("lpTo").value);
+  if(!isFinite(a)||!isFinite(b))return;if(b<=a)b+=86400000;lpSet(a,b);}
+for(const id of ["lpFrom","lpTo"]){$(id).addEventListener("change",lpTimeIn);$(id).addEventListener("keydown",e=>{e.stopPropagation();if(e.key==="Enter")lpTimeIn();});}
+function lpT(cv,e){const g=cv._g,V=lpView();if(!g||!V)return null;const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*g.w/r.width;return {x,t:V[0]+(x-g.L)/g.pw*(V[1]-V[0]),in:x>=g.L&&x<=g.L+g.pw};}
+function lpMarkAt(cv,kind,x){if(!$("lpImg").checked)return null;const g=cv._g,V=lpView(),off=(+$(kind==="t"?"tOff":"pOff").value||0)*1000;let best=null,bd=5;
+  for(const m of lpImgs()){const mx=g.L+(m.t+off-V[0])/(V[1]-V[0])*g.pw,d=Math.abs(mx-x);if(d<bd){bd=d;best=m;}}return best;}
+function lpBind(cv,kind){
+  cv.addEventListener("contextmenu",e=>e.preventDefault());
+  cv.addEventListener("pointerdown",e=>{const p=lpT(cv,e);if(!p)return;const pan=e.button===2||e.shiftKey;if(e.button!==0&&e.button!==2)return;
+    LP.drag={mode:pan?"pan":"sel",t0:p.t,t1:p.t,x0:e.clientX,v0:lpView().slice(),cv,kind};cv.setPointerCapture(e.pointerId);if(pan)cv.style.cursor="grabbing";});
+  cv.addEventListener("pointermove",e=>{const p=lpT(cv,e);if(!p)return;const D=LP.drag;
+    if(D&&D.cv===cv){if(D.mode==="sel")D.t1=p.t;else{const g=cv._g,r=cv.getBoundingClientRect(),dt=(e.clientX-D.x0)*g.w/r.width/g.pw*(D.v0[1]-D.v0[0]);LP.v=[D.v0[0]-dt,D.v0[1]-dt];}}
+    LP.hx=p.in?p.t:null;const m=p.in?lpMarkAt(cv,kind,p.x):null;LP.hm=m?{...m,kind}:null;cv.style.cursor=D&&D.mode==="pan"?"grabbing":m&&m.it?"pointer":"crosshair";lpDraw();});
+  cv.addEventListener("pointerleave",()=>{if(LP.drag)return;LP.hx=null;LP.hm=null;lpDraw();});
+  const up=e=>{const D=LP.drag;if(!D||D.cv!==cv)return;LP.drag=null;cv.style.cursor="crosshair";
+    if(D.mode==="sel"){const g=cv._g,V=lpView(),px=Math.abs(D.t1-D.t0)/(V[1]-V[0])*g.pw;
+      if(px>4)lpSet(Math.min(D.t0,D.t1),Math.max(D.t0,D.t1));
+      else{const p=lpT(cv,e),m=p&&lpMarkAt(cv,kind,p.x);if(m&&m.it&&e.type==="pointerup"){brOpen(m.it);cpToast("Opening "+m.name);}lpDraw();}}
+    else lpDraw();};
+  cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);
+  cv.addEventListener("dblclick",()=>{LP.v=null;lpDraw();});
+  cv.addEventListener("wheel",e=>{const p=lpT(cv,e),V=lpView();if(!p||!V)return;e.preventDefault();const f=Math.pow(1.0022,e.deltaY*(e.deltaMode===1?16:1)),t=Math.max(V[0],Math.min(V[1],p.t));lpSet(t-(t-V[0])*f,t+(V[1]-t)*f);},{passive:false});}
+lpBind($("lpT"),"t");
+function lpRenderAll(){const cvs=[["lpT","t"],...[...$("lpPs").children].map(c=>[c.id,"p"+c.id.slice(3)])].filter(([id])=>!$(id).hidden);if(!cvs.length)return null;const k=Math.max(2,window.devicePixelRatio||1)*1.5;
+  const G=lpGeom($(cvs[0][0])),out=document.createElement("canvas");out.width=Math.round(G.w*k);out.height=Math.round(G.h*k*cvs.length);const g=out.getContext("2d");
+  cvs.forEach(([id,kind],i)=>{g.setTransform(k,0,0,k,0,G.h*k*i);lpDrawOne($(id),kind,g,{...lpGeom($(id)),dpr:k});});lpDraw();return out;}
+$("lpCopy").addEventListener("click",async()=>{const c=lpRenderAll();if(!c)return;try{const blob=new Promise(r=>c.toBlob(r,"image/png"));await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);cpToast(`Copied (${c.width} × ${c.height} px) — paste with Ctrl+V`);}catch(err){cpToast("Could not copy: "+err.message,true);}});
+$("lpSave").addEventListener("click",()=>{const c=lpRenderAll();if(!c)return;c.toBlob(b=>saveFile(`logs_vs_time${S.tlog?"_T":""}${S.plog&&LP.p?"_p":""}.png`,b),"image/png");});
+{const _t=tempShow;tempShow=function(...a){const r=_t.apply(this,a);try{lpDraw();}catch(e){}return r;};}
+for(const id of ["tClear","pClear"])$(id).addEventListener("click",()=>setTimeout(lpDraw,0));
+window.addEventListener("resize",()=>{clearTimeout(LP.rt);LP.rt=setTimeout(lpDraw,120);});
+setTimeout(lpDraw,0);
+{const _b=brRender;brRender=function(...a){const r=_b.apply(this,a);try{if(!$("lpBox").hidden){clearTimeout(LP.bt);LP.bt=setTimeout(lpDraw,150);}}catch(e){}return r;};}
+
+/* ===== ✥ move text switches itself off when its plot scrolls out of view (you have moved on to another box) ===== */
+{const pairs=[];for(const b of document.querySelectorAll(".txtMv")){const cv=typeof TXTCV!=="undefined"?TXTCV[b.dataset.k]:null;if(cv)pairs.push([b,cv]);}
+  const gb=document.getElementById("gifMove"),gc=document.getElementById("gifCv");if(gb&&gc)pairs.push([gb,gc]);
+  if("IntersectionObserver" in window){const io=new IntersectionObserver(es=>{for(const e of es){const p=pairs.find(q=>q[1]===e.target);if(!p)continue;const [b]=p;
+      if(b.getAttribute("aria-pressed")==="true"&&(!e.isIntersecting||e.intersectionRatio<0.3))b.click();}},{threshold:[0,0.3]});
+    for(const [,cv] of pairs)io.observe(cv);}}
+
+/* ===== big progress text under the real-space image while the compared images are computed (FFT); “Done!” then it disappears ===== */
+let RSPT=0;
+function rsProg(k,n,done){const el=$("rsProg");if(!el||!n)return;clearTimeout(RSPT);el.classList.remove("fade");el.hidden=false;el.classList.toggle("done",!!done);
+  el.querySelector(".rsProgT").textContent=done?`Done! ${n} / ${n} images computed`:`Computing FFT · ${k} / ${n} images done`;el.querySelector(".rsProgBar i").style.width=(100*(done?1:k/n)).toFixed(1)+"%";
+  if(done)RSPT=setTimeout(()=>{el.classList.add("fade");RSPT=setTimeout(()=>{el.hidden=true;el.classList.remove("fade","done");},650);},1800);}
+
+/* ===== GIF: align the frames to a reference frame (overlay, drag / arrow keys, auto-align by phase correlation), crop to the common area ===== */
+const ALN={on:false,ref:-1,off:{},crop:true,drag:null,hover:false};
+const alnKey=e=>e?(e.rel||e.name||""):"";
+function alnOff(e){const o=ALN.off[alnKey(e)];return o&&(o.x||o.y)?o:null;}
+function alnSelIdx(){return GIF.base.map((b,i)=>i).filter(i=>!GIF.sel||GIF.sel[i]!==false);}
+function alnRefIdx(){const L=alnSelIdx();return ALN.ref>=0&&ALN.ref<GIF.base.length?ALN.ref:(L[0]??0);}
+function alnCommon(){let x0=0,y0=0,x1=1,y1=1;for(const i of alnSelIdx()){const o=ALN.off[alnKey(GIF.ents[i])]||{x:0,y:0};x0=Math.max(x0,o.x);x1=Math.min(x1,1+o.x);y0=Math.max(y0,o.y);y1=Math.min(y1,1+o.y);}
+  const sd=Math.max(0.05,Math.min(x1-x0,y1-y0));return {x:(x0+x1)/2-sd/2,y:(y0+y1)/2-sd/2,s:sd};}
+function alnShift(b,e,cr){const T=b.width,o=ALN.off[alnKey(e)]||{x:0,y:0},c=document.createElement("canvas");c.width=T;c.height=b.height;const g=c.getContext("2d");g.fillStyle="#000";g.fillRect(0,0,T,T);
+  g.imageSmoothingEnabled=true;g.imageSmoothingQuality="high";
+  if(!cr){g.drawImage(b,o.x*T,o.y*T);return c;}
+  /* shifted, then the common square scaled to the full frame */
+  const sd=cr.s;g.drawImage(b,0,0,T,T,(o.x-cr.x)/sd*T,(o.y-cr.y)/sd*T,T/sd,T/sd);return c;}
+{const _c=gifCompose;gifCompose=function(){const B=GIF.base,E=GIF.ents;if(!E.some(alnOff))return _c();const cr=ALN.crop?alnCommon():null;
+  GIF.base=B.map((b,i)=>alnShift(b,E[i],cr));try{return _c();}finally{GIF.base=B;}};}
+/* overlay view while aligning: reference underneath, the frame on top (transparent or difference); the zoom of the frame view applies */
+function alnDraw(){if(!ALN.on||!GIF.base.length)return;const cv=$("gifCv"),T=GIF.size,g=cv.getContext("2d");cv.width=T;cv.height=T;
+  const bi=GIF.idx?GIF.idx[GIF.k]:GIF.k,ri=alnRefIdx(),B=GIF.base,E=GIF.ents;if(bi==null||!B[bi])return;
+  g.fillStyle="#000";g.fillRect(0,0,T,T);g.drawImage(gifCrop(alnShift(B[ri],E[ri],null)),0,0);
+  if(bi!==ri){const top=gifCrop(alnShift(B[bi],E[bi],null));if($("alnDiff").checked){g.globalCompositeOperation="difference";g.drawImage(top,0,0);g.globalCompositeOperation="source-over";}
+    else{g.globalAlpha=(+$("alnOp").value||0)/100;g.drawImage(top,0,0);g.globalAlpha=1;}}
+  const o=ALN.off[alnKey(E[bi])]||{x:0,y:0},fs=Math.max(11,Math.round(T/40));g.font=`600 ${fs}px "IBM Plex Mono",monospace`;g.textBaseline="top";
+  const t=bi===ri?`reference frame ${bi+1}`:`frame ${bi+1} over reference ${ri+1} · shift ${Math.round(o.x*T)}, ${Math.round(o.y*T)} px`;const w=g.measureText(t).width;
+  g.fillStyle="rgba(0,0,0,.7)";g.fillRect(4,4,w+12,fs+8);g.fillStyle="#ffd84a";g.fillText(t,10,8);
+  if(ALN.crop&&E.some(alnOff)){const cr=alnCommon(),v=GIF.view,sd=1/v.z,X=u=>((u-(v.cx-sd/2))/sd)*T,Y=u=>((u-(v.cy-sd/2))/sd)*T;g.strokeStyle="#4ad8ff";g.setLineDash([6,4]);g.lineWidth=1.5;
+    g.strokeRect(X(cr.x),Y(cr.y),cr.s/sd*T,cr.s/sd*T);g.setLineDash([]);}
+  $("alnStat").textContent=bi===ri?"this is the reference frame — go to another frame (▶ / slider) to align it":`frame ${bi+1}: shift ${Math.round(o.x*T)}, ${Math.round(o.y*T)} px · drag it, or arrow keys (Shift = 10 px)`;}
+{const _p=gifPlay;gifPlay=function(){const r=_p.apply(this,arguments);if(ALN.on){gifStop();alnDraw();}return r;};}
+function alnRefUI(){const sel=$("alnRef"),cur=alnRefIdx();sel.textContent="";GIF.base.forEach((b,i)=>{const o=document.createElement("option");o.value=i;o.textContent=`${i+1}. ${(GIF.ents[i]&&GIF.ents[i].rel)||""}`;sel.appendChild(o);});
+  if(GIF.base.length)sel.value=cur;}
+function alnUI(){const b=$("alnOn");b.setAttribute("aria-pressed",ALN.on);b.classList.toggle("primary",ALN.on);for(const el of document.querySelectorAll("#gifAlnBar .alnOpt"))el.style.display=ALN.on?"":"none";
+  if(!ALN.on){const n=GIF.ents.filter(alnOff).length;$("alnStat").textContent=n?`${n} frame${n>1?"s":""} shifted${ALN.crop?" · cropped to the common area":""}`:"align: off";}}
+function alnRefresh(full){if(!GIF.base.length)return;if(full){gifCompose();}gifPlay();if(typeof gifSelUI==="function"&&full){}}
+$("alnOn").addEventListener("click",()=>{if(!GIF.base.length){$("gifStatus").textContent="Make the GIF frames first (Make GIF), then align them.";return;}
+  ALN.on=!ALN.on;if(ALN.on){$("gifPause").setAttribute("aria-pressed","true");$("gifPause").textContent="▶ play";alnRefUI();
+    if(GIF.idx&&GIF.idx[GIF.k]===alnRefIdx()&&GIF.canv.length>1)GIF.k=(GIF.k+1)%GIF.canv.length;}
+  alnUI();gifCompose();gifPlay();});
+$("alnRef").addEventListener("change",()=>{ALN.ref=+$("alnRef").value;alnDraw();});
+$("alnOp").addEventListener("input",()=>{$("alnOpN").textContent=$("alnOp").value+" %";alnDraw();});
+$("alnDiff").addEventListener("change",alnDraw);
+$("alnCrop").addEventListener("change",()=>{ALN.crop=$("alnCrop").checked;gifCompose();gifPlay();alnUI();});
+$("alnRes1").addEventListener("click",()=>{const bi=GIF.idx?GIF.idx[GIF.k]:GIF.k;delete ALN.off[alnKey(GIF.ents[bi])];gifCompose();gifPlay();});
+$("alnResA").addEventListener("click",()=>{ALN.off={};gifCompose();gifPlay();alnUI();});
+{const cv=$("gifCv");
+  cv.addEventListener("pointerdown",e=>{if(!ALN.on||e.button!==0||!GIF.base.length)return;const bi=GIF.idx?GIF.idx[GIF.k]:GIF.k;if(bi===alnRefIdx())return;
+    e.stopImmediatePropagation();e.preventDefault();const k=alnKey(GIF.ents[bi]),o=ALN.off[k]||{x:0,y:0};ALN.drag={x:e.clientX,y:e.clientY,k,ox:o.x,oy:o.y,r:cv.getBoundingClientRect()};cv.setPointerCapture(e.pointerId);cv.style.cursor="move";},true);
+  cv.addEventListener("pointermove",e=>{const D=ALN.drag;if(!D)return;e.stopImmediatePropagation();const z=GIF.view.z;
+    ALN.off[D.k]={x:D.ox+(e.clientX-D.x)/D.r.width/z,y:D.oy+(e.clientY-D.y)/D.r.height/z};alnDraw();},true);
+  const up=e=>{if(!ALN.drag)return;e.stopImmediatePropagation();ALN.drag=null;cv.style.cursor="";gifCompose();gifPlay();};cv.addEventListener("pointerup",up,true);cv.addEventListener("pointercancel",up,true);
+  const pan=$("gifPanel");pan.addEventListener("mouseenter",()=>ALN.hover=true);pan.addEventListener("mouseleave",()=>ALN.hover=false);}
+let ALNT=0;
+window.addEventListener("keydown",e=>{if(!ALN.on||!ALN.hover||!/^Arrow/.test(e.key)||/INPUT|SELECT|TEXTAREA/.test((document.activeElement||{}).tagName||"")&&document.activeElement.type!=="range"&&document.activeElement.type!=="checkbox")return;
+  const bi=GIF.idx?GIF.idx[GIF.k]:GIF.k;if(bi===alnRefIdx())return;e.preventDefault();e.stopImmediatePropagation();const k=alnKey(GIF.ents[bi]),o=ALN.off[k]||{x:0,y:0},st=(e.shiftKey?10:1)/GIF.size;
+  ALN.off[k]={x:o.x+(e.key==="ArrowRight"?st:e.key==="ArrowLeft"?-st:0),y:o.y+(e.key==="ArrowDown"?st:e.key==="ArrowUp"?-st:0)};alnDraw();clearTimeout(ALNT);ALNT=setTimeout(()=>{gifCompose();gifPlay();},350);},true);
+/* phase correlation on 256 × 256 grey copies (Hann window) */
+function fft1(re,im,inv){const n=re.length;for(let i=1,j=0;i<n;i++){let b=n>>1;for(;j&b;b>>=1)j^=b;j^=b;if(i<j){let t=re[i];re[i]=re[j];re[j]=t;t=im[i];im[i]=im[j];im[j]=t;}}
+  for(let len=2;len<=n;len<<=1){const a=(inv?2:-2)*Math.PI/len,wr=Math.cos(a),wi=Math.sin(a);for(let i=0;i<n;i+=len){let cr=1,ci=0;for(let k=0;k<len/2;k++){const p=i+k,q=p+len/2,tr=re[q]*cr-im[q]*ci,ti=re[q]*ci+im[q]*cr;
+    re[q]=re[p]-tr;im[q]=im[p]-ti;re[p]+=tr;im[p]+=ti;const nr=cr*wr-ci*wi;ci=cr*wi+ci*wr;cr=nr;}}}}
+function fft2(re,im,N,inv){const r=new Float64Array(N),i=new Float64Array(N);for(let y=0;y<N;y++){for(let x=0;x<N;x++){r[x]=re[y*N+x];i[x]=im[y*N+x];}fft1(r,i,inv);for(let x=0;x<N;x++){re[y*N+x]=r[x];im[y*N+x]=i[x];}}
+  for(let x=0;x<N;x++){for(let y=0;y<N;y++){r[y]=re[y*N+x];i[y]=im[y*N+x];}fft1(r,i,inv);for(let y=0;y<N;y++){re[y*N+x]=r[y];im[y*N+x]=i[y];}}}
+function alnGrey(b,N){const c=document.createElement("canvas");c.width=N;c.height=N;const g=c.getContext("2d");g.imageSmoothingEnabled=true;g.imageSmoothingQuality="high";g.drawImage(b,0,0,N,N);
+  const d=g.getImageData(0,0,N,N).data,v=new Float64Array(N*N);let m=0;for(let i=0;i<N*N;i++){v[i]=d[4*i]+d[4*i+1]+d[4*i+2];m+=v[i];}m/=N*N;
+  for(let y=0;y<N;y++){const wy=0.5-0.5*Math.cos(2*Math.PI*y/(N-1));for(let x=0;x<N;x++)v[y*N+x]=(v[y*N+x]-m)*wy*(0.5-0.5*Math.cos(2*Math.PI*x/(N-1)));}return v;}
+function alnPhase(a,b){const N=256,ar=alnGrey(a,N),ai=new Float64Array(N*N),br=alnGrey(b,N),bi=new Float64Array(N*N);fft2(ar,ai,N,false);fft2(br,bi,N,false);
+  for(let i=0;i<N*N;i++){const r=ar[i]*br[i]+ai[i]*bi[i],im=ai[i]*br[i]-ar[i]*bi[i],m=Math.hypot(r,im)||1;ar[i]=r/m;ai[i]=im/m;}fft2(ar,ai,N,true);
+  let best=-Infinity,bx=0,by=0;for(let i=0;i<N*N;i++)if(ar[i]>best){best=ar[i];bx=i%N;by=(i/N)|0;}
+  const at=(x,y)=>ar[((y+N)%N)*N+((x+N)%N)],sub=(m,c,p)=>{const d=m-2*c+p;return d?0.5*(m-p)/d:0;};
+  let dx=bx+sub(at(bx-1,by),at(bx,by),at(bx+1,by)),dy=by+sub(at(bx,by-1),at(bx,by),at(bx,by+1));if(dx>N/2)dx-=N;if(dy>N/2)dy-=N;return {x:dx/N,y:dy/N};}
+$("alnAuto").addEventListener("click",async()=>{if(!GIF.base.length)return;const ri=alnRefIdx(),ro=ALN.off[alnKey(GIF.ents[ri])]||{x:0,y:0},L=alnSelIdx().filter(i=>i!==ri);
+  for(let n=0;n<L.length;n++){const i=L[n];$("alnStat").textContent=`auto-align ${n+1} / ${L.length}…`;await new Promise(r=>setTimeout(r,0));
+    const d=alnPhase(GIF.base[ri],GIF.base[i]);ALN.off[alnKey(GIF.ents[i])]={x:d.x+ro.x,y:d.y+ro.y};}
+  gifCompose();gifPlay();if(!ALN.on)alnUI();else alnDraw();cpToast(`${L.length} frame${L.length>1?"s":""} aligned to frame ${ri+1} — check each one and drag to fine-tune`);});
+/* new frames: keep the shifts (by file), refresh the reference list */
+{const _b=gifBuild;gifBuild=async function(){const r=await _b.apply(this,arguments);try{if(ALN.ref>=GIF.base.length)ALN.ref=-1;alnRefUI();alnUI();if(ALN.on)alnDraw();}catch(e){}return r;};}
+alnUI();
+
+/* pressure unit of the log plots: the unit written in the file, or converted to Pa / mbar / Torr */
+const LP_PA={pa:1,hpa:100,kpa:1000,mbar:100,bar:1e5,torr:133.322,mtorr:0.133322,psi:6894.76};
+function lpUnitName(u){return $("lpUnit").value||(u||"Pa");}
+function lpFac(u){const to=$("lpUnit").value;if(!to)return 1;const a=LP_PA[String(u||"Pa").toLowerCase().replace(/\s/g,"")],b=LP_PA[to.toLowerCase()];return a&&b?a/b:1;}
+$("lpUnit").addEventListener("change",lpDraw);
+
+/* ===== moved peak / CIF labels keep their place relative to the peaks when you zoom: the sideways shift is stored with the x range it was
+   made at and scales with the zoom (zoom in → spreads out, zoom out → closes up); the up / down shift stays as it is ===== */
+{const RX=/^(cl:|pk:)/;
+  const geomOf=k=>k==="pk"?(typeof chartGeom!=="undefined"?chartGeom:null):k==="cmp"?(typeof cmpGeom!=="undefined"?cmpGeom:null):null;
+  const span=k=>{const g=geomOf(k);return g&&isFinite(g.hi-g.lo)&&g.hi>g.lo?{s:g.hi-g.lo,m:g.mode||""}:null;};
+  const mk=(k,raw)=>new Proxy(raw||{},{
+    get(t,n){const v=t[n];if(typeof n!=="string"||!Array.isArray(v)||!RX.test(n)||!(v[2]>0))return v;const c=span(k);
+      const a=[c&&c.m===(v[3]||"")?v[0]*v[2]/c.s:v[0],v[1]];a.toJSON=()=>v.slice();return a;},
+    set(t,n,val){if(typeof n==="string"&&RX.test(n)&&Array.isArray(val)){const c=span(k);t[n]=c?[val[0],val[1],c.s,c.m]:[val[0],val[1]];}else t[n]=val;return true;}});
+  for(const k of ["pk","cmp"]){if(!TXT[k])continue;let P=mk(k,TXT[k].off);Object.defineProperty(TXT[k],"off",{get(){return P;},set(v){P=mk(k,v&&typeof v==="object"?v:{});},enumerable:true,configurable:true});}}
+
+{const st=document.createElement("style");st.textContent="@keyframes brNew{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 45%,transparent)}}#brShow.brNew{animation:brNew .7s ease-in-out 3;border-color:var(--accent)}";document.head.appendChild(st);}
+
+/* ===== 3D view: for every hkl, an animated line between two neighbouring planes (along the plane normal) with “(hkl) d = … Å” ===== */
+function v3DLines(ctx,P,dpr,O){const {toC,n}=V3.cell,PL=v3HklList();if(!PL.length)return;
+  const o=toC([0,0,0]),va=toC([1,0,0]).map((v,i)=>v-o[i]),vb=toC([0,1,0]).map((v,i)=>v-o[i]),vc=toC([0,0,1]).map((v,i)=>v-o[i]);
+  const cr=(u,v)=>[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]],dt=(u,v)=>u[0]*v[0]+u[1]*v[1]+u[2]*v[2],V=dt(va,cr(vb,vc));if(!V)return;
+  const as=cr(vb,vc).map(x=>x/V),bs=cr(vc,va).map(x=>x/V),cs=cr(va,vb).map(x=>x/V);
+  const ph=O.still?0.35:((performance.now()/1600)%1),fc=n.map(x=>x/2),Cc=toC(fc),placed=[];
+  PL.forEach(([h,k,l],pi)=>{const G=[0,1,2].map(i=>h*as[i]+k*bs[i]+l*cs[i]),gl=Math.hypot(...G);if(!gl)return;const d=1/gl,nh=G.map(x=>x/gl);
+    const hf=h*fc[0]+k*fc[1]+l*fc[2],m0=Math.floor(hf+1e-9),back=(hf-m0)*d;
+    const p0=Cc.map((v,i)=>v-back*nh[i]),p1=p0.map((v,i)=>v+d*nh[i]);
+    /* toC gives cartesian from fractional; P takes cartesian */
+    const s0=P(p0),s1=P(p1),col=(typeof V3_PCOL!=="undefined"?V3_PCOL[pi%V3_PCOL.length]:"#ffd84a");
+    const dx=s1[0]-s0[0],dy=s1[1]-s0[1],L=Math.hypot(dx,dy),ux=L?dx/L:1,uy=L?dy/L:0,px=-uy,py=ux,tk=7*dpr;ctx.save();ctx.lineCap="round";
+    /* outline + colour so it reads on atoms and planes, in light and dark */
+    const seg=(w,c,dash,off)=>{ctx.strokeStyle=c;ctx.lineWidth=w;ctx.setLineDash(dash||[]);ctx.lineDashOffset=off||0;ctx.beginPath();ctx.moveTo(s0[0],s0[1]);ctx.lineTo(s1[0],s1[1]);ctx.stroke();};
+    seg(6*dpr,"rgba(0,0,0,.65)");seg(3*dpr,"#fff");seg(3*dpr,col,[6*dpr,5*dpr],-ph*22*dpr);ctx.setLineDash([]);
+    for(const s of [s0,s1]){ctx.strokeStyle="rgba(0,0,0,.65)";ctx.lineWidth=5*dpr;ctx.beginPath();ctx.moveTo(s[0]-px*tk,s[1]-py*tk);ctx.lineTo(s[0]+px*tk,s[1]+py*tk);ctx.stroke();
+      ctx.strokeStyle=col;ctx.lineWidth=2.5*dpr;ctx.beginPath();ctx.moveTo(s[0]-px*tk,s[1]-py*tk);ctx.lineTo(s[0]+px*tk,s[1]+py*tk);ctx.stroke();}
+    /* arrow heads, and a dot travelling from one plane to the next */
+    if(L>14*dpr)for(const [s,sg] of [[s0,1],[s1,-1]]){const a=6*dpr;ctx.fillStyle=col;ctx.strokeStyle="rgba(0,0,0,.65)";ctx.lineWidth=1.2*dpr;ctx.beginPath();ctx.moveTo(s[0],s[1]);
+      ctx.lineTo(s[0]+sg*ux*a*1.6+px*a*0.8,s[1]+sg*uy*a*1.6+py*a*0.8);ctx.lineTo(s[0]+sg*ux*a*1.6-px*a*0.8,s[1]+sg*uy*a*1.6-py*a*0.8);ctx.closePath();ctx.fill();ctx.stroke();}
+    const tt=0.5-0.5*Math.cos(2*Math.PI*ph),bx=s0[0]+dx*tt,by=s0[1]+dy*tt;ctx.fillStyle="#fff";ctx.strokeStyle=col;ctx.lineWidth=2*dpr;ctx.beginPath();ctx.arc(bx,by,4*dpr,0,7);ctx.fill();ctx.stroke();
+    /* label beside the middle of the line, always upright */
+    const fs=12*dpr,t=`(${h} ${k} ${l})  d = ${d.toFixed(3)} Å`+(L<10*dpr?"  · seen along the normal":"");ctx.font=`600 ${fs}px "IBM Plex Mono",monospace`;const tw=ctx.measureText(t).width;
+    const mx=(s0[0]+s1[0])/2+px*16*dpr,my=(s0[1]+s1[1])/2+py*16*dpr,lx=Math.max(4*dpr,Math.min(ctx.canvas.width-tw-12*dpr,mx-(px<0?tw+8*dpr:0))),bw=tw+12*dpr,bh=fs+8*dpr;let ly=Math.max(4*dpr,Math.min(ctx.canvas.height-fs-10*dpr,my-fs/2-4*dpr));
+    for(let g=0;g<12&&placed.some(r=>lx<r[0]+r[2]&&lx+bw>r[0]&&ly<r[1]+r[3]+2*dpr&&ly+bh+2*dpr>r[1]);g++)ly+=bh+3*dpr;placed.push([lx,ly,bw,bh]);
+    ctx.fillStyle="rgba(0,0,0,.72)";ctx.fillRect(lx,ly,tw+12*dpr,fs+8*dpr);ctx.fillStyle=col;ctx.fillRect(lx,ly,3*dpr,fs+8*dpr);ctx.fillStyle="#fff";ctx.textAlign="left";ctx.textBaseline="top";ctx.fillText(t,lx+7*dpr,ly+4*dpr);
+    ctx.restore();});}
+$("v3dOn").addEventListener("change",()=>v3Draw());
+/* keep the line moving while it is shown (about 25 frames / s, only when the 3D view is on screen) */
+{let last=0,vis=true;const cvv=typeof cv3!=="undefined"?cv3:null;if(cvv&&"IntersectionObserver" in window)new IntersectionObserver(es=>{vis=es[0].isIntersecting;}).observe(cvv);
+  const tick=t=>{requestAnimationFrame(tick);if(t-last<40||!vis||document.hidden)return;last=t;
+    try{if($("v3on").checked&&$("v3hklOn").checked&&$("v3dOn").checked&&V3.ph&&v3HklList().length&&!(typeof V3!=="undefined"&&V3.drag))v3Draw();}catch(e){}};requestAnimationFrame(tick);}
+
+/* ===== header: where the notes file is (folder / file name) and when it was last read or saved ===== */
+function nlocSet(state){const el=$("hdNotesLoc");if(!el)return;if(!BR.dir){el.textContent="notes file: — (browse a folder)";el.title="Browse an image folder: its notes file is kept in that folder";return;}
+  const where=`${BR.dir} / ${notesName()}`,t=new Date().toLocaleTimeString();
+  const msg={none:"not created yet — written when you add notes",read:"loaded",saved:"saved "+t,nofs:"this browser cannot write into the folder — use 💾 save notes"}[state]||"";
+  el.textContent=`📄 ${where}`+(msg?` · ${msg}`:"");el.title=`Notes file: “${notesName()}” in the image folder “${BR.dir}” (the folder you chose with Browse folder${BR.handle?"":"; read-only here"}).\nThe browser only knows the folder name, not the full path on the disk.`+(msg?"\n"+msg:"");}
+{const _w=notesWrite;notesWrite=async function(){const r=await _w.apply(this,arguments);try{if(/auto-saved|saved/.test($("brTitle").textContent))nlocSet("saved");}catch(e){}return r;};}
+{const _f=notesFromFolder;notesFromFolder=async function(gen){const h=BR.handle;nlocSet(h?"none":"nofs");if(h){try{await h.getFileHandle(notesName());nlocSet("read");}catch(e){}}return _f.apply(this,arguments);};}
+nlocSet();
+
+/* ===== theme controls at the top right of the page (on the line of the welcome note); more preset themes ===== */
+{const tb=document.querySelector(".themeBox"),w=$("welcome");if(tb){const row=document.createElement("div");row.id="topRow";row.style.cssText="display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:2rem";
+  (w||document.querySelector("header.top")).before(row);if(w)row.appendChild(w);tb.style.marginLeft="auto";row.appendChild(tb);}}
+TH_PRESETS.push(
+  ["Ocean",{mode:"light",acc:"#1565c0",bg:"#eaf2fb",panel:"#ffffff",ink:"#13263b"}],
+  ["Forest",{mode:"light",acc:"#2f7d4f",bg:"#eef3ee",panel:"#ffffff",ink:"#1d2b22"}],
+  ["Lavender",{mode:"light",acc:"#7b4fd6",bg:"#f4f1fb",panel:"#ffffff",ink:"#241c38"}],
+  ["Rose",{mode:"light",acc:"#c2185b",bg:"#fbf3f5",panel:"#ffffff",ink:"#2d1a21"}],
+  ["Sand",{mode:"light",acc:"#a0670f",bg:"#f5efe3",panel:"#fffaf1",ink:"#33281a"}],
+  ["Slate",{mode:"light",acc:"#475569",bg:"#f1f5f9",panel:"#ffffff",ink:"#0f172a"}],
+  ["Print (black on white)",{mode:"light",acc:"#000000",bg:"#ffffff",panel:"#ffffff",ink:"#000000"}],
+  ["Solar dark",{mode:"dark",acc:"#2aa198",bg:"#002b36",panel:"#073642",ink:"#c5d1d3"}],
+  ["Dracula",{mode:"dark",acc:"#bd93f9",bg:"#282a36",panel:"#343746",ink:"#f8f8f2"}],
+  ["Deep ocean",{mode:"dark",acc:"#4fc3f7",bg:"#0b1b2b",panel:"#12263a",ink:"#e3eef7"}],
+  ["Forest night",{mode:"dark",acc:"#6fcf97",bg:"#111a14",panel:"#19241d",ink:"#e4ece6"}],
+  ["Mono dark",{mode:"dark",acc:"#e0e0e0",bg:"#121212",panel:"#1e1e1e",ink:"#eeeeee"}]);
+thPresetUI($("thPreset").value);
+
+/* ===== per-box “save as default”: ↺ defaults then goes back to YOUR saved settings of that box (Shift + click ↺ = the app's own defaults);
+   the saved box defaults are also written into the notes file (with the plot layout). The centre / circles / display / calibration box has no defaults button. ===== */
+{const cb=document.querySelector(".panel.ctrls > .boxDef");if(cb)cb.remove();}
+const BOXDEF=(()=>{try{return JSON.parse(localStorage.getItem("boxdef-"+SETK)||"{}")||{};}catch(e){return {};}})();
+const BOXSEL=["#pkPanel","#cmpPanel","#tmPanel","#rsPanel","#gifPanel","#phasePanel","#v3Panel",".logBox"];
+function boxdefSave(){try{localStorage.setItem("boxdef-"+SETK,JSON.stringify(BOXDEF));}catch(e){}}
+function boxKey(box){return BOXSEL.find(s=>box.matches(s))||box.id||"";}
+function boxGet(box){const o={};for(const e of box.querySelectorAll("input,select")){if(BOX_SKIP(e)||!e.id)continue;o[e.id]=e.type==="checkbox"||e.type==="radio"?!!e.checked:e.value;}return o;}
+function boxPut(box,o){const ch=[];for(const e of box.querySelectorAll("input,select")){if(BOX_SKIP(e)||!e.id||!(e.id in o))continue;const v=o[e.id];
+    if(e.type==="checkbox"||e.type==="radio"){if(e.checked!==!!v){e.checked=!!v;ch.push(e);}}else if(e.value!==String(v)){e.value=String(v);if(e.value===String(v))ch.push(e);}}
+  for(const e of ch){e.dispatchEvent(new Event("input",{bubbles:true}));e.dispatchEvent(new Event("change",{bubbles:true}));}return ch.length;}
+let BOXFACT=false;
+{const _d=boxDefaults;boxDefaults=function(box,k){const key=boxKey(box);if(!BOXFACT&&BOXDEF[key])return boxPut(box,BOXDEF[key]);return _d.apply(this,arguments);};}
+for(const b of document.querySelectorAll(".boxDef")){const box=BOXSEL.map(s=>b.closest(s)).find(Boolean);if(!box)continue;const key=boxKey(box);
+  b.title="Back to your saved default settings of this box (💾 set as default); Shift + click = the app's own defaults. Your notes, labels and lines are kept";
+  b.addEventListener("click",e=>{BOXFACT=!!e.shiftKey;setTimeout(()=>{BOXFACT=false;},0);},true);
+  const s=document.createElement("button");s.className="boxDefSave";s.textContent="💾 set as default";s.style.padding="2px 8px";
+  const ui=()=>{s.classList.toggle("primary",!!BOXDEF[key]);s.title=(BOXDEF[key]?"Your default for this box is saved — click to replace it with the current settings; Shift + click forgets it":"Save the current settings of this box as its default (used by ↺ defaults and kept in the notes file)");};ui();
+  s.addEventListener("click",e=>{e.stopPropagation();if(e.shiftKey){delete BOXDEF[key];boxdefSave();ui();cpToast("Saved default of this box forgotten — ↺ defaults uses the app's defaults");}
+    else{BOXDEF[key]=boxGet(box);boxdefSave();ui();cpToast(`Saved as the default of this box (${Object.keys(BOXDEF[key]).length} settings)`);}
+    if(typeof notesAuto==="function")try{notesAuto();}catch(err){}if(typeof isnAuto==="function")try{isnAuto();}catch(err){}});
+  b.after(s);s.ui=ui;}
+/* into / from the notes file, with the plot layout */
+{const _g=layoutGet;layoutGet=function(){const o=_g.apply(this,arguments)||{};if(Object.keys(BOXDEF).length)o.boxdef=BOXDEF;return o;};}
+{const _s=layoutSet;layoutSet=function(o){if(o&&o.boxdef&&typeof o.boxdef==="object"){for(const k in o.boxdef)BOXDEF[k]=o.boxdef[k];boxdefSave();document.querySelectorAll(".boxDefSave").forEach(b=>b.ui&&b.ui());}return _s.apply(this,arguments);};}
+
+/* ===== app name on the left of the top line (with the theme controls on the right) ===== */
+{const row=$("topRow"),br=document.querySelector("header.top .brand");if(row&&br){row.insertBefore(br,row.firstChild);br.style.flexWrap="wrap";br.style.rowGap="2px";
+  const h=br.querySelector("h1");if(h){h.style.fontSize="clamp(1.15rem,1.6vw,1.5rem)";h.style.margin="0";h.style.whiteSpace="nowrap";}
+  const hd=document.querySelector("header.top");if(hd&&![...hd.children].some(c=>!c.hidden&&getComputedStyle(c).display!=="none"))hd.style.display="none";}}
+
+/* ===== top line: app name left · “Welcome Back Praneeth” centre (blinking until a file is opened) · theme right ===== */
+{const row=$("topRow"),w=$("welcome"),br=row&&row.querySelector(".brand"),tb=row&&row.querySelector(".themeBox");
+  if(row){row.style.display="grid";row.style.gridTemplateColumns="1fr auto 1fr";row.style.alignItems="center";row.style.columnGap="16px";
+    if(br){br.style.gridColumn="1";br.style.justifySelf="start";}if(w){w.style.gridColumn="2";w.style.justifySelf="center";w.style.gridRow="1";}if(tb){tb.style.gridColumn="3";tb.style.justifySelf="end";tb.style.marginLeft="0";}
+    if(br)br.style.gridRow="1";if(tb)tb.style.gridRow="1";}
+  const st=document.createElement("style");st.textContent="@keyframes wcBlink{0%,100%{opacity:1;box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 0%,transparent)}50%{opacity:.45;box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 25%,transparent)}}#welcome:not([hidden]){animation:wcBlink 1.4s ease-in-out infinite}@media (max-width:1100px){#topRow{grid-template-columns:1fr auto!important}#topRow .themeBox{grid-column:1 / -1!important;grid-row:2!important;justify-self:end}}";document.head.appendChild(st);
+  /* any file you open (images, logs, CIFs, notes…) stops it */
+  document.addEventListener("change",e=>{const t=e.target;if(t&&t.type==="file"&&t.files&&t.files.length)welcomeHide();},true);}
+
+/* ===== ↺ defaults + 💾 set as default: always at the top right of their box, the same in every box and in both apps ===== */
+{const st=document.createElement("style");st.textContent=".boxDefGrp{position:absolute;top:8px;right:10px;z-index:3;display:flex;gap:6px;align-items:center}.boxDefGrp button{padding:2px 8px!important;font-size:.78rem}";document.head.appendChild(st);
+  const GR=[];
+  for(const b of [...document.querySelectorAll(".boxDef")]){const box=BOXSEL.map(s=>b.closest(s)).find(Boolean);if(!box||box.querySelector(":scope > .boxDefGrp"))continue;
+    const s=b.nextElementSibling&&b.nextElementSibling.classList.contains("boxDefSave")?b.nextElementSibling:null;const g=document.createElement("span");g.className="boxDefGrp";
+    b.style.marginLeft="";g.append(b);if(s)g.append(s);if(getComputedStyle(box).position==="static")box.style.position="relative";box.appendChild(g);GR.push([box,g]);}
+  /* keep the box's first row clear of the buttons */
+  const pad=()=>{for(const [box,g] of GR){const first=box.matches(".logBox")?box.querySelector(".logTtl"):box.querySelector(".chartbar");if(!first)continue;first.style.paddingRight=(g.offsetWidth?g.offsetWidth+14:0)+"px";}};
+  pad();window.addEventListener("resize",()=>{clearTimeout(pad.t);pad.t=setTimeout(pad,100);});setTimeout(pad,300);}
+
+/* the box's first row always keeps room for ↺ defaults / 💾 set as default (re-measured when a box opens, closes or resizes) */
+{const fit=g=>{const box=g.parentElement,first=box.matches(".logBox")?box.querySelector(".logTtl"):box.querySelector(".chartbar");if(first&&g.offsetWidth)first.style.paddingRight=(g.offsetWidth+14)+"px";};
+  if("ResizeObserver" in window){const ro=new ResizeObserver(es=>{for(const e of es){const g=e.target.classList.contains("boxDefGrp")?e.target:e.target.querySelector(":scope > .boxDefGrp");if(g)fit(g);}});
+    document.querySelectorAll(".boxDefGrp").forEach(g=>{ro.observe(g);ro.observe(g.parentElement);});}
+  document.querySelectorAll(".boxDefGrp").forEach(fit);}
+/* top line: app name, then “Welcome Back Praneeth” right next to it, theme at the right */
+{const row=$("topRow");if(row){row.style.gridTemplateColumns="auto auto 1fr";const w=$("welcome");if(w){w.style.justifySelf="start";w.style.marginLeft="6px";}}}
+
+{const st=document.createElement("style");st.textContent="@keyframes rsPend{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 40%,transparent)}}#rsGo.rsPend{animation:rsPend 1s ease-in-out infinite}";document.head.appendChild(st);
+  $("rsGo").addEventListener("click",()=>$("rsGo").classList.remove("rsPend"));}
 </script>
 
 </body></html>
