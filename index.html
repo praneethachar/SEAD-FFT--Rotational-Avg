@@ -222,14 +222,14 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
     </div>
     <div class="lpBox" id="lpBox" hidden>
       <div class="lpBar"><b class="lpTtl">Logs vs time of day</b>
-        <span class="row2" id="lpTOpts"><label><input id="lpTset" type="checkbox" checked> T set</label><label><input id="lpTmeas" type="checkbox" checked> T measured</label></span>
+        <span class="row2" id="lpXOpts" title="Other columns of the temperature log: each ticked one gets its own plot"></span><span class="row2" id="lpTOpts"><label><input id="lpTset" type="checkbox" checked> T set</label><label><input id="lpTmeas" type="checkbox" checked> T measured</label></span>
         <span class="row2" id="lpMC" title="Which pressure gauges to plot"></span><label id="lpLogL" title="Logarithmic pressure axis"><input id="lpLog" type="checkbox" checked> log p</label><label id="lpUnitL" class="row2" title="Pressure unit of the plots. “as in file” uses the unit written in the pressure log; the others convert from it">unit <select id="lpUnit" style="width:auto"><option value="">as in file</option><option value="Pa">Pa</option><option value="mbar">mbar</option><option value="Torr">Torr</option></select></label>
-        <label title="Mark the acquisition time of every image of the browsed folder (the open image in bold); click a mark to open that image"><input id="lpImg" type="checkbox" checked> image times</label>
+        <label title="Mark the acquisition time of every image of the browsed folder: ▼ coloured = in the comparison (its profile colour), grey tick = in the folder, bold accent line = the open image. Click a mark to open that image"><input id="lpImg" type="checkbox" checked> image times</label><button id="lpPick" aria-pressed="false" title="Select images on the plot: click a mark to select / unselect it, drag across a time range to select every image in it (Alt + drag unselects). Ctrl + click / Ctrl + drag also selects without this button">☑ select images</button><span class="row2" id="lpSelBar" hidden style="gap:6px"><span class="keys" id="lpSelN"></span><button id="lpAddCmp" class="primary" title="Add the selected images to the comparison (their profiles are computed)">➕ add to comparison</button><button id="lpSelClr" title="Clear the selection">✕</button></span>
         <span class="row2" title="Time interval shown (time of day); type a time or drag over the plot"><input id="lpFrom" type="time" step="1"><span class="keys">–</span><input id="lpTo" type="time" step="1"></span>
         <button id="lpFit" title="Zoom to the time span of the images">⇔ images</button><button id="lpCur" title="Centre on the open image (±5 min)">◎ this image</button><button id="lpAll" title="Whole log (or double-click the plot)">↺ full</button>
         <button id="lpCopy" title="Copy the plots to the clipboard">📋</button><button id="lpSave" title="Save the plots as PNG">💾</button><button id="lpClose" title="Close the plots">✕</button></div>
-      <canvas id="lpT" class="lpCv"></canvas><div id="lpPs" style="display:flex;flex-direction:column;gap:4px"></div>
-      <div class="keys lpHelp">click the plot, then wheel = zoom time · drag = zoom to that interval · Shift-drag or right-drag = pan · double-click = whole log · click an image mark = open it</div>
+      <canvas id="lpT" class="lpCv"></canvas><div id="lpXs" style="display:flex;flex-direction:column;gap:4px"></div><div id="lpPs" style="display:flex;flex-direction:column;gap:4px"></div>
+      <div class="keys lpHelp">click the plot, then wheel = zoom time · drag = zoom to that interval · Shift-drag or right-drag = pan · double-click = whole log · click an image mark = open it · ☑ select images (or Ctrl + click / drag) = pick images to add to the comparison · marks: ▼ in the comparison · ┃ open image · ╵ folder image · ◆ selected</div>
     </div>
       <div class="fileinfo" id="fileinfo"></div>
 </header>
@@ -538,8 +538,11 @@ function txtWith(k,fn,exp){const prev=TXT_CUR;TXT_CUR=Object.assign({key:k,exp:!
 function plotLm(ctx,dpr,ticks){ctx.save();ctx.font=`${11*dpr}px "IBM Plex Mono",monospace`;let w=0;for(const t of ticks)w=Math.max(w,ctx.measureText(t).width);ctx.restore();
   return Math.max(30*dpr,6*dpr+12*dpr*TSc()*1.2+(ticks.length?8*dpr+w+6*dpr:6*dpr));}
 const plotB=dpr=>8*dpr+(11+12)*dpr*TSc()*1.2+8*dpr;
-function mvB(ctx,dpr,name,box,fn){const c=TXT_CUR,o=(c&&c.off&&c.off[name])||[0,0],dx=o[0]*dpr,dy=o[1]*dpr,f=(c&&c.sz&&c.sz[name])||1;
+function mvB(ctx,dpr,name,box,fn){const c=TXT_CUR,o=(c&&c.off&&c.off[name])||[0,0],f=(c&&c.sz&&c.sz[name])||1;let dx=o[0]*dpr,dy=o[1]*dpr;
   let ax=0,ay=0;if(box){if(name==="xt"||name==="yt"||name==="xtk"||name==="ytk"){ax=(box[0]+box[2])/2;ay=(box[1]+box[3])/2;}else if(name==="lg"){ax=box[2];ay=box[1];}else{ax=box[0];ay=box[1];}}
+  /* a moved text never leaves the canvas (e.g. on a smaller screen or another monitor): it is pushed back to the nearest edge */
+  if(box&&(dx||dy)&&ctx&&ctx.canvas){const Wc=ctx.canvas.width,Hc=ctx.canvas.height,m=2*dpr,x0=ax+(box[0]-ax)*f+dx,x1=ax+(box[2]-ax)*f+dx,y0=ay+(box[1]-ay)*f+dy,y1=ay+(box[3]-ay)*f+dy;
+    if(x1-x0<Wc-2*m){if(x0<m)dx+=m-x0;else if(x1>Wc-m)dx-=x1-(Wc-m);}if(y1-y0<Hc-2*m){if(y0<m)dy+=m-y0;else if(y1>Hc-m)dy-=y1-(Hc-m);}}
   const hit=(c&&!c.exp&&box&&HITS[c.key])?{name,n:0,txt:"",x0:ax+(box[0]-ax)*f+dx,y0:ay+(box[1]-ay)*f+dy,x1:ax+(box[2]-ax)*f+dx,y1:ay+(box[3]-ay)*f+dy}:null;if(hit)HITS[c.key].push(hit);
   const run=()=>{ctx.save();ctx.translate(dx,dy);if(f!==1){ctx.translate(ax,ay);ctx.scale(f,f);ctx.translate(-ax,-ay);}
     const pN=MVB.name,pC=MVB.n,pF=MVB.first;MVB.depth++;MVB.name=name;MVB.n=0;MVB.first="";try{fn();}finally{ctx.restore();MVB.depth--;if(hit){hit.n=MVB.n;hit.txt=MVB.first;}MVB.name=pN;MVB.n=pC;MVB.first=pF;}};
@@ -2064,11 +2067,15 @@ async function loadTempLog(f){const st=$("tStatus");st.textContent="Reading "+f.
     const H=T.rows[hi].map(c=>String(c||""));const find=re=>H.findIndex(h=>re.test(h));
     const it=find(/time|zeit|date/i),is=find(/t\s*set|set\s*t|soll/i),im=find(/t\s*meas|meas|ist\b/i);
     if(it<0||(is<0&&im<0))throw new Error("could not find the Time / T set / T measured columns");
+    const xc=H.map((h,i)=>({h:h.trim(),i})).filter(o=>o.h&&o.i!==it&&o.i!==is&&o.i!==im),XV=xc.map(()=>[]);
     const ts=[],sv=[],mv=[];for(const r of T.rows.slice(hi+1)){if(!r)continue;const tv=r[it];const ms=typeof tv==="number"?T.serialToMs(tv):acqToMs(tv);if(!isFinite(ms))continue;
-      const num=v=>typeof v==="number"?v:NaN;ts.push(ms);sv.push(is>=0?num(r[is]):NaN);mv.push(im>=0?num(r[im]):NaN);}
+      const num=v=>typeof v==="number"?v:(typeof v==="string"&&/^\s*[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?\s*$/i.test(v)?+v:NaN);ts.push(ms);sv.push(is>=0?num(r[is]):NaN);mv.push(im>=0?num(r[im]):NaN);xc.forEach((c,k)=>XV[k].push(num(r[c.i])));}
     if(!ts.length)throw new Error("no time stamps found");
     const o=ts.map((_,i)=>i).sort((a,b)=>ts[a]-ts[b]);
-    S.tlog={name:f.name,t:Float64Array.from(o.map(i=>ts[i])),set:Float32Array.from(o.map(i=>sv[i])),meas:Float32Array.from(o.map(i=>mv[i])),hSet:is>=0?H[is]:"",hMeas:im>=0?H[im]:""};
+    const xk=xc.map((c,k)=>XV[k].some(isFinite)&&XV[k].some(v=>isFinite(v)&&v!==0)?k:-1).filter(k=>k>=0);
+    const nameU=h=>{const m=h.match(/^(.*?)\s*[\[(](.*?)[\])}]\s*$/);if(m&&m[1])return {name:m[1].trim(),unit:m[2].trim()};return /^(mA|A|mV|V|mW|W|Ohm|Ω|Pa|mbar|°C|K|set V|set A)$/i.test(h)?{name:h,unit:h.replace(/^set\s+/i,"")}:{name:h,unit:""};};
+    S.tlog={name:f.name,t:Float64Array.from(o.map(i=>ts[i])),set:Float32Array.from(o.map(i=>sv[i])),meas:Float32Array.from(o.map(i=>mv[i])),hSet:is>=0?H[is]:"",hMeas:im>=0?H[im]:"",
+      extra:xk.map(k=>({...nameU(xc[k].h.replace(/\{|\}/g,m=>m==="{"?"[":"]")),v:Float64Array.from(o.map(i=>XV[k][i]))}))};
     tempShow();}
   catch(err){st.textContent="Could not read the log: "+err.message;}}
 const fmtWall=ms=>{const d=new Date(ms);const p=n=>String(n).padStart(2,"0");return `${d.getUTCFullYear()}-${p(d.getUTCMonth()+1)}-${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())}`;};
@@ -3501,7 +3508,8 @@ function lpImgs(){const out=[],cur=acqToMs(S.acqStr||(S.real&&S.real.acq)||"");
   for(const it of (typeof BR!=="undefined"&&BR.items)||[]){const t=acqToMs(it.acq);if(isFinite(t))out.push({t,it,cur:isFinite(cur)&&Math.abs(t-cur)<500,name:it.rel});}
   if(isFinite(cur)&&!out.some(o=>o.cur))out.push({t:cur,it:null,cur:true,name:S.name||"open image"});return out;}
 function lpIdx(T,x){let lo=0,hi=T.length-1;if(hi<0)return -1;if(x<=T[0])return 0;if(x>=T[hi])return hi;while(hi-lo>1){const m=(lo+hi)>>1;if(T[m]<x)lo=m;else hi=m;}return x-T[lo]<=T[hi]-x?lo:hi;}
-function lpSeries(kind){if(kind==="t"){const L=S.tlog;if(!L)return [];const r=[];
+function lpSeries(kind){if(kind[0]==="x"){const L=S.tlog,i=+kind.slice(1),c=L&&L.extra&&L.extra[i];if(!c)return [];const C=["#8e44ad","#16a37f","#c27c0e","#2a7de1","#d6336c","#0aa2c0","#6b7a00"];return [{name:c.name,unit:c.unit,t:L.t,v:c.v,col:C[i%C.length],dash:[]}];}
+  if(kind==="t"){const L=S.tlog;if(!L)return [];const r=[];
     if($("lpTmeas").checked)r.push({name:"T measured",t:L.t,v:L.meas,col:"#e0533d",dash:[]});if($("lpTset").checked)r.push({name:"T set",t:L.t,v:L.set,col:"#8a94a6",dash:[6,4]});return r;}
   const P=S.plog;if(!P)return [];const C=["#2a7de1","#16a37f","#c27c0e","#9b59b6","#d6336c","#0aa2c0"];
   const gi=+String(kind).slice(1);return P.cols.map((c,i)=>({name:c.name,unit:c.unit,t:P.t,v:c.v,col:C[i%C.length],dash:[],i})).filter(x=>x.i===gi);}
@@ -3527,12 +3535,10 @@ function lpDrawOne(cv,kind,ctx0,G0){const css=getComputedStyle(document.document
   ctx.strokeStyle=mut;ctx.strokeRect(G.L+.5,G.T+.5,pw-1,ph-1);
   /* axis title */
   ctx.save();ctx.translate(13,G.T+ph/2);ctx.rotate(-Math.PI/2);ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle=ink;ctx.font='600 11px "IBM Plex Mono",monospace';
-  const unit=kind==="t"?"°C":lpUnitName(ser[0]&&ser[0].unit);ctx.fillText(kind==="t"?`T (${unit})`:`${(ser[0]&&ser[0].name)||"p"} (${unit})`,0,0);ctx.restore();
+  const unit=kind==="t"?"°C":kind[0]==="x"?((ser[0]&&ser[0].unit)||""):lpUnitName(ser[0]&&ser[0].unit);ctx.fillText(kind==="t"?`T (${unit})`:`${(ser[0]&&ser[0].name)||"p"}`+(unit&&unit!==(ser[0]&&ser[0].name)?` (${unit})`:""),0,0);ctx.restore();
   ctx.save();ctx.beginPath();ctx.rect(G.L,G.T,pw,ph);ctx.clip();
   /* image marks */
-  if($("lpImg").checked){const off=(+$(kind==="t"?"tOff":"pOff").value||0)*1000;for(const m of lpImgs()){const x=X(m.t+off);if(x<G.L-2||x>G.L+pw+2)continue;
-    ctx.strokeStyle=acc;ctx.globalAlpha=m.cur?1:.35;ctx.lineWidth=m.cur?2.2:1;ctx.setLineDash(m.cur?[]:[3,3]);ctx.beginPath();ctx.moveTo(x,G.T);ctx.lineTo(x,G.T+ph);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;ctx.lineWidth=1;
-    if(m.cur){ctx.fillStyle=acc;ctx.textAlign="left";ctx.textBaseline="top";ctx.font='600 10px "IBM Plex Mono",monospace';ctx.fillText("this image",x+3,G.T+2);ctx.font='11px "IBM Plex Mono",monospace';}}}
+  if($("lpImg").checked){const off=(+$(kind[0]==="p"?"pOff":"tOff").value||0)*1000;lpMarks(ctx,G,X,pw,ph,off,acc,mut,pan);}
   /* series (min / max per pixel column when dense) */
   for(const s of ser){const i0=Math.max(0,lpIdx(s.t,V[0])-1),i1=Math.min(s.t.length-1,lpIdx(s.t,V[1])+1);ctx.strokeStyle=s.col;ctx.lineWidth=1.6;ctx.setLineDash(s.dash);ctx.beginPath();let pen=false;
     if(i1-i0>pw*3){let cx=-1,mn=0,mx=0;const flush=()=>{if(cx<0)return;if(!pen){ctx.moveTo(cx,Y(mn));pen=true;}else ctx.lineTo(cx,Y(mn));ctx.lineTo(cx,Y(mx));};
@@ -3545,11 +3551,11 @@ function lpDrawOne(cv,kind,ctx0,G0){const css=getComputedStyle(document.document
   ctx.restore();
   /* legend */
   ctx.textAlign="left";ctx.textBaseline="middle";let lx=G.L+pw-6;const items=ser.map(s=>[s.name,s.col,s.dash]);ctx.font='11px "IBM Plex Mono",monospace';
-  const lw=items.reduce((a,[n])=>a+ctx.measureText(n).width+30,0);lx=G.L+pw-lw-4;ctx.fillStyle=pan;ctx.globalAlpha=.85;ctx.fillRect(lx-4,G.T+3,lw+4,16);ctx.globalAlpha=1;
-  for(const [n,c,d] of items){ctx.strokeStyle=c;ctx.lineWidth=2;ctx.setLineDash(d);ctx.beginPath();ctx.moveTo(lx,G.T+11);ctx.lineTo(lx+18,G.T+11);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=ink;ctx.fillText(n,lx+22,G.T+11);lx+=ctx.measureText(n).width+30;}
+  const lw=items.reduce((a,[n])=>a+ctx.measureText(n).width+30,0);lx=G.L+pw-lw-4;ctx.fillStyle=pan;ctx.globalAlpha=.85;ctx.fillRect(lx-4,G.T+12,lw+4,16);ctx.globalAlpha=1;
+  for(const [n,c,d] of items){ctx.strokeStyle=c;ctx.lineWidth=2;ctx.setLineDash(d);ctx.beginPath();ctx.moveTo(lx,G.T+20);ctx.lineTo(lx+18,G.T+20);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=ink;ctx.fillText(n,lx+22,G.T+20);lx+=ctx.measureText(n).width+30;}
   /* hover read-out */
   if(LP.hx!=null&&!ctx0&&LP.hx>=V[0]&&LP.hx<=V[1]){const x=X(LP.hx);ctx.strokeStyle=ink;ctx.globalAlpha=.6;ctx.beginPath();ctx.moveTo(x,G.T);ctx.lineTo(x,G.T+ph);ctx.stroke();ctx.globalAlpha=1;
-    const ls=[lpHMS(LP.hx,true)];for(const s of ser){const i=lpIdx(s.t,LP.hx);if(i<0)continue;const v=s.v[i];ls.push(`${s.name} ${kind[0]==="p"?fmtP(v*fac)+" "+unit:(isFinite(v)?v.toFixed(1):"—")}`+(Math.abs(s.t[i]-LP.hx)>60000?" (no entry near)":""));
+    const ls=[lpHMS(LP.hx,true)];for(const s of ser){const i=lpIdx(s.t,LP.hx);if(i<0)continue;const v=s.v[i];ls.push(`${s.name} ${kind[0]==="p"?fmtP(v*fac)+" "+unit:kind[0]==="x"?(isFinite(v)?(+v.toPrecision(5))+(unit&&unit!==s.name?" "+unit:""):"—"):(isFinite(v)?v.toFixed(1):"—")}`+(Math.abs(s.t[i]-LP.hx)>60000?" (no entry near)":""));
       const y=tf(v);if(isFinite(y)){ctx.fillStyle=s.col;ctx.beginPath();ctx.arc(X(s.t[i]),Y(y),3.5,0,7);ctx.fill();}}
     if(LP.hm&&LP.hm.kind===kind)ls.push("▸ "+LP.hm.name+(LP.hm.it?" (click to open)":""));
     const w=Math.max(...ls.map(t=>ctx.measureText(t).width))+12,bx=x+10+w>G.L+pw?x-10-w:x+10;ctx.fillStyle=pan;ctx.globalAlpha=.92;ctx.fillRect(bx,G.T+22,w,ls.length*14+6);ctx.globalAlpha=1;ctx.strokeStyle=line;ctx.strokeRect(bx,G.T+22,w,ls.length*14+6);
@@ -3562,6 +3568,9 @@ function lpDraw(){const box=$("lpBox");if(!box)return;const k=[S.tlog&&S.tlog.na
   $("lpTBtn").disabled=!S.tlog;$("lpPBtn").disabled=!S.plog;box.hidden=!(showT||showP);if(box.hidden)return;
   $("lpT").hidden=!showT;$("lpPs").style.display=showP?"flex":"none";$("lpTOpts").hidden=!showT;$("lpMC").hidden=!showP;$("lpLogL").hidden=!showP;$("lpUnitL").hidden=!showP;lpMCUI();
   if(showT)lpDrawOne($("lpT"),"t");
+  {const hx=$("lpXs"),X=(S.tlog&&S.tlog.extra)||[];hx.style.display=showT?"flex":"none";lpXUI();
+    X.forEach((c,i)=>{let cv=document.getElementById("lpX"+i);if(!cv){cv=document.createElement("canvas");cv.id="lpX"+i;cv.className="lpCv";cv.style.height="130px";hx.appendChild(cv);lpBind(cv,"x"+i);}
+      cv.hidden=!(showT&&LP.xc&&LP.xc[c.name]);if(!cv.hidden)lpDrawOne(cv,"x"+i);});for(const cv of [...hx.children])if(+cv.id.slice(3)>=X.length)cv.remove();}
   const host=$("lpPs"),P=S.plog;if(P)P.cols.forEach((c,i)=>{let cv=document.getElementById("lpP"+i);if(!cv){cv=document.createElement("canvas");cv.id="lpP"+i;cv.className="lpCv";host.appendChild(cv);lpBind(cv,"p"+i);}
     cv.hidden=!(showP&&LP.mc[c.name]!==false);if(!cv.hidden)lpDrawOne(cv,"p"+i);});
   for(const cv of [...host.children])if(!P||+cv.id.slice(3)>=P.cols.length)cv.remove();
@@ -3579,7 +3588,7 @@ function lpTimeIn(){const V=lpView();if(!V)return;const ref=new Date(V[0]),day=D
   if(!isFinite(a)||!isFinite(b))return;if(b<=a)b+=86400000;lpSet(a,b);}
 for(const id of ["lpFrom","lpTo"]){$(id).addEventListener("change",lpTimeIn);$(id).addEventListener("keydown",e=>{e.stopPropagation();if(e.key==="Enter")lpTimeIn();});}
 function lpT(cv,e){const g=cv._g,V=lpView();if(!g||!V)return null;const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*g.w/r.width;return {x,t:V[0]+(x-g.L)/g.pw*(V[1]-V[0]),in:x>=g.L&&x<=g.L+g.pw};}
-function lpMarkAt(cv,kind,x){if(!$("lpImg").checked)return null;const g=cv._g,V=lpView(),off=(+$(kind==="t"?"tOff":"pOff").value||0)*1000;let best=null,bd=5;
+function lpMarkAt(cv,kind,x){if(!$("lpImg").checked)return null;const g=cv._g,V=lpView(),off=(+$(kind[0]==="p"?"pOff":"tOff").value||0)*1000;let best=null,bd=5;
   for(const m of lpImgs()){const mx=g.L+(m.t+off-V[0])/(V[1]-V[0])*g.pw,d=Math.abs(mx-x);if(d<bd){bd=d;best=m;}}return best;}
 function lpBind(cv,kind){
   cv.addEventListener("contextmenu",e=>e.preventDefault());
@@ -3591,14 +3600,15 @@ function lpBind(cv,kind){
   cv.addEventListener("pointerleave",()=>{if(LP.drag)return;LP.hx=null;LP.hm=null;lpDraw();});
   const up=e=>{const D=LP.drag;if(!D||D.cv!==cv)return;LP.drag=null;cv.style.cursor="crosshair";
     if(D.mode==="sel"){const g=cv._g,V=lpView(),px=Math.abs(D.t1-D.t0)/(V[1]-V[0])*g.pw;
-      if(px>4)lpSet(Math.min(D.t0,D.t1),Math.max(D.t0,D.t1));
-      else{const p=lpT(cv,e),m=p&&lpMarkAt(cv,kind,p.x);if(m&&m.it&&e.type==="pointerup"){brOpen(m.it);cpToast("Opening "+m.name);}lpDraw();}}
+      const pick=LP.pick||e.ctrlKey||e.metaKey;
+      if(px>4){if(pick)lpSelRange(kind,Math.min(D.t0,D.t1),Math.max(D.t0,D.t1),e.altKey);else lpSet(Math.min(D.t0,D.t1),Math.max(D.t0,D.t1));}
+      else{const p=lpT(cv,e),m=p&&lpMarkAt(cv,kind,p.x);if(m&&m.it&&e.type==="pointerup"){if(pick)lpSelToggle(m.it);else{brOpen(m.it);cpToast("Opening "+m.name);}}lpDraw();}}
     else lpDraw();};
   cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);
   cv.addEventListener("dblclick",()=>{LP.v=null;lpDraw();});
   cv.addEventListener("wheel",e=>{const p=lpT(cv,e),V=lpView();if(!p||!V)return;e.preventDefault();const f=Math.pow(1.0022,e.deltaY*(e.deltaMode===1?16:1)),t=Math.max(V[0],Math.min(V[1],p.t));lpSet(t-(t-V[0])*f,t+(V[1]-t)*f);},{passive:false});}
 lpBind($("lpT"),"t");
-function lpRenderAll(){const cvs=[["lpT","t"],...[...$("lpPs").children].map(c=>[c.id,"p"+c.id.slice(3)])].filter(([id])=>!$(id).hidden);if(!cvs.length)return null;const k=Math.max(2,window.devicePixelRatio||1)*1.5;
+function lpRenderAll(){const cvs=[["lpT","t"],...[...$("lpXs").children].map(c=>[c.id,"x"+c.id.slice(3)]),...[...$("lpPs").children].map(c=>[c.id,"p"+c.id.slice(3)])].filter(([id])=>!$(id).hidden);if(!cvs.length)return null;const k=Math.max(2,window.devicePixelRatio||1)*1.5;
   const G=lpGeom($(cvs[0][0])),out=document.createElement("canvas");out.width=Math.round(G.w*k);out.height=Math.round(G.h*k*cvs.length);const g=out.getContext("2d");
   cvs.forEach(([id,kind],i)=>{g.setTransform(k,0,0,k,0,G.h*k*i);lpDrawOne($(id),kind,g,{...lpGeom($(id)),dpr:k});});lpDraw();return out;}
 $("lpCopy").addEventListener("click",async()=>{const c=lpRenderAll();if(!c)return;try{const blob=new Promise(r=>c.toBlob(r,"image/png"));await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);cpToast(`Copied (${c.width} × ${c.height} px) — paste with Ctrl+V`);}catch(err){cpToast("Could not copy: "+err.message,true);}});
@@ -3645,7 +3655,7 @@ function alnDraw(){if(!ALN.on||!GIF.base.length)return;const cv=$("gifCv"),T=GIF
     else{g.globalAlpha=(+$("alnOp").value||0)/100;g.drawImage(top,0,0);g.globalAlpha=1;}}
   const o=ALN.off[alnKey(E[bi])]||{x:0,y:0},fs=Math.max(11,Math.round(T/40));g.font=`600 ${fs}px "IBM Plex Mono",monospace`;g.textBaseline="top";
   const t=bi===ri?`reference frame ${bi+1}`:`frame ${bi+1} over reference ${ri+1} · shift ${Math.round(o.x*T)}, ${Math.round(o.y*T)} px`;const w=g.measureText(t).width;
-  g.fillStyle="rgba(0,0,0,.7)";g.fillRect(4,4,w+12,fs+8);g.fillStyle="#ffd84a";g.fillText(t,10,8);
+  
   if(ALN.crop&&E.some(alnOff)){const cr=alnCommon(),v=GIF.view,sd=1/v.z,X=u=>((u-(v.cx-sd/2))/sd)*T,Y=u=>((u-(v.cy-sd/2))/sd)*T;g.strokeStyle="#4ad8ff";g.setLineDash([6,4]);g.lineWidth=1.5;
     g.strokeRect(X(cr.x),Y(cr.y),cr.s/sd*T,cr.s/sd*T);g.setLineDash([]);}
   $("alnStat").textContent=bi===ri?"this is the reference frame — go to another frame (▶ / slider) to align it":`frame ${bi+1}: shift ${Math.round(o.x*T)}, ${Math.round(o.y*T)} px · drag it, or arrow keys (Shift = 10 px)`;}
@@ -3722,7 +3732,7 @@ function v3DLines(ctx,P,dpr,O){const {toC,n}=V3.cell,PL=v3HklList();if(!PL.lengt
   const o=toC([0,0,0]),va=toC([1,0,0]).map((v,i)=>v-o[i]),vb=toC([0,1,0]).map((v,i)=>v-o[i]),vc=toC([0,0,1]).map((v,i)=>v-o[i]);
   const cr=(u,v)=>[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]],dt=(u,v)=>u[0]*v[0]+u[1]*v[1]+u[2]*v[2],V=dt(va,cr(vb,vc));if(!V)return;
   const as=cr(vb,vc).map(x=>x/V),bs=cr(vc,va).map(x=>x/V),cs=cr(va,vb).map(x=>x/V);
-  const ph=O.still?0.35:((performance.now()/1600)%1),fc=n.map(x=>x/2),Cc=toC(fc),placed=[];
+  const ph=O.dph!=null?O.dph:(O.still?0.35:((performance.now()/1600)%1)),fc=n.map(x=>x/2),Cc=toC(fc),placed=[];
   PL.forEach(([h,k,l],pi)=>{const G=[0,1,2].map(i=>h*as[i]+k*bs[i]+l*cs[i]),gl=Math.hypot(...G);if(!gl)return;const d=1/gl,nh=G.map(x=>x/gl);
     const hf=h*fc[0]+k*fc[1]+l*fc[2],m0=Math.floor(hf+1e-9),back=(hf-m0)*d;
     const p0=Cc.map((v,i)=>v-back*nh[i]),p1=p0.map((v,i)=>v+d*nh[i]);
@@ -3837,6 +3847,227 @@ for(const b of document.querySelectorAll(".boxDef")){const box=BOXSEL.map(s=>b.c
 
 {const st=document.createElement("style");st.textContent="@keyframes rsPend{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 40%,transparent)}}#rsGo.rsPend{animation:rsPend 1s ease-in-out infinite}";document.head.appendChild(st);
   $("rsGo").addEventListener("click",()=>$("rsGo").classList.remove("rsPend"));}
+
+/* ===== another monitor / screen scaling: redraw every plot at the new pixel ratio ===== */
+{let cur=window.devicePixelRatio;const watch=()=>{const mq=matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);const h=()=>{mq.removeEventListener("change",h);
+    if(window.devicePixelRatio!==cur){cur=window.devicePixelRatio;try{window.dispatchEvent(new Event("resize"));}catch(e){}try{redrawAll();}catch(e){}try{if(typeof drawCmp==="function")drawCmp();}catch(e){}try{if(typeof tmDraw==="function"&&typeof TM!=="undefined"&&TM.img)tmDraw();}catch(e){}try{if(typeof v3Draw==="function")v3Draw();}catch(e){}try{if(typeof lpDraw==="function")lpDraw();}catch(e){}}watch();};
+    mq.addEventListener("change",h);};watch();
+  window.addEventListener("resize",()=>{clearTimeout(watch.t);watch.t=setTimeout(()=>{try{redrawAll();}catch(e){}try{if(typeof drawCmp==="function")drawCmp();}catch(e){}},150);});}
+
+/* ===== log plots: marks of the images (loaded in the comparison / open / folder / selected) and adding a selection to the comparison ===== */
+LP.sel=new Set();LP.pick=false;LP.selGen=-1;
+function lpCmpOf(it){return it?S.cmp.find(e=>e.file===it.file):null;}
+function lpMarks(ctx,G,X,pw,ph,off,acc,mut,pan){if(LP.selGen!==BR.gen){LP.sel.clear();LP.selGen=BR.gen;}
+  const M=lpImgs().map(m=>({...m,x:X(m.t+off),e:lpCmpOf(m.it),sel:!!(m.it&&LP.sel.has(m.it.file))})).filter(m=>m.x>=G.L-2&&m.x<=G.L+pw+2);
+  /* folder images: short grey ticks at the bottom */
+  for(const m of M){if(m.e||m.cur)continue;ctx.strokeStyle=mut;ctx.globalAlpha=.7;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(m.x,G.T+ph);ctx.lineTo(m.x,G.T+ph-8);ctx.stroke();ctx.globalAlpha=.12;ctx.beginPath();ctx.moveTo(m.x,G.T);ctx.lineTo(m.x,G.T+ph-8);ctx.stroke();ctx.globalAlpha=1;}
+  /* images in the comparison: line in their profile colour + ▼ at the top */
+  for(const m of M){if(!m.e)continue;const col=typeof cmpColor==="function"?cmpColor(m.e):acc;ctx.strokeStyle=col;ctx.globalAlpha=.6;ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(m.x,G.T+7);ctx.lineTo(m.x,G.T+ph);ctx.stroke();ctx.globalAlpha=1;
+    ctx.fillStyle=col;ctx.strokeStyle=pan;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(m.x-5,G.T);ctx.lineTo(m.x+5,G.T);ctx.lineTo(m.x,G.T+8);ctx.closePath();ctx.fill();ctx.stroke();}
+  /* the open image */
+  for(const m of M){if(!m.cur)continue;ctx.strokeStyle=acc;ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(m.x,G.T);ctx.lineTo(m.x,G.T+ph);ctx.stroke();ctx.lineWidth=1;
+    ctx.fillStyle=acc;ctx.textAlign="left";ctx.textBaseline="top";ctx.font='600 10px "IBM Plex Mono",monospace';ctx.fillText("this image",m.x+4,G.T+10);ctx.font='11px "IBM Plex Mono",monospace';}
+  /* selected: ◆ markers at mid-height and a highlight band */
+  for(const m of M){if(!m.sel)continue;ctx.fillStyle="#ff9f1c";ctx.globalAlpha=.16;ctx.fillRect(m.x-3,G.T,6,ph);ctx.globalAlpha=1;ctx.strokeStyle="#000";ctx.lineWidth=1;
+    const y=G.T+ph-16;ctx.beginPath();ctx.moveTo(m.x,y-6);ctx.lineTo(m.x+6,y);ctx.lineTo(m.x,y+6);ctx.lineTo(m.x-6,y);ctx.closePath();ctx.fillStyle="#ff9f1c";ctx.fill();ctx.stroke();}}
+function lpSelUI(){const n=LP.sel.size,bar=$("lpSelBar");bar.hidden=!n;if(n){const inC=BR.items.filter(i=>LP.sel.has(i.file)&&lpCmpOf(i)).length;$("lpSelN").textContent=`${n} image${n>1?"s":""} selected`+(inC?` (${inC} already in the comparison)`:"");}}
+function lpSelToggle(it){if(!it)return;if(LP.sel.has(it.file))LP.sel.delete(it.file);else LP.sel.add(it.file);lpSelUI();lpDraw();}
+function lpSelRange(kind,a,b,remove){const off=(+$(kind[0]==="p"?"pOff":"tOff").value||0)*1000;let n=0;for(const m of lpImgs()){if(!m.it)continue;const t=m.t+off;if(t<a||t>b)continue;if(remove)LP.sel.delete(m.it.file);else LP.sel.add(m.it.file);n++;}
+  lpSelUI();lpDraw();cpToast(`${n} image${n!==1?"s":""} ${remove?"unselected":"selected"} in ${lpHMS(a,true)} – ${lpHMS(b,true)}`);}
+$("lpPick").addEventListener("click",()=>{LP.pick=!LP.pick;$("lpPick").setAttribute("aria-pressed",LP.pick);$("lpPick").classList.toggle("primary",LP.pick);});
+$("lpSelClr").addEventListener("click",()=>{LP.sel.clear();lpSelUI();lpDraw();});
+$("lpAddCmp").addEventListener("click",async()=>{const L=BR.items.filter(i=>LP.sel.has(i.file)&&i.done&&!i.err&&!lpCmpOf(i));
+  if(!L.length){cpToast("The selected images are already in the comparison (or not readable)",true);return;}for(const i of L)i.tick=true;
+  const n=cmpAdd(L);LP.sel.clear();lpSelUI();lpDraw();cpToast(`${n} image${n!==1?"s":""} added to the comparison — computing their profiles…`);
+  try{$("cmpPanel").hidden=false;}catch(e){}await cmpRunAll(true);lpDraw();});
+/* the marks follow the comparison */
+{const _r=cmpRender;cmpRender=function(){const r=_r.apply(this,arguments);try{if(!$("lpBox").hidden){clearTimeout(LP.ct);LP.ct=setTimeout(()=>{lpSelUI();lpDraw();},60);}}catch(e){}return r;};}
+{const st=document.createElement("style");st.textContent="#lpPick[aria-pressed=true]{background:var(--accent);color:#fff}";document.head.appendChild(st);}
+
+/* ===== ◎ show d on image: clicking a plot (or the image) marks a d only while this is on ===== */
+const MARK={on:false,ev:false,warned:false};
+function markUI(){for(const b of document.querySelectorAll(".markBtn")){b.setAttribute("aria-pressed",MARK.on);b.classList.toggle("primary",MARK.on);}}
+function markBtn(){const b=document.createElement("button");b.className="markBtn";b.textContent="◎ show d on image";b.setAttribute("aria-pressed","false");
+  b.title="When on: clicking a plot marks that d (ring on the pattern / line on the map and in the plots), and clicking the image shows its d in the plots. When off, clicks do not mark anything (shift-click adds more marks while on)";
+  b.addEventListener("click",e=>{e.stopPropagation();MARK.on=!MARK.on;markUI();});return b;}
+{const st=document.createElement("style");st.textContent=".markBtn{padding:2px 9px}.markBtn[aria-pressed=true]{background:var(--accent);color:#fff}";document.head.appendChild(st);}
+{const gate=cv=>{if(!cv)return;cv.addEventListener("click",()=>{MARK.ev=true;setTimeout(()=>{MARK.ev=false;},0);},true);};
+  gate(typeof cvC!=="undefined"?cvC:null);gate(typeof cvK!=="undefined"?cvK:null);gate(typeof cvM!=="undefined"?cvM:null);gate(typeof cvP!=="undefined"?cvP:null);}
+{const _s=selectRing;selectRing=function(r){if(MARK.ev&&!MARK.on&&r!=null&&r>0){if(!MARK.warned){MARK.warned=true;try{cpToast("Clicks do not mark a d now — turn on ◎ show d on image to mark it on the image and plots");}catch(e){}}return;}return _s.apply(this,arguments);};}
+
+/* ===== arrows on the plots: + arrow, then press on the plot at the tail and drag to the head ===== */
+let AWPICK=null;
+function awList(k){const T=TXT[k];if(!T.aw)T.aw=[];return T.aw;}
+function awGeom(k,t){const exp=t instanceof HTMLCanvasElement;if(k==="tm")return typeof TM!=="undefined"?TM.g:null;return k==="cmp"?cmpGeom:(exp?window.chartGeomExp:chartGeom);}
+function awToXY(k,G,a,end){if(k==="tm"){const v=TM.view,f=end?a.f1:a.f0,r=end?a.r1:a.r0;return [G.L+(f-v.f0)/(v.f1-v.f0)*G.pw,G.T+(r+0.5-v.y0)/(v.y1-v.y0)*G.ph];}
+  const d=end?a.d1:a.d0,yf=end?a.y1:a.y0,xv=vlX(k,d);if(!isFinite(xv))return null;return [G.L+(xv-G.lo)/(G.hi-G.lo)*G.pw,G.T+yf*G.ph];}
+function awFromEv(k,ev){const cv=TXTCV[k],s=cv.width/cv.getBoundingClientRect().width,x=ev.offsetX*s,y=ev.offsetY*s;
+  if(k==="tm"){const p=tmPt(ev);return {f:p.f,r:p.yy-0.5};}const G=k==="cmp"?cmpGeom:chartGeom;if(!G)return null;const d=vlDAt(k,ev);if(!(d>0))return null;return {d,y:(y-G.T)/G.ph};}
+function awPaint(ctx,p0,p1,col,w,dpr){const dx=p1[0]-p0[0],dy=p1[1]-p0[1],L=Math.hypot(dx,dy);if(L<2)return;const ux=dx/L,uy=dy/L,h=Math.min(L*0.6,(8+2.2*w)*dpr),hw=h*0.45;
+  ctx.save();ctx.lineCap="round";ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=w*dpr;ctx.beginPath();ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0]-ux*h*0.8,p1[1]-uy*h*0.8);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(p1[0],p1[1]);ctx.lineTo(p1[0]-ux*h-uy*hw,p1[1]-uy*h+ux*hw);ctx.lineTo(p1[0]-ux*h+uy*hw,p1[1]-uy*h-ux*hw);ctx.closePath();ctx.fill();ctx.restore();}
+function awDraw(k,t,d){const L=awList(k).filter(a=>a.done!==false||AWPICK&&AWPICK.a===a);if(!L.length)return;const exp=t instanceof HTMLCanvasElement&&k!=="tm",cv=k==="tm"?TXTCV.tm:(exp?t:TXTCV[k]),G=awGeom(k,exp?t:null);if(!G)return;
+  const dpr=exp?d:cv.width/Math.max(1,cv.getBoundingClientRect().width),ctx=cv.getContext("2d");
+  for(const a of L){if(a.d1==null&&a.f1==null)continue;const p0=awToXY(k,G,a,false),p1=awToXY(k,G,a,true);if(!p0||!p1)continue;awPaint(ctx,p0,p1,a.col||"#e4572e",+a.w||2,dpr);}}
+function awUI(k){const box=document.querySelector(`.awList[data-k="${k}"]`);if(!box)return;box.textContent="";
+  awList(k).forEach((a,i)=>{if(a.done===false)return;const w=document.createElement("span");w.className="row2";w.style.cssText="gap:3px;border:1px solid var(--line);border-radius:6px;padding:2px 4px";
+    const mk=(tag,props,css)=>{const e=document.createElement(tag);Object.assign(e,props);if(css)e.style.cssText=css;e.addEventListener("keydown",ev=>ev.stopPropagation());e.addEventListener("click",ev=>ev.stopPropagation());return e;};
+    const lab=document.createElement("span");lab.className="keys";lab.textContent="➚"+(i+1);
+    const col=mk("input",{type:"color",value:a.col||"#e4572e",title:"Arrow colour"},"width:2rem;height:1.7rem;padding:0 2px");
+    const wd=mk("select",{title:"Line width"},"width:auto");for(const v of [1,1.5,2,3,4]){const o=document.createElement("option");o.value=v;o.textContent=v+" px";wd.appendChild(o);}wd.value=String(a.w||2);
+    const re=mk("button",{textContent:"📍",title:"Draw this arrow again: press at the tail and drag to the head"},"padding:2px 6px");
+    const x=mk("button",{textContent:"×",title:"Delete this arrow"},"padding:2px 8px");
+    col.addEventListener("input",()=>{a.col=col.value;txtSave();awRedraw(k);});wd.addEventListener("change",()=>{a.w=+wd.value;txtSave();awRedraw(k);});
+    re.addEventListener("click",()=>awPickStart(k,a));x.addEventListener("click",()=>{TXT[k].aw=awList(k).filter(z=>z!==a);txtSave();awUI(k);awRedraw(k);});
+    w.append(lab,col,wd,re,x);box.appendChild(w);});}
+function awRedraw(k){try{if(k==="tm"){tmDraw();}else txtRedraw(k);}catch(e){}}
+function awPickStart(k,a){AWPICK={k,a,down:false};const cv=TXTCV[k];cv.classList.add("vlPickOn");const h=document.querySelector(`.awBox[data-k="${k}"] .awHint`);if(h)h.hidden=false;}
+function awPickEnd(){if(!AWPICK)return;const cv=TXTCV[AWPICK.k];cv.classList.remove("vlPickOn");const h=document.querySelector(`.awBox[data-k="${AWPICK.k}"] .awHint`);if(h)h.hidden=true;AWPICK=null;}
+function awBox(k){const s=document.createElement("span");s.className="row2 awBox";s.dataset.k=k;s.style.cssText="gap:6px;border-left:2px solid var(--line);padding-left:10px";
+  s.title="Arrows of your own on this plot: press + arrow, then press on the plot at the tail and drag to the head; 📍 draws it again, the colour box and width change it";
+  const b=document.createElement("button");b.className="awAdd";b.dataset.k=k;b.textContent="+ arrow";const h=document.createElement("span");h.className="keys awHint";h.hidden=true;h.style.cssText="color:var(--accent);font-weight:600";h.textContent="press at the tail, drag to the head (Esc cancels)";
+  const l=document.createElement("span");l.className="awList row2";l.dataset.k=k;l.style.gap="6px";s.append(b,h,l);
+  b.addEventListener("click",e=>{e.stopPropagation();const a={id:1+Math.max(0,...awList(k).map(z=>z.id||0)),col:"#e4572e",w:2,done:false};awList(k).push(a);awPickStart(k,a);});return s;}
+for(const k in TXTCV){const cv=TXTCV[k];
+  window.addEventListener("pointerdown",ev=>{if(!AWPICK||AWPICK.k!==k||ev.button!==0||ev.target!==cv)return;ev.stopImmediatePropagation();ev.preventDefault();const p=awFromEv(k,ev);if(!p)return;
+    const a=AWPICK.a;if(k==="tm"){a.f0=a.f1=p.f;a.r0=a.r1=p.r;}else{a.d0=a.d1=p.d;a.y0=a.y1=p.y;}AWPICK.down=true;cv.setPointerCapture(ev.pointerId);},true);
+  window.addEventListener("pointermove",ev=>{if(!AWPICK||AWPICK.k!==k||!AWPICK.down)return;ev.stopImmediatePropagation();const p=awFromEv(k,ev);if(!p)return;const a=AWPICK.a;
+    if(k==="tm"){a.f1=p.f;a.r1=p.r;}else{a.d1=p.d;a.y1=p.y;}awRedraw(k);},true);
+  window.addEventListener("pointerup",ev=>{if(!AWPICK||AWPICK.k!==k||!AWPICK.down)return;ev.stopImmediatePropagation();const a=AWPICK.a;a.done=true;txtSave();awPickEnd();awUI(k);awRedraw(k);
+    cv.addEventListener("click",e2=>e2.stopImmediatePropagation(),{capture:true,once:true});},true);}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&AWPICK){const {k,a}=AWPICK;if(a.done===false)TXT[k].aw=awList(k).filter(z=>z!==a);awPickEnd();awUI(k);awRedraw(k);}},true);
+{const _a=drawChart;drawChart=function(t,d){const r=_a(t,d);try{if(S.profile)awDraw("pk",t,d);}catch(e){}return r;};}
+{const _b=drawCmp;drawCmp=function(t,d){const r=_b(t,d);try{const exp=t instanceof HTMLCanvasElement;if((exp||!$("cmpPanel").hidden)&&S.cmp.some(e=>e.show&&e.prof))awDraw("cmp",t,d);}catch(e){}return r;};}
+/* the arrow buttons sit next to “+ vertical line” in the labels row of each plot */
+for(const k of ["pk","cmp"]){const vb=document.querySelector(`.vlBox[data-k="${k}"]`);if(vb&&TXTCV[k])vb.after(awBox(k));awUI(k);}
+
+/* ◎ buttons: peaks plot, compare plot and the image row */
+{const put=(sel,first)=>{const el=document.querySelector(sel);if(!el)return;const b=markBtn();if(first)el.prepend(b);else el.appendChild(b);};
+  put("#pkPanel .tbrow .tbc",true);put("#cmpPanel .tbrow .tbc",true);const row=document.querySelector(".work .side > .row2");if(row)row.appendChild(markBtn());markUI();}
+
+/* ===== logs: warn when the temperature log is loaded as pressure (or the other way round) ===== */
+function logKindOf(H){const h=H.map(x=>String(x||"")).join(" | ");return {temp:/t\s*set|set\s*t|t\s*meas|soll|°c/i.test(h),pres:/\bmc\s*\d|gauge|\bmbar\b|\btorr\b/i.test(h)};}
+function logWrong(stEl,msg,inp){stEl.textContent="⚠ "+msg;stEl.classList.add("logWarn");try{cpToast(msg,true);}catch(e){}try{logBlink3();}catch(e){}}
+{const _t=loadTempLog;loadTempLog=async function(f){try{const ext=f.name.split(".").pop().toLowerCase();let H=null;
+    if(ext==="xlsx"){const T=await readXLSX(await f.arrayBuffer());const hi=T.rows.findIndex(r=>r&&r.some(c=>typeof c==="string"&&/time|zeit|date/i.test(c)));if(hi>=0)H=T.rows[hi];}
+    else{const L=(await f.text()).replace(/\r/g,"").split("\n").filter(l=>l.trim()&&!/^[=\-_\s]+$/.test(l));H=L.length?L[0].split(/\t|;|,/):null;}
+    if(H){const k=logKindOf(H);if(k.pres&&!k.temp){logWrong($("tStatus"),`“${f.name}” looks like a PRESSURE log (gauge columns ${H.filter(x=>/mc\s*\d/i.test(String(x))).join(", ")||""}) — load it with “Load pressure log…”. The temperature log was not changed.`);return;}}}catch(e){}
+  $("tStatus").classList.remove("logWarn");return _t.apply(this,arguments);};}
+{const _p=loadPresLog;loadPresLog=async function(f){try{const ext=f.name.split(".").pop().toLowerCase();let H=null;
+    if(ext==="xlsx"){const T=await readXLSX(await f.arrayBuffer());const hi=T.rows.findIndex(r=>r&&r.some(c=>typeof c==="string"&&/time|zeit|date/i.test(c)));if(hi>=0)H=T.rows[hi];}
+    else{const L=(await f.text()).replace(/\r/g,"").split("\n").filter(l=>l.trim()&&!/^[=\-_\s]+$/.test(l));H=L.length?L[0].split(/\t|;|,/):null;}
+    if(H){const k=logKindOf(H);if(k.temp){logWrong($("pStatus"),`“${f.name}” looks like a TEMPERATURE log (T set / T measured columns) — load it with “Load temperature log…”. The pressure log was not changed.`);return;}}}catch(e){}
+  $("pStatus").classList.remove("logWarn");return _p.apply(this,arguments);};}
+
+LP.xc=LP.xc||{};
+function lpXUI(){const box=$("lpXOpts"),X=(S.tlog&&S.tlog.extra)||[],key=X.map(c=>c.name).join("|");box.hidden=!X.length||$("lpT").hidden;if(box.dataset.k===key)return;box.dataset.k=key;box.textContent="";
+  for(const c of X){const l=document.createElement("label"),i=document.createElement("input");i.type="checkbox";i.checked=!!LP.xc[c.name];i.addEventListener("change",()=>{LP.xc[c.name]=i.checked;try{const o=JSON.parse(localStorage.getItem("lp-xc")||"{}");o[c.name]=i.checked;localStorage.setItem("lp-xc",JSON.stringify(o));}catch(e){}lpDraw();});
+    l.append(i," "+c.name);l.title=`Plot “${c.name}”${c.unit?" ("+c.unit+")":""} from the temperature log against time`;box.appendChild(l);}}
+try{Object.assign(LP.xc,JSON.parse(localStorage.getItem("lp-xc")||"{}"));}catch(e){}
+
+/* ===== layout: “Remove all” next to “Add CIF files…”; save buttons in the same order everywhere (data → plot / image → 📋 Copy last) ===== */
+{const ci=$("cifIn"),cc=$("cClear");const lab=ci&&ci.closest("label");if(lab&&cc)lab.after(cc);}
+{const t=$("cmpSvTxt"),p=$("cmpSvPng");if(t&&p)p.before(t);}
+
+/* Studio: “rings on SAED” moves to the image row above the pattern, as “CIF rings on pattern” */
+{const l=$("cRings")&&$("cRings").closest("label"),row=document.querySelector(".work .side > .row2");if(l&&row){for(const n of [...l.childNodes])if(n.nodeType===3)n.remove();l.append(" CIF rings on pattern");
+  l.title="Draw the rings of the ticked / highlighted CIF phases on the diffraction pattern (and the polar view)";l.style.marginLeft="6px";row.appendChild(l);}}
+/* log plot: remove selected images from the comparison */
+{const add=$("lpAddCmp");if(add){const b=document.createElement("button");b.id="lpRemCmp";b.textContent="➖ remove from comparison";b.title="Remove the selected images from the comparison (their profiles are taken out of the plots; the files are not touched)";add.after(b);
+  b.addEventListener("click",()=>{const files=new Set([...LP.sel]);const L=S.cmp.filter(e=>files.has(e.file));if(!L.length){cpToast("None of the selected images is in the comparison",true);return;}
+    S.cmp=S.cmp.filter(e=>!files.has(e.file));if(S.cmpActive&&files.has(S.cmpActive.file))S.cmpActive=null;for(const i of BR.items)if(files.has(i.file))i.tick=false;
+    LP.sel.clear();cmpVis();cmpRender();try{drawCmp();}catch(e){}lpSelUI();lpDraw();cpToast(`${L.length} image${L.length>1?"s":""} removed from the comparison`);});}
+  const _u=lpSelUI;lpSelUI=function(){_u();const inC=BR.items.filter(i=>LP.sel.has(i.file)&&lpCmpOf(i)).length,n=LP.sel.size;const r=$("lpRemCmp"),a=$("lpAddCmp");if(r)r.hidden=!inC;if(a)a.hidden=!(n-inC);};}
+/* the open image's mark can be selected too (also when it was opened directly, if it is in the browsed folder) */
+{const _i=lpImgs;lpImgs=function(){const L=_i();const c=L.find(o=>o.cur&&!o.it);if(c){const nm=(S.name||"").toLowerCase(),it=BR.items.find(i=>i.file&&i.file.name.toLowerCase()===nm);if(it){c.it=it;c.name=it.rel;}}return L;};}
+
+/* ===== 3D: GIF of the hkl d-line animation (structure only: no information box, no key); the dot travels the line twice ===== */
+{const bar=$("v3gBar");if(bar){const row=document.createElement("div");row.className="chartbar";row.id="v3dgBar";
+  row.innerHTML=`<span class="keys" title="Animated GIF of the d lines (+ hkl planes) of this view: only the structure, the moving dot goes along each line twice">d-line GIF:</span><label class="row2">frames <input id="v3dgN" type="number" min="8" max="240" step="1" value="48" style="width:4.5rem"></label><label class="row2">size <select id="v3dgSize" style="width:auto"><option value="384">384 px</option><option value="512" selected>512 px</option><option value="768">768 px</option><option value="1024">1024 px</option></select></label><button id="v3dgGo" title="Make and save the GIF of the d-line animation (the current view, zoom and colours)">🎞 save d-line GIF</button><span class="keys" id="v3dgSt"></span>`;
+  bar.after(row);
+  $("v3dgN").addEventListener("keydown",e=>e.stopPropagation());
+  $("v3dgGo").addEventListener("click",async()=>{const st=$("v3dgSt");if(!V3.ph||!V3.atoms.length){st.textContent="Show a phase in 3D first.";return;}
+    if(!$("v3hklOn").checked||!$("v3dOn").checked||!v3HklList().length){st.textContent="Type an hkl (e.g. 1 1 0) and tick “show” and “d line” first.";return;}
+    const N=Math.max(8,Math.min(240,Math.round(+$("v3dgN").value||48))),T=+$("v3dgSize").value||512,dpr=Math.max(1,T/400),fr=[];$("v3dgGo").disabled=true;
+    try{for(let k=0;k<N;k++){if(k%6===0){st.textContent=`Drawing frame ${k+1} / ${N}…`;await new Promise(r=>setTimeout(r,0));}
+        const c=document.createElement("canvas");c.width=T;c.height=T;v3Draw(c,{transparent:true,info:false,key:false,dpr,dph:(2*k/N)%1});fr.push(c.getContext("2d").getImageData(0,0,T,T).data);}
+      st.textContent="Encoding GIF…";await new Promise(r=>setTimeout(r,0));
+      const {pal,frames}=v3Quantise(fr),dt=Math.max(0.02,3.2/N),bytes=v3GifEncode(frames,T,T,pal,Math.round(dt*100)),blob=new Blob([bytes],{type:"image/gif"});
+      const nm=((V3.ph.formula||"structure").replace(/\s+/g,"")+(V3.ph.code?"_"+V3.ph.code:""))+`_dline_${v3HklList().map(q=>q.join("")).join("-")}_${N}f.gif`;
+      await saveFile(nm,blob);st.textContent=`GIF saved: ${nm} (${N} frames, ${T} × ${T} px, ${(blob.size/1e6).toFixed(2)} MB).`;}
+    catch(err){st.textContent="Could not make the GIF: "+err.message;}finally{$("v3dgGo").disabled=false;}});}}
+
+/* ===== Phases from CIF: auto-load the last CIF folder / files when the app opens (remembered in the browser and in the notes file) ===== */
+{const cc=$("cClear");if(cc){const l=document.createElement("label");l.className="row2";l.title="When the app opens, load the CIF folder (or files) you loaded last. If the browser needs your permission again, the first click anywhere on the page loads them";
+  l.innerHTML='<input id="cifAuto" type="checkbox"> auto-load last CIFs';cc.after(l);
+  let on=false;try{on=localStorage.getItem("cif-auto")==="1";}catch(e){}$("cifAuto").checked=on;
+  $("cifAuto").addEventListener("change",()=>{try{localStorage.setItem("cif-auto",$("cifAuto").checked?"1":"0");}catch(e){}try{if(typeof notesAuto==="function")notesAuto();}catch(e){}try{if(typeof isnAuto==="function")isnAuto();}catch(e){}});
+  const go=async()=>{if(!$("cifAuto").checked||!FSA||(S.phases&&S.phases.length))return;const L=await cifRecentGet();const e=L&&L[0];if(!e)return;const hs=e.kind==="dir"?[e.h]:e.hs;
+    let ok=true;for(const h of hs){try{if((await h.queryPermission({mode:"read"}))!=="granted")ok=false;}catch(err){ok=false;}}
+    if(ok){cifRecentOpen(e);return;}
+    $("cifStatus").textContent=`Auto-load: click anywhere on the page to load the CIFs of “${cifRName(e)}” (the browser asks for permission once).`;
+    const once=async()=>{window.removeEventListener("pointerdown",once,true);if(S.phases&&S.phases.length)return;cifRecentOpen(e);};window.addEventListener("pointerdown",once,true);};
+  setTimeout(()=>{if(window.CIF_AUTO_ALL)window.CIF_AUTO_ALL();else go();},600);
+  const _g=layoutGet;layoutGet=function(){const o=_g.apply(this,arguments)||{};o.cifAuto=$("cifAuto").checked;return o;};
+  const _s=layoutSet;layoutSet=function(o){if(o&&typeof o.cifAuto==="boolean"){$("cifAuto").checked=o.cifAuto;try{localStorage.setItem("cif-auto",o.cifAuto?"1":"0");}catch(e){}}return _s.apply(this,arguments);};}}
+
+/* GIF: Download GIF right next to Make GIF */
+{const m=$("gifMake"),d=$("gifSave");if(m&&d){const g=document.createElement("span");g.className="row2";g.style.gap="0";m.before(g);g.append(m,d);
+  m.style.borderTopRightRadius=m.style.borderBottomRightRadius="0";d.style.borderTopLeftRadius=d.style.borderBottomLeftRadius="0";d.style.marginLeft="-1px";}}
+/* “CIF rings on pattern”: between the pattern and the polar view (top of the polar column) */
+{const l=$("cRings")&&$("cRings").closest("label"),s1=document.querySelector(".work>.side"),s2=s1&&s1.nextElementSibling;if(l&&s2){s2.style.position="relative";
+  l.style.cssText="position:absolute;left:0;top:2px;margin:0;z-index:2;white-space:nowrap";s2.prepend(l);try{alignPolar();}catch(e){}}}
+
+{const _a=alignPolar;alignPolar=function(){const r=_a.apply(this,arguments);try{const l=$("cRings").closest("label"),s2=document.querySelector(".work>.side").nextElementSibling;
+  if(l.parentElement===s2){const room=parseFloat(s2.style.paddingTop)||0;if(room>=22){l.style.position="absolute";l.style.marginBottom="";}else{l.style.position="static";l.style.marginBottom="6px";}}}catch(e){}return r;};try{alignPolar();}catch(e){}}
+
+/* d-line GIF row: at the end of the 3D structure box */
+{const r=$("v3dgBar"),p=$("v3Panel");if(r&&p)p.appendChild(r);}
+/* auto-load: every remembered CIF folder / file set (all the ↻ buttons), not only the last one */
+{const loadAll=async()=>{if(!$("cifAuto")||!$("cifAuto").checked||!FSA)return;const L=await cifRecentGet();if(!L||!L.length)return;let need=false;
+    for(const e of L){for(const h of (e.kind==="dir"?[e.h]:e.hs)){try{if((await h.queryPermission({mode:"read"}))!=="granted")need=true;}catch(err){need=true;}}}
+    const run=async()=>{for(const e of L){try{await cifRecentOpen(e);}catch(err){}}};
+    if(!need){if(!(S.phases&&S.phases.length))run();return;}
+    $("cifStatus").textContent=`Auto-load: click anywhere on the page to load the ${L.length} remembered CIF set${L.length>1?"s":""} (${L.map(cifRName).join(", ")}).`;
+    const once=async()=>{window.removeEventListener("pointerdown",once,true);if(S.phases&&S.phases.length)return;run();};window.addEventListener("pointerdown",once,true);};
+  window.CIF_AUTO_ALL=loadAll;}
+/* ✥ move text: switches off when you click outside its box */
+window.addEventListener("pointerdown",e=>{for(const b of document.querySelectorAll(".txtMv[aria-pressed=true],#gifMove[aria-pressed=true]")){const box=b.closest("section.panel,.panel")||b.parentElement;
+  if(box&&!box.contains(e.target))b.click();}},true);
+/* arrows move with ✥ move text: drag the line to move it, or an end to move that end */
+{const scrToData=(k,x,y)=>{if(k==="tm"){const g=TM.g,v=TM.view;return {f:v.f0+(x-g.L)/g.pw*(v.f1-v.f0),r:v.y0+(y-g.T)/g.ph*(v.y1-v.y0)-0.5};}
+    const G=k==="cmp"?cmpGeom:chartGeom;const val=G.lo+(x-G.L)/G.pw*(G.hi-G.lo),m=k==="cmp"?$("cmpXm").value:(G.mode||$("xmode").value);let d=NaN;
+    if(val>0){if(m==="d")d=val;else if(m==="q")d=10/val;else if(m==="r")d=S.profile?10/(val*S.profile.sc):NaN;else{const lam=k==="cmp"?lambdaA(+$("kv").value||300):(S.profile?S.profile.lam:lambdaA(+$("kv").value||300));d=lam/(2*Math.sin(val*Math.PI/360));}}
+    return {d,y:(y-G.T)/G.ph};};
+  const segD=(p,a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],L2=dx*dx+dy*dy||1;let t=((p[0]-a[0])*dx+(p[1]-a[1])*dy)/L2;t=Math.max(0,Math.min(1,t));return Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dy);};
+  let AD=null;
+  for(const k in TXTCV){const cv=TXTCV[k];
+    window.addEventListener("pointerdown",ev=>{if(ev.target!==cv||ev.button!==0||AWPICK||!txtMoving(k))return;const L=awList(k).filter(a=>a.done!==false);if(!L.length)return;const G=awGeom(k,null);if(!G)return;
+      const s=cv.width/cv.getBoundingClientRect().width,p=[ev.offsetX*s,ev.offsetY*s],tol=8*s;let best=null,bd=tol;
+      for(const a of L){const p0=awToXY(k,G,a,false),p1=awToXY(k,G,a,true);if(!p0||!p1)continue;const d=segD(p,p0,p1);if(d<bd){bd=d;best={a,p0,p1,part:Math.hypot(p[0]-p1[0],p[1]-p1[1])<tol*1.4?"head":Math.hypot(p[0]-p0[0],p[1]-p0[1])<tol*1.4?"tail":"all"};}}
+      if(!best)return;ev.stopImmediatePropagation();ev.preventDefault();AD={k,...best,s0:p,s};cv.setPointerCapture(ev.pointerId);cv.style.cursor="grabbing";},true);
+    window.addEventListener("pointermove",ev=>{if(!AD||AD.k!==k)return;ev.stopImmediatePropagation();const s=AD.s,p=[ev.offsetX*s,ev.offsetY*s],dx=p[0]-AD.s0[0],dy=p[1]-AD.s0[1],a=AD.a;
+      const set=(end,xy)=>{const D=scrToData(k,xy[0],xy[1]);if(k==="tm"){if(end){a.f1=D.f;a.r1=D.r;}else{a.f0=D.f;a.r0=D.r;}}else if(D.d>0){if(end){a.d1=D.d;a.y1=D.y;}else{a.d0=D.d;a.y0=D.y;}}};
+      if(AD.part!=="head")set(false,[AD.p0[0]+dx,AD.p0[1]+dy]);if(AD.part!=="tail")set(true,[AD.p1[0]+dx,AD.p1[1]+dy]);awRedraw(k);},true);
+    window.addEventListener("pointerup",ev=>{if(!AD||AD.k!==k)return;ev.stopImmediatePropagation();AD=null;cv.style.cursor="move";txtSave();cv.addEventListener("click",e2=>e2.stopImmediatePropagation(),{capture:true,once:true});},true);}}
+
+/* log plot: after ➕ add / ➖ remove, the selection is cleared and “☑ select images” switches off */
+{const off=()=>{LP.sel.clear();LP.pick=false;$("lpPick").setAttribute("aria-pressed","false");$("lpPick").classList.remove("primary");try{lpSelUI();lpDraw();}catch(e){}};
+  for(const id of ["lpAddCmp","lpRemCmp"]){const b=$(id);if(b)b.addEventListener("click",()=>setTimeout(off,0));}}
+/* GIF: your own labels — one button removes them all (they are kept between sessions until removed) */
+{const add=$("gifLabAdd");if(add){const b=document.createElement("button");b.id="gifLabClr";b.textContent="✕ my labels";b.title="Remove all your own labels from the frames (double-click one label on the frame to edit or delete just that one)";
+  add.after(b);const ui=()=>{b.hidden=!GL.cus.length;};ui();b.addEventListener("click",()=>{GL.cus=[];glSave();ui();gifRedo();});
+  add.addEventListener("click",()=>setTimeout(ui,0));$("gifLabTxt").addEventListener("keydown",e=>{if(e.key==="Enter")setTimeout(ui,0);});}}
+
+/* image list: unticking images and pressing the button takes them out of the comparison (also all of them) */
+{const _t=brTickCount;brTickCount=function(){const r=_t.apply(this,arguments);const n=BR.items.filter(i=>i.tick).length,b=$("brCompare"),inC=(S.cmp||[]).length,
+    gone=(S.cmp||[]).filter(e=>!BR.items.some(i=>i.tick&&i.file===e.file)).length;
+  if(!n&&inC){b.disabled=false;b.textContent=`Remove all from comparison (${inC})`;b.title="Nothing is ticked: take every image out of the comparison";}
+  else if(gone){b.disabled=!n&&!inC;b.textContent=`Apply ticked (${n}) · remove ${gone}`;b.title="Compare the ticked images and take the unticked ones out of the comparison";}
+  else b.title="Add the ticked images to the comparison and compute their profiles";return r;};}
+$("brCompare").addEventListener("click",()=>{setTimeout(()=>{try{cmpVis();cmpRender();}catch(e){}try{imgSelRender();}catch(e){}try{if(typeof drawCmp==="function")drawCmp();}catch(e){}
+  try{if(typeof gifSelUI==="function"&&!S.cmp.length){GIF.base=[];GIF.ents=[];GIF.canv=[];gifStop();gifSelUI();gifPlay();}}catch(e){}
+  if(!S.cmp.length)setStatus("All images taken out of the comparison.");},50);});
 </script>
 
 </body></html>
