@@ -406,7 +406,7 @@ th{position:sticky;top:0;background:var(--panel);font-family:var(--f-body);font-
       <h2>Compare profiles</h2><span class="keys" id="cmpCount"></span>
       <button class="primary" id="cmpRun" title="Compute (or recompute) the profile of every image in the list">Compute all</button>
     </div>
-    <div class="chartbar tbrow"><span class="tbl">view</span><div class="tbc"><span class="row2"><label for="cmpXm">x axis</label><select id="cmpXm" style="width:auto"><option value="d">d (Å)</option><option value="tt">2θ (°)</option><option value="q">1/d (nm⁻¹)</option></select></span><span class="row2"><label for="cmpLo">from</label><input id="cmpLo" type="number" step="any" style="width:5.5rem"><label for="cmpHi">to</label><input id="cmpHi" type="number" step="any" style="width:5.5rem"><button id="cmpReset">Reset zoom</button></span><label><input id="cmpBg" type="checkbox" checked> subtract background</label><span class="row2"><label for="cmpLay">layout</label><select id="cmpLay" style="width:auto"><option value="overlay">overlay</option><option value="stack">stacked</option></select></span><span class="row2" id="cmpOffWrap" hidden><label for="cmpOff">offset</label><input id="cmpOff" type="range" min="0" max="1.5" step="0.02" value="0.6" style="width:7rem"></span><span class="row2"><label for="cmpSort">order</label><select id="cmpSort" style="width:auto"><option value="time">by acquisition time</option><option value="temp">by T measured</option><option value="name">by name</option><option value="custom">custom (drag rows)</option></select><label><input id="cmpRev" type="checkbox"> reverse</label></span><span class="row2"><label for="cmpNorm">normalise</label><select id="cmpNorm" style="width:auto"><option value="none">none</option><option value="max">to max in view</option><option value="rmax">to max in d range</option><option value="rarea">to area in d range</option></select></span><span class="row2" id="cmpNdWrap" hidden><label for="cmpNd">d from</label><input id="cmpNd" type="number" step="0.001" value="1.95" style="width:5.5rem"><label for="cmpNd2">to</label><input id="cmpNd2" type="number" step="0.001" value="2.05" style="width:5.5rem"><span class="keys">Å</span><button id="cmpNdPick" aria-pressed="false" title="Then drag across the plot to set the d range (or shift + drag on the plot at any time)">⇔ pick on plot</button></span></div></div>
+    <div class="chartbar tbrow"><span class="tbl">view</span><div class="tbc"><span class="row2"><label for="cmpXm">x axis</label><select id="cmpXm" style="width:auto"><option value="d">d (Å)</option><option value="tt">2θ (°)</option><option value="q">1/d (nm⁻¹)</option></select></span><span class="row2"><label for="cmpLo">from</label><input id="cmpLo" type="number" step="any" style="width:5.5rem"><label for="cmpHi">to</label><input id="cmpHi" type="number" step="any" style="width:5.5rem"><button id="cmpReset">Reset zoom</button></span><label><input id="cmpBg" type="checkbox" checked> subtract background</label><span class="row2"><label for="cmpLay">layout</label><select id="cmpLay" style="width:auto"><option value="overlay">overlay</option><option value="stack">stacked</option></select></span><span class="row2" id="cmpOffWrap" hidden><label for="cmpOff">offset</label><input id="cmpOff" type="range" min="0" max="1.5" step="0.02" value="0.6" style="width:7rem"></span><span class="row2"><label for="cmpSort">order</label><select id="cmpSort" style="width:auto"><option value="time">by acquisition time</option><option value="temp">by T measured</option><option value="name">by name</option><option value="custom">custom (drag rows)</option></select><label><input id="cmpRev" type="checkbox"> reverse</label></span><span class="row2"><label for="cmpNorm">normalise</label><select id="cmpNorm" style="width:auto"><option value="none">none</option><option value="max">to max in view</option><option value="rmax">to max in d range</option><option value="rarea">to area in d range</option><option value="rtot">to total intensity in d range</option></select></span><span class="row2" id="cmpNdWrap" hidden><label for="cmpNd">d from</label><input id="cmpNd" type="number" step="0.001" value="1.95" style="width:5.5rem"><label for="cmpNd2">to</label><input id="cmpNd2" type="number" step="0.001" value="2.05" style="width:5.5rem"><span class="keys">Å</span><button id="cmpNdPick" aria-pressed="false" title="Then drag across the plot to set the d range (or shift + drag on the plot at any time)">⇔ pick on plot</button></span></div></div>
     <div class="chartbar tbrow"><span class="tbl">CIF</span><div class="tbc"><label title="CIF sticks of the ticked / highlighted phases along the bottom"><input id="cmpSticks" type="checkbox" checked> CIF sticks</label><span class="row2" id="cmpStWrap" hidden><label for="cmpStH" title="Height of a 100 % line, as a fraction of the plot height">stick height</label><input id="cmpStH" type="range" min="5" max="100" step="1" value="25" style="width:7rem"><span class="keys" id="cmpStHv">25 %</span>
         <label title="Every line runs the full plot height (intensity shown as opacity)"><input id="cmpStFull" type="checkbox"> full-height lines</label></span></div></div>
     <div class="chartbar tbrow"><span class="tbl">labels</span><div class="tbc"><button id="cmpLgEditBtn" title="Edit the legend / label texts of this plot">✎ edit legend</button><span class="row2" style="gap:6px" title="What each profile's label shows (legend, or the labels beside the stacked curves)"><span class="keys">label by:</span><label><input id="clName" type="checkbox" checked> file name</label><label title="SAED or FFT"><input id="clType" type="checkbox"> type</label><label><input id="clDate" type="checkbox"> date</label><label><input id="clTime" type="checkbox"> time</label><label title="Time since the earliest image in the comparison (from the acquisition times), in seconds"><input id="clEl" type="checkbox"> clock (s from first)</label><label><input id="clTs" type="checkbox"> T set</label><label><input id="clT" type="checkbox"> T meas</label><label><input id="clP" type="checkbox"> pressure</label><label title="Gas flow"><input id="clGas" type="checkbox"> SCCM</label><input class="gasV" type="number" min="0" step="any" placeholder="value" title="Gas flow in SCCM (the same value everywhere)" style="width:4.6rem"><input class="gasN" type="text" placeholder="gas" title="Gas name, written after SCCM (e.g. PH3)" style="width:5.5rem"></span><span hidden><span class="row2" style="gap:4px;margin-left:6px"><label for="cmpFs" title="Font size of the profile labels / legend in the plot">size</label><input id="cmpFs" type="number" min="6" max="40" step="1" value="11" style="width:4rem"><label for="cmpCifFs" title="Font size of the CIF phase legend in the plot (top left)" style="margin-left:6px">CIF legend size</label><input id="cmpCifFs" type="number" min="6" max="40" step="1" value="11" style="width:4rem"></span></span><span class="row2 ulBox" data-k="cmp" style="gap:6px;border-left:2px solid var(--line);padding-left:10px" title="Your own text labels on this plot (only this plot). Drag them with ✥ move text; click one there to set its size"><button class="ulAdd" data-k="cmp" title="Add a text label of your own to this plot">+ my label</button><span class="ulList row2" data-k="cmp" style="gap:6px"></span></span><span class="row2 vlBox" data-k="cmp" style="gap:6px;border-left:2px solid var(--line);padding-left:10px" title="Vertical lines of your own on this plot (only this plot): press + vertical line, then click the plot where it should go; 📍 moves it again"><button class="vlAdd" data-k="cmp" title="Add a vertical line at a d value">+ vertical line</button><span class="keys vlHint" hidden style="color:var(--accent);font-weight:600">click the plot to place the line (Esc cancels)</span><span class="vlList row2" data-k="cmp" style="gap:6px"></span></span></div></div>
@@ -567,7 +567,7 @@ const MVB={depth:0,name:null,n:0,replay:false};
       const f0=ctx.font,s0=ctx.fillStyle;fontOv(ctx,ov);if(ov.col&&!peek)ctx.fillStyle=ov.col;const tx=(ov.t!=null&&(peek?MVB.n===0:MVB.n===1))?ov.t:t;
       try{return fn.call(ctx,tx,x,y,...(mw!==undefined?[mw]:[]));}finally{window.FONT_RAW=true;ctx.font=f0;window.FONT_RAW=false;ctx.fillStyle=s0;}}
     const s=String(t);c.cnt=c.cnt||{};const n=peek?(c.cnt[s]||0)+1:(c.cnt[s]=(c.cnt[s]||0)+1),name="a:"+s+(n>1?"#"+n:"");
-    const ov=(c.ov&&c.ov[name])||null,tx=ov&&ov.t!=null?ov.t:s,f0=ctx.font,s0=ctx.fillStyle;if(ov)fontOv(ctx,ov);
+    const ov=(c.ov&&c.ov[name])||null;if(ov&&ov.hide&&!peek)return;const tx=ov&&ov.t!=null?ov.t:s,f0=ctx.font,s0=ctx.fillStyle;if(ov)fontOv(ctx,ov);
     const m=ctx.measureText(tx),T0=ctx.getTransform(),l=x-m.actualBoundingBoxLeft,r=x+m.actualBoundingBoxRight,tp=y-m.actualBoundingBoxAscent,bt=y+m.actualBoundingBoxDescent;
     const pts=[[l,tp],[r,tp],[l,bt],[r,bt]].map(([a,b])=>T0.transformPoint(new DOMPoint(a,b)));const X0=Math.min(...pts.map(p=>p.x)),X1=Math.max(...pts.map(p=>p.x)),Y0=Math.min(...pts.map(p=>p.y)),Y1=Math.max(...pts.map(p=>p.y));
     const o=(c.off&&c.off[name])||[0,0],f=(c.sz&&c.sz[name])||1,dpr=window.TXT_DPR||1,dx=o[0]*dpr,dy=o[1]*dpr;
@@ -2359,6 +2359,8 @@ function cmpSeries(){const mode=$("cmpXm").value,bgs=$("cmpBg").checked,nm=$("cm
   if(!(hi>lo)&&L.length){lo=Infinity;hi=-Infinity;for(const e of L){const X=cmpX(e,mode);for(const v of X){if(mode==="d"&&v>8)continue;if(v<lo)lo=v;if(v>hi)hi=v;}}}
   const out=L.map(e=>{const X=cmpX(e,mode),Y=Array.from(e.prof.I,(v,i)=>bgs?v-e.prof.bg[i]:v);let f=1;
     if(nm==="max"){let m=-Infinity;for(let i=0;i<X.length;i++)if(X[i]>=lo&&X[i]<=hi&&Y[i]>m)m=Y[i];f=m>0?1/m:1;}
+    else if(nm==="rtot"&&n2>n1){const D=e.prof.D,I=e.prof.I,pts=[];for(let i=0;i<D.length;i++)if(D[i]>=n1&&D[i]<=n2&&isFinite(I[i]))pts.push([10/D[i],I[i]]);pts.sort((x,y)=>x[0]-y[0]);
+      let a=0;for(let i=1;i<pts.length;i++)a+=0.5*(pts[i][1]+pts[i-1][1])*(pts[i][0]-pts[i-1][0]);f=a>0?1/a:1;}   /* total scattered intensity (raw, background included) integrated over 1/d */
     else if((nm==="rmax"||nm==="rarea")&&n2>n1){const D=e.prof.D;let m=-Infinity,a=0;for(let i=0;i<D.length;i++)if(D[i]>=n1&&D[i]<=n2&&isFinite(Y[i])){if(Y[i]>m)m=Y[i];const dd=Math.abs((D[Math.min(D.length-1,i+1)]-D[Math.max(0,i-1)])/((i>0&&i<D.length-1)?2:1));a+=Y[i]*dd;}
       const ref=nm==="rmax"?m:a;f=ref>0?1/ref:1;}
     return {e,X,Y:Y.map(v=>v*f)};});
@@ -2880,7 +2882,7 @@ const TXT_NAMES={xt:"x name",yt:"y name",xtk:"x tick numbers",ytk:"y tick number
 function txtMoving(k){const b=document.querySelector(`.txtMv[data-k="${k}"]`);return b&&b.getAttribute("aria-pressed")==="true";}
 function txtSelUI(k){const box=document.querySelector(`.txtSel[data-k="${k}"]`),n=TXT_SEL[k];box.hidden=!(n&&txtMoving(k));if(!n)return;box.querySelector(".txtSelN").textContent=TXT_NAMES[n]||n;box.querySelector(".txtSelSz").value=Math.round(((TXT[k].sz||{})[n]||1)*100);}
 for(const box of document.querySelectorAll(".txtSel")){const k=box.dataset.k,inp=box.querySelector(".txtSelSz");inp.addEventListener("input",()=>{const v=+inp.value,n=TXT_SEL[k];if(!n||!(v>=20&&v<=600))return;TXT[k].sz=TXT[k].sz||{};TXT[k].sz[n]=v/100;txtSave();txtRedraw(k);});}
-for(const b of document.querySelectorAll(".txtMv"))b.addEventListener("click",()=>{const on=b.getAttribute("aria-pressed")!=="true";b.setAttribute("aria-pressed",String(on));const cv=TXTCV[b.dataset.k];cv.style.cursor=on?"move":"";if(!on)TXT_SEL[b.dataset.k]=null;txtSelUI(b.dataset.k);txtRedraw(b.dataset.k);});
+for(const b of document.querySelectorAll(".txtMv"))b.addEventListener("click",()=>{const on=b.getAttribute("aria-pressed")!=="true";b.setAttribute("aria-pressed",String(on));const cv=TXTCV[b.dataset.k];cv.style.cursor=on?"move":"";if(!on){TXT_SEL[b.dataset.k]=null;if(AWSEL&&AWSEL.k===b.dataset.k)AWSEL=null;}txtSelUI(b.dataset.k);txtRedraw(b.dataset.k);});
 for(const k in TXTCV){const cv=TXTCV[k],btn=document.querySelector(`.txtMv[data-k="${k}"]`);
   cv.addEventListener("pointerdown",ev=>{if(btn.getAttribute("aria-pressed")!=="true"||ev.button!==0)return;const s=cv.width/cv.getBoundingClientRect().width,x=ev.offsetX*s,y=ev.offsetY*s;
     const h=[...HITS[k]].reverse().find(b=>x>=b.x0-4*s&&x<=b.x1+4*s&&y>=b.y0-4*s&&y<=b.y1+4*s);ev.stopImmediatePropagation();ev.preventDefault();
@@ -3908,11 +3910,11 @@ function awPaint(ctx,p0,p1,col,w,dpr){const dx=p1[0]-p0[0],dy=p1[1]-p0[1],L=Math
   ctx.beginPath();ctx.moveTo(p1[0],p1[1]);ctx.lineTo(p1[0]-ux*h-uy*hw,p1[1]-uy*h+ux*hw);ctx.lineTo(p1[0]-ux*h+uy*hw,p1[1]-uy*h-ux*hw);ctx.closePath();ctx.fill();ctx.restore();}
 function awDraw(k,t,d){const L=awList(k).filter(a=>a.done!==false||AWPICK&&AWPICK.a===a);if(!L.length)return;const exp=t instanceof HTMLCanvasElement&&k!=="tm",cv=k==="tm"?TXTCV.tm:(exp?t:TXTCV[k]),G=awGeom(k,exp?t:null);if(!G)return;
   const dpr=exp?d:cv.width/Math.max(1,cv.getBoundingClientRect().width),ctx=cv.getContext("2d");
-  for(const a of L){if(a.d1==null&&a.f1==null)continue;const p0=awToXY(k,G,a,false),p1=awToXY(k,G,a,true);if(!p0||!p1)continue;awPaint(ctx,p0,p1,a.col||"#e4572e",+a.w||2,dpr);}}
+  for(const a of L){if(a.d1==null&&a.f1==null)continue;const p0=awToXY(k,G,a,false),p1=awToXY(k,G,a,true);if(!p0||!p1)continue;awShape(ctx,a,p0,p1,dpr);if(AWSEL&&AWSEL.a===a&&!(t instanceof HTMLCanvasElement&&t!==TXTCV[k])&&txtMoving(k))awSelMark(ctx,a,p0,p1,dpr);}}
 function awUI(k){const box=document.querySelector(`.awList[data-k="${k}"]`);if(!box)return;box.textContent="";
   awList(k).forEach((a,i)=>{if(a.done===false)return;const w=document.createElement("span");w.className="row2";w.style.cssText="gap:3px;border:1px solid var(--line);border-radius:6px;padding:2px 4px";
     const mk=(tag,props,css)=>{const e=document.createElement(tag);Object.assign(e,props);if(css)e.style.cssText=css;e.addEventListener("keydown",ev=>ev.stopPropagation());e.addEventListener("click",ev=>ev.stopPropagation());return e;};
-    const lab=document.createElement("span");lab.className="keys";lab.textContent="➚"+(i+1);
+    const lab=document.createElement("span");lab.className="keys";lab.textContent=(a.type==="rect"?"▭":a.type==="ell"?"◯":"➚")+(i+1);
     const col=mk("input",{type:"color",value:a.col||"#e4572e",title:"Arrow colour"},"width:2rem;height:1.7rem;padding:0 2px");
     const wd=mk("select",{title:"Line width"},"width:auto");for(const v of [1,1.5,2,3,4]){const o=document.createElement("option");o.value=v;o.textContent=v+" px";wd.appendChild(o);}wd.value=String(a.w||2);
     const re=mk("button",{textContent:"📍",title:"Draw this arrow again: press at the tail and drag to the head"},"padding:2px 6px");
@@ -3921,19 +3923,21 @@ function awUI(k){const box=document.querySelector(`.awList[data-k="${k}"]`);if(!
     re.addEventListener("click",()=>awPickStart(k,a));x.addEventListener("click",()=>{TXT[k].aw=awList(k).filter(z=>z!==a);txtSave();awUI(k);awRedraw(k);});
     w.append(lab,col,wd,re,x);box.appendChild(w);});}
 function awRedraw(k){try{if(k==="tm"){tmDraw();}else txtRedraw(k);}catch(e){}}
-function awPickStart(k,a){AWPICK={k,a,down:false};const cv=TXTCV[k];cv.classList.add("vlPickOn");const h=document.querySelector(`.awBox[data-k="${k}"] .awHint`);if(h)h.hidden=false;}
+function awPickStart(k,a){AWPICK={k,a,down:false};{const hh=document.querySelector(`.awBox[data-k="${k}"] .awHint`);if(hh)hh.textContent=awIsShp(a)?"press at one corner, drag to the opposite corner (Esc cancels)":"press at the tail, drag to the head (Esc cancels)";}const cv=TXTCV[k];cv.classList.add("vlPickOn");const h=document.querySelector(`.awBox[data-k="${k}"] .awHint`);if(h)h.hidden=false;}
 function awPickEnd(){if(!AWPICK)return;const cv=TXTCV[AWPICK.k];cv.classList.remove("vlPickOn");const h=document.querySelector(`.awBox[data-k="${AWPICK.k}"] .awHint`);if(h)h.hidden=true;AWPICK=null;}
 function awBox(k){const s=document.createElement("span");s.className="row2 awBox";s.dataset.k=k;s.style.cssText="gap:6px;border-left:2px solid var(--line);padding-left:10px";
   s.title="Arrows of your own on this plot: press + arrow, then press on the plot at the tail and drag to the head; 📍 draws it again, the colour box and width change it";
   const b=document.createElement("button");b.className="awAdd";b.dataset.k=k;b.textContent="+ arrow";const h=document.createElement("span");h.className="keys awHint";h.hidden=true;h.style.cssText="color:var(--accent);font-weight:600";h.textContent="press at the tail, drag to the head (Esc cancels)";
-  const l=document.createElement("span");l.className="awList row2";l.dataset.k=k;l.style.gap="6px";s.append(b,h,l);
+  const l=document.createElement("span");l.className="awList row2";l.dataset.k=k;l.style.gap="6px";const bR=document.createElement("button"),bE=document.createElement("button");bR.className=bE.className="awAddShp";bR.textContent="+ □";bE.textContent="+ ○";bR.title="Add a rectangle: press at one corner on the plot and drag to the opposite corner";bE.title="Add a circle / ellipse: press at one corner of its box on the plot and drag to the opposite corner";
+  for(const [bb,ty] of [[bR,"rect"],[bE,"ell"]])bb.addEventListener("click",e=>{e.stopPropagation();const a={id:1+Math.max(0,...awList(k).map(z=>z.id||0)),type:ty,col:"#e4572e",w:2,done:false};awList(k).push(a);awPickStart(k,a);});
+  s.append(b,bR,bE,h,l);
   b.addEventListener("click",e=>{e.stopPropagation();const a={id:1+Math.max(0,...awList(k).map(z=>z.id||0)),col:"#e4572e",w:2,done:false};awList(k).push(a);awPickStart(k,a);});return s;}
 for(const k in TXTCV){const cv=TXTCV[k];
   window.addEventListener("pointerdown",ev=>{if(!AWPICK||AWPICK.k!==k||ev.button!==0||ev.target!==cv)return;ev.stopImmediatePropagation();ev.preventDefault();const p=awFromEv(k,ev);if(!p)return;
     const a=AWPICK.a;if(k==="tm"){a.f0=a.f1=p.f;a.r0=a.r1=p.r;}else{a.d0=a.d1=p.d;a.y0=a.y1=p.y;}AWPICK.down=true;cv.setPointerCapture(ev.pointerId);},true);
   window.addEventListener("pointermove",ev=>{if(!AWPICK||AWPICK.k!==k||!AWPICK.down)return;ev.stopImmediatePropagation();const p=awFromEv(k,ev);if(!p)return;const a=AWPICK.a;
     if(k==="tm"){a.f1=p.f;a.r1=p.r;}else{a.d1=p.d;a.y1=p.y;}awRedraw(k);},true);
-  window.addEventListener("pointerup",ev=>{if(!AWPICK||AWPICK.k!==k||!AWPICK.down)return;ev.stopImmediatePropagation();const a=AWPICK.a;a.done=true;txtSave();awPickEnd();awUI(k);awRedraw(k);
+  window.addEventListener("pointerup",ev=>{if(!AWPICK||AWPICK.k!==k||!AWPICK.down)return;ev.stopImmediatePropagation();const a=AWPICK.a;a.done=true;if(awIsShp(a)&&(k==="tm"?(a.f0===a.f1||a.r0===a.r1):(a.d0===a.d1||a.y0===a.y1)))TXT[k].aw=awList(k).filter(z=>z!==a);txtSave();awPickEnd();awUI(k);awRedraw(k);
     cv.addEventListener("click",e2=>e2.stopImmediatePropagation(),{capture:true,once:true});},true);}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&AWPICK){const {k,a}=AWPICK;if(a.done===false)TXT[k].aw=awList(k).filter(z=>z!==a);awPickEnd();awUI(k);awRedraw(k);}},true);
 {const _a=drawChart;drawChart=function(t,d){const r=_a(t,d);try{if(S.profile)awDraw("pk",t,d);}catch(e){}return r;};}
@@ -4044,11 +4048,11 @@ window.addEventListener("pointerdown",e=>{for(const b of document.querySelectorA
   for(const k in TXTCV){const cv=TXTCV[k];
     window.addEventListener("pointerdown",ev=>{if(ev.target!==cv||ev.button!==0||AWPICK||!txtMoving(k))return;const L=awList(k).filter(a=>a.done!==false);if(!L.length)return;const G=awGeom(k,null);if(!G)return;
       const s=cv.width/cv.getBoundingClientRect().width,p=[ev.offsetX*s,ev.offsetY*s],tol=8*s;let best=null,bd=tol;
-      for(const a of L){const p0=awToXY(k,G,a,false),p1=awToXY(k,G,a,true);if(!p0||!p1)continue;const d=segD(p,p0,p1);if(d<bd){bd=d;best={a,p0,p1,part:Math.hypot(p[0]-p1[0],p[1]-p1[1])<tol*1.4?"head":Math.hypot(p[0]-p0[0],p[1]-p0[1])<tol*1.4?"tail":"all"};}}
-      if(!best)return;ev.stopImmediatePropagation();ev.preventDefault();AD={k,...best,s0:p,s};cv.setPointerCapture(ev.pointerId);cv.style.cursor="grabbing";},true);
+      for(const a of L){const p0=awToXY(k,G,a,false),p1=awToXY(k,G,a,true);if(!p0||!p1)continue;awShpHit.ty=a.type;const sh=awIsShp(a)?awShpHit(p,p0,p1,tol,segD):null;if(awIsShp(a)){if(sh&&sh.d<bd){bd=sh.d;best={a,p0,p1,part:"shape",m:sh.m};}continue;}const d=segD(p,p0,p1);if(d<bd){bd=d;best={a,p0,p1,part:Math.hypot(p[0]-p1[0],p[1]-p1[1])<tol*1.4?"head":Math.hypot(p[0]-p0[0],p[1]-p0[1])<tol*1.4?"tail":"all"};}}
+      if(!best){if(AWSEL){const o=AWSEL.k;AWSEL=null;awRedraw(o);}return;}ev.stopImmediatePropagation();ev.preventDefault();AWSEL={k,a:best.a};TXT_SEL[k]=null;if(TXT_MSEL[k])TXT_MSEL[k]=[];try{txtSelUI(k);}catch(e){}AD={k,...best,s0:p,s};cv.setPointerCapture(ev.pointerId);cv.style.cursor="grabbing";},true);
     window.addEventListener("pointermove",ev=>{if(!AD||AD.k!==k)return;ev.stopImmediatePropagation();const s=AD.s,p=[ev.offsetX*s,ev.offsetY*s],dx=p[0]-AD.s0[0],dy=p[1]-AD.s0[1],a=AD.a;
       const set=(end,xy)=>{const D=scrToData(k,xy[0],xy[1]);if(k==="tm"){if(end){a.f1=D.f;a.r1=D.r;}else{a.f0=D.f;a.r0=D.r;}}else if(D.d>0){if(end){a.d1=D.d;a.y1=D.y;}else{a.d0=D.d;a.y0=D.y;}}};
-      if(AD.part!=="head")set(false,[AD.p0[0]+dx,AD.p0[1]+dy]);if(AD.part!=="tail")set(true,[AD.p1[0]+dx,AD.p1[1]+dy]);awRedraw(k);},true);
+      const M=AD.m||(AD.part==="head"?[0,0,1,1]:AD.part==="tail"?[1,1,0,0]:[1,1,1,1]);if(M[0]||M[1])set(false,[AD.p0[0]+dx*M[0],AD.p0[1]+dy*M[1]]);if(M[2]||M[3])set(true,[AD.p1[0]+dx*M[2],AD.p1[1]+dy*M[3]]);awRedraw(k);},true);
     window.addEventListener("pointerup",ev=>{if(!AD||AD.k!==k)return;ev.stopImmediatePropagation();AD=null;cv.style.cursor="move";txtSave();cv.addEventListener("click",e2=>e2.stopImmediatePropagation(),{capture:true,once:true});},true);}}
 
 /* log plot: after ➕ add / ➖ remove, the selection is cleared and “☑ select images” switches off */
@@ -4068,6 +4072,236 @@ window.addEventListener("pointerdown",e=>{for(const b of document.querySelectorA
 $("brCompare").addEventListener("click",()=>{setTimeout(()=>{try{cmpVis();cmpRender();}catch(e){}try{imgSelRender();}catch(e){}try{if(typeof drawCmp==="function")drawCmp();}catch(e){}
   try{if(typeof gifSelUI==="function"&&!S.cmp.length){GIF.base=[];GIF.ents=[];GIF.canv=[];gifStop();gifSelUI();gifPlay();}}catch(e){}
   if(!S.cmp.length)setStatus("All images taken out of the comparison.");},50);});
+
+/* ===== 📈 Peak tracker (compare plot): for every shown profile, the chosen peak's integrated intensity, height, position and FWHM
+   (and the ratio to a reference peak), plotted against time / temperature / order, with a table and CSV export.
+   Each profile: a straight background line through the window edges is removed; the area is integrated over 1/d (nm⁻¹);
+   FWHM from the half-maximum crossings (linear interpolation), given in 1/d and in d; apparent size L = 0.9 / FWHM(1/d), without instrumental-broadening correction. ===== */
+const PKT=(()=>{const d={on:false,d1:null,d2:null,r1:null,r2:null,metric:"area",x:"time",pick:null};try{return Object.assign(d,JSON.parse(localStorage.getItem("pkt-"+SETK)||"{}"),{pick:null});}catch(e){return d;}})();
+function pktSave(){try{const {pick,...o}=PKT;localStorage.setItem("pkt-"+SETK,JSON.stringify(o));}catch(e){}}
+const IS_APP=typeof TM!=="undefined";
+function pktMeasure(e,a,b){const P=e.prof;if(!P||!(b>a))return null;const D=P.D,I=P.I,n=D.length,idx=[];for(let i=0;i<n;i++)if(D[i]>=a&&D[i]<=b&&isFinite(I[i]))idx.push(i);if(idx.length<5)return null;
+  idx.sort((i,j)=>10/D[i]-10/D[j]);const q=idx.map(i=>10/D[i]),y=idx.map(i=>I[i]),m=q.length,k=Math.max(1,Math.min(3,Math.floor(m/6)));
+  const avg=(arr,s,t)=>{let z=0;for(let i=s;i<t;i++)z+=arr[i];return z/(t-s);};const qa=avg(q,0,k),ya=avg(y,0,k),qb=avg(q,m-k,m),yb=avg(y,m-k,m);let bl=x=>ya+(yb-ya)*(x-qa)/((qb-qa)||1);
+  /* background: a parabola fitted to the two edge zones of the window (15 % each side) follows a curved background; straight line if the window is too small */
+  {const ke=Math.max(3,Math.floor(m*0.15));if(2*ke>=8&&2*ke<m){const xs=[],ys=[],xc=(q[0]+q[m-1])/2;for(let i=0;i<ke;i++){xs.push(q[i]-xc);ys.push(y[i]);xs.push(q[m-1-i]-xc);ys.push(y[m-1-i]);}
+    let S=[0,0,0,0,0],T=[0,0,0];for(let i=0;i<xs.length;i++){let p=1;for(let j=0;j<5;j++){S[j]+=p;if(j<3)T[j]+=p*ys[i];p*=xs[i];}}
+    const M=[[S[0],S[1],S[2]],[S[1],S[2],S[3]],[S[2],S[3],S[4]]],det=A=>A[0][0]*(A[1][1]*A[2][2]-A[1][2]*A[2][1])-A[0][1]*(A[1][0]*A[2][2]-A[1][2]*A[2][0])+A[0][2]*(A[1][0]*A[2][1]-A[1][1]*A[2][0]),d0=det(M);
+    if(Math.abs(d0)>1e-30){const c=[0,1,2].map(j=>det(M.map((r,i)=>r.map((v,jj)=>jj===j?T[i]:v)))/d0);bl=x=>c[0]+c[1]*(x-xc)+c[2]*(x-xc)*(x-xc);}}}
+  const v=y.map((t,i)=>t-bl(q[i]));let area=0;for(let i=1;i<m;i++)area+=0.5*(v[i]+v[i-1])*(q[i]-q[i-1]);
+  let im=0;for(let i=1;i<m;i++)if(v[i]>v[im])im=i;const h=v[im];const ke2=Math.max(3,Math.floor(m*0.15));let ss=0,sn=0;for(let i=0;i<ke2;i++){ss+=v[i]*v[i]+v[m-1-i]*v[m-1-i];sn+=2;}const sd=Math.sqrt(ss/Math.max(1,sn));
+  if(!(h>0)||!(area>0)||h<3*sd)return {area:NaN,height:NaN,pos:NaN,fwhmQ:NaN,fwhmD:NaN,L:NaN,none:true};
+  /* position: parabola through the three highest points, else the maximum */
+  let qp=q[im];if(im>0&&im<m-1){const y0=v[im-1],y1=v[im],y2=v[im+1],den=y0-2*y1+y2;if(den<0){const dlt=0.5*(y0-y2)/den;if(Math.abs(dlt)<=1)qp=q[im]+dlt*(q[im+1]-q[im-1])/2;}}
+  const half=h/2;let ql=NaN,qr=NaN;for(let i=im;i>0;i--)if(v[i-1]<half){ql=q[i-1]+(half-v[i-1])*(q[i]-q[i-1])/((v[i]-v[i-1])||1);break;}
+  for(let i=im;i<m-1;i++)if(v[i+1]<half){qr=q[i]+(v[i]-half)*(q[i+1]-q[i])/((v[i]-v[i+1])||1);break;}
+  const fq=qr-ql,dpos=10/qp,fd=isFinite(fq)?10/ql-10/qr:NaN;return {area,height:h,pos:dpos,fwhmQ:fq,fwhmD:fd,L:isFinite(fq)&&fq>0?0.9/fq:NaN};}
+function pktX(e,i){if(PKT.x==="order")return i+1;
+  if(IS_APP)return typeof frameT==="function"?frameT(e.frame):e.frame;
+  if(PKT.x==="temp"){const r=typeof tempAt==="function"?tempAt(e.acq):null;return r&&!r.err?r.meas:NaN;}
+  const t=acqToMs(e.acq);return t;}
+function pktRows(){const L=cmpOrder().filter(e=>e.show&&e.prof);const rows=L.map((e,i)=>{const p=pktMeasure(e,PKT.d1,PKT.d2),r=PKT.r1!=null&&PKT.r2!=null?pktMeasure(e,PKT.r1,PKT.r2):null;
+    return {e,x:pktX(e,i),lab:IS_APP&&typeof cmpLabel0==="function"?cmpLabel0(e):(e.rel||""),p,ref:r,tot:pktTotal(e),ratio:p&&r&&r.area>0?p.area/r.area:NaN};});
+  if(!IS_APP&&PKT.x==="time"){const t0=Math.min(...rows.map(r=>r.x).filter(isFinite));rows.forEach(r=>{r.x=isFinite(r.x)?(r.x-t0)/1000:NaN;});}
+  return rows;}
+const PKT_M={area:["integrated intensity","area (counts·nm⁻¹)"],height:["peak height","height (counts)"],pos:["peak position","d (Å)"],fwhmQ:["FWHM","FWHM (nm⁻¹)"],fwhmD:["FWHM in d","FWHM (Å)"],L:["apparent size 0.9/FWHM","L (nm)"],ratio:["area / reference area","ratio"]};
+function pktXName(){return PKT.x==="order"?"profile #":IS_APP?"time (s)":PKT.x==="temp"?"T measured (°C)":"time from first image (s)";}
+function pktDraw(){const box=$("pktBox");if(!box||box.hidden)return;const cv=$("pktCv"),dpr=window.devicePixelRatio||1,w=Math.max(300,cv.clientWidth),h=cv.clientHeight||240;cv.width=w*dpr;cv.height=h*dpr;
+  const g=cv.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);const css=getComputedStyle(document.documentElement),ink=css.getPropertyValue("--ink").trim()||"#222",mut=css.getPropertyValue("--muted").trim()||"#888",line=css.getPropertyValue("--line").trim()||"#ccc",pan=css.getPropertyValue("--panel").trim()||"#fff";
+  g.fillStyle=pan;g.fillRect(0,0,w,h);const st=$("pktStat");
+  if(!(PKT.d2>PKT.d1)){st.textContent="Set the peak window: type d₁ – d₂ or press ⇔ pick and drag over the peak in the compare plot.";pktTable([]);return;}
+  const R=pktRows(),M=PKT.metric,TT=pktTotOn(),NR=!TT&&pktNormOn(),val=r=>M==="ratio"?r.ratio:!r.p?NaN:TT&&(M==="area"||M==="height")?(r.tot>0?r.p[M]/r.tot:NaN):NR&&M==="area"?(r.ref&&r.ref.area>0?r.p.area/r.ref.area:NaN):NR&&M==="height"?(r.ref&&r.ref.height>0?r.p.height/r.ref.height:NaN):r.p[M],pts=R.map(r=>({r,x:r.x,y:val(r)})).filter(o=>isFinite(o.x)&&isFinite(o.y)).sort((a,b)=>a.x-b.x);
+  pktTable(R);st.textContent=`${R.length} profiles · peak ${PKT.d1}–${PKT.d2} Å`+(PKT.r1!=null&&PKT.r2!=null?` · reference ${PKT.r1}–${PKT.r2} Å`:"")+(pts.length<R.length?` · ${R.length-pts.length} without a value`:"");
+  const Lm=66,Rm=14,Tm=12,Bm=36,pw=w-Lm-Rm,ph=h-Tm-Bm;g.strokeStyle=mut;g.strokeRect(Lm+.5,Tm+.5,pw-1,ph-1);if(!pts.length)return;
+  let x0=Math.min(...pts.map(p=>p.x)),x1=Math.max(...pts.map(p=>p.x)),y0=Math.min(...pts.map(p=>p.y)),y1=Math.max(...pts.map(p=>p.y));
+  if(x1-x0<1e-12){x0-=1;x1+=1;}if(y1-y0<1e-12*Math.max(1,Math.abs(y1))){const dd=Math.abs(y1)*0.05||1;y0-=dd;y1+=dd;}{const p=(y1-y0)*0.08;y0-=p;y1+=p;const q=(x1-x0)*0.04;x0-=q;x1+=q;}
+  const X=v=>Lm+(v-x0)/(x1-x0)*pw,Y=v=>Tm+ph-(v-y0)/(y1-y0)*ph;g.font='11px "IBM Plex Mono",monospace';g.fillStyle=mut;
+  const nice=(a,b,n)=>{const sp=(b-a)/n,p=Math.pow(10,Math.floor(Math.log10(sp))),f=sp/p,s=(f<1.5?1:f<3?2:f<7?5:10)*p,o=[];for(let v=Math.ceil(a/s)*s;v<=b+s*1e-9;v+=s)o.push(+v.toPrecision(10));return o;};
+  const fmt=v=>Math.abs(v)>=1e5||(Math.abs(v)<1e-3&&v!==0)?v.toExponential(2):String(+v.toPrecision(5));
+  g.textAlign="right";g.textBaseline="middle";for(const v of nice(y0,y1,5)){const y=Y(v);g.strokeStyle=line;g.beginPath();g.moveTo(Lm,y);g.lineTo(Lm+pw,y);g.stroke();g.fillText(fmt(v),Lm-5,y);}
+  g.textAlign="center";g.textBaseline="top";for(const v of nice(x0,x1,6)){const x=X(v);g.strokeStyle=line;g.beginPath();g.moveTo(x,Tm);g.lineTo(x,Tm+ph);g.stroke();g.fillText(fmt(v),x,Tm+ph+4);}
+  g.fillStyle=ink;g.fillText(pktXName(),Lm+pw/2,h-14);g.save();g.translate(12,Tm+ph/2);g.rotate(-Math.PI/2);g.fillText(TT&&(M==="area"||M==="height")?PKT_M[M][1].replace(/ \(.*\)/,"")+" ÷ total intensity":NR&&(M==="area"||M==="height")?PKT_M[M][1].replace(/ \(.*\)/,"")+" ÷ reference "+M:PKT_M[M][1],0,-4);g.restore();
+  g.strokeStyle=ink;g.globalAlpha=.5;g.lineWidth=1.3;g.beginPath();pts.forEach((p,i)=>i?g.lineTo(X(p.x),Y(p.y)):g.moveTo(X(p.x),Y(p.y)));g.stroke();g.globalAlpha=1;
+  for(const p of pts){g.fillStyle=typeof cmpColor==="function"?cmpColor(p.r.e):"#4a40ce";g.strokeStyle=pan;g.lineWidth=1.5;g.beginPath();g.arc(X(p.x),Y(p.y),4.5,0,7);g.fill();g.stroke();}
+  if(PKT.hov!=null){const p=pts[PKT.hov];if(p){const t=[p.r.lab,`${pktXName()}: ${fmt(p.x)}`,`${PKT_M[M][1]}: ${fmt(p.y)}`];const tw=Math.max(...t.map(s=>g.measureText(s).width))+12;let bx=X(p.x)+10;if(bx+tw>w)bx=X(p.x)-10-tw;
+    g.fillStyle=pan;g.globalAlpha=.95;g.fillRect(bx,Tm+6,tw,t.length*15+6);g.globalAlpha=1;g.strokeStyle=line;g.strokeRect(bx,Tm+6,tw,t.length*15+6);g.fillStyle=ink;g.textAlign="left";g.textBaseline="top";t.forEach((s,i)=>g.fillText(s,bx+6,Tm+9+i*15));}}
+  cv._pts=pts.map(p=>[X(p.x),Y(p.y)]);}
+function pktTable(R){const tb=$("pktRows");if(!tb)return;tb.textContent="";const f=(v,n)=>isFinite(v)?(+v.toPrecision(n||5)).toString():"—";
+  for(const r of R){const tr=document.createElement("tr"),p=r.p||{};const c=typeof cmpColor==="function"?cmpColor(r.e):"";
+    tr.innerHTML=`<td><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${c}"></i></td><td></td><td>${f(r.x,6)}</td><td>${f(p.area)}</td><td>${f(p.height)}</td><td>${isFinite(p.pos)?p.pos.toFixed(4):"—"}</td><td>${f(p.fwhmQ,4)}</td><td>${isFinite(p.fwhmD)?p.fwhmD.toFixed(4):"—"}</td><td>${f(r.ratio,4)}</td>`;
+    tr.children[1].textContent=r.lab;tb.appendChild(tr);}}
+function pktCSV(){const R=pktRows(),h=["profile",pktXName(),"area_counts_per_nm","height_counts","position_d_A","FWHM_1_per_nm","FWHM_A","normalisation_factor"];
+  const o=["# Peak tracker · peak window "+PKT.d1+"–"+PKT.d2+" Å"+(PKT.r1!=null&&PKT.r2!=null?" · reference "+PKT.r1+"–"+PKT.r2+" Å":"")+" · parabolic background from the window edges · area integrated over 1/d · area and height on the compare plot's normalisation: "+(pktNormName()||"none")+"",h.join(",")];
+  for(const r of R){const p=r.p||{};o.push([`"${String(r.lab).replace(/"/g,"'")}"`,r.x,p.area,p.height,p.pos,p.fwhmQ,p.fwhmD,r.nf].map(v=>typeof v==="number"?(isFinite(v)?+v.toPrecision(8):""):v).join(","));}
+  saveFile(`peak_tracker_${PKT.d1}-${PKT.d2}A.csv`,new Blob([o.join("\n")+"\n"],{type:"text/csv"}));}
+/* UI */
+{const panel=$("cmpPanel"),wrap=$("cmpWrap");if(panel&&wrap){
+  const btn=document.createElement("button");btn.id="pktBtn";btn.textContent="📈 peak tracker";btn.title="Measure how one peak changes over the shown profiles: integrated intensity, height, position and FWHM";
+  const vt=panel.querySelector(".tbrow .tbc");if(vt)vt.appendChild(btn);
+  const box=document.createElement("div");box.id="pktBox";box.hidden=true;box.style.cssText="border:1.5px solid var(--accent);border-radius:var(--r);padding:8px 10px;margin-top:8px;background:var(--panel)";
+  box.innerHTML=`<div class="chartbar" style="margin-bottom:6px"><b style="font:600 .72rem var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--accent)">Peak tracker</b>
+   <span class="row2" title="The peak to follow: d range in Å"><span class="keys">peak</span><input id="pktD1" type="number" step="0.001" style="width:5.4rem" placeholder="d₁"><span class="keys">–</span><input id="pktD2" type="number" step="0.001" style="width:5.4rem" placeholder="d₂"><span class="keys">Å</span><button id="pktPick" title="Then drag over the peak in the compare plot">⇔ pick</button></span>
+   <span class="row2" title="Optional reference peak that should not change (for the ratio)"><span class="keys">reference</span><input id="pktR1" type="number" step="0.001" style="width:5.4rem" placeholder="d₁"><span class="keys">–</span><input id="pktR2" type="number" step="0.001" style="width:5.4rem" placeholder="d₂"><span class="keys">Å</span><button id="pktPickR" title="Then drag over the reference peak in the compare plot">⇔ pick</button><button id="pktRClr" title="No reference peak" style="padding:2px 7px">✕</button><label class="row2" title="Divide the area (and the height) of the peak by those of the reference peak in every profile: cancels changes of beam current, exposure and thickness"><input id="pktNorm" type="checkbox" checked> ÷ reference</label><span class="row2" style="gap:4px;border-left:2px solid var(--line);padding-left:8px" title="Divide the peak area (and height) by the total scattered intensity of each profile over a wide d range: cancels beam current, exposure and thickness when no peak stays constant"><label class="row2"><input id="pktTot" type="checkbox"> ÷ total intensity</label><input id="pktT1" type="number" step="0.01" value="1.0" style="width:4.6rem"><span class="keys">–</span><input id="pktT2" type="number" step="0.01" value="4.0" style="width:4.6rem"><span class="keys">Å</span></span></span>
+   <label class="row2">plot <select id="pktM" style="width:auto"><option value="area">integrated intensity</option><option value="height">peak height</option><option value="pos">peak position (d)</option><option value="fwhmQ">FWHM (nm⁻¹)</option><option value="fwhmD">FWHM (Å)</option><option value="ratio">area / reference</option></select></label>
+   <label class="row2">vs <select id="pktX" style="width:auto"></select></label>
+   <span class="spacer"></span><button id="pktCsv" title="Save the table as CSV">💾 CSV</button><button class="cpBtn" data-cv="pktCv" title="Copy the tracker plot">📋 Copy</button><button id="pktClose" title="Close the peak tracker">✕</button></div>
+   <canvas id="pktCv" style="width:100%;height:240px;display:block"></canvas>
+   <div class="keys" id="pktStat" style="margin:4px 0"></div>
+   <div style="max-height:220px;overflow:auto"><table class="pktTbl"><thead><tr><th></th><th>profile</th><th id="pktXh">x</th><th>area</th><th>height</th><th>d (Å)</th><th>FWHM (nm⁻¹)</th><th>FWHM (Å)</th><th>ratio</th></tr></thead><tbody id="pktRows"></tbody></table></div>
+   <div class="keys" style="font-size:.72rem">Each profile: the background under the peak is a parabola fitted to the two edges of the window (15 % on each side), so keep a little flat background on both sides of the peak; “—” = no peak above the background · area integrated over 1/d · position from a parabola through the top three points · FWHM from the half-maximum crossings. Electron-diffraction intensities also depend on thickness, orientation and dynamical effects.</div>`;
+  wrap.after(box);
+  const xs=IS_APP?[["time","time (s)"],["order","profile #"]]:[["time","time from first image (s)"],["temp","T measured (°C, from the log)"],["order","profile #"]];
+  for(const [v,t] of xs){const o=document.createElement("option");o.value=v;o.textContent=t;$("pktX").appendChild(o);}if(!xs.some(x=>x[0]===PKT.x))PKT.x=xs[0][0];
+  const ui=()=>{$("pktD1").value=PKT.d1??"";$("pktD2").value=PKT.d2??"";$("pktR1").value=PKT.r1??"";$("pktR2").value=PKT.r2??"";$("pktM").value=PKT.metric;$("pktX").value=PKT.x;$("pktXh").textContent=pktXName();
+    btn.classList.toggle("primary",!box.hidden);$("pktPick").classList.toggle("primary",PKT.pick==="peak");$("pktPickR").classList.toggle("primary",PKT.pick==="ref");};
+  const upd=()=>{ui();pktDraw();try{drawCmp();}catch(e){}};
+  btn.addEventListener("click",()=>{box.hidden=!box.hidden;PKT.on=!box.hidden;pktSave();upd();if(!box.hidden)box.scrollIntoView({block:"nearest"});});
+  $("pktClose").addEventListener("click",()=>{box.hidden=true;PKT.on=false;PKT.pick=null;pktSave();upd();});
+  for(const [id,k] of [["pktD1","d1"],["pktD2","d2"],["pktR1","r1"],["pktR2","r2"]]){$(id).addEventListener("keydown",e=>e.stopPropagation());$(id).addEventListener("change",()=>{const v=$(id).value;PKT[k]=v===""?null:+v;
+    if(PKT.d1!=null&&PKT.d2!=null&&PKT.d1>PKT.d2)[PKT.d1,PKT.d2]=[PKT.d2,PKT.d1];if(PKT.r1!=null&&PKT.r2!=null&&PKT.r1>PKT.r2)[PKT.r1,PKT.r2]=[PKT.r2,PKT.r1];pktSave();upd();});}
+  $("pktM").addEventListener("change",()=>{PKT.metric=$("pktM").value;if(PKT.metric==="ratio"&&(PKT.r1==null||PKT.r2==null))$("pktStat").textContent="Set a reference peak for the ratio.";pktSave();upd();});
+  $("pktX").addEventListener("change",()=>{PKT.x=$("pktX").value;pktSave();upd();});
+  $("pktPick").addEventListener("click",()=>{PKT.pick=PKT.pick==="peak"?null:"peak";ui();});$("pktPickR").addEventListener("click",()=>{PKT.pick=PKT.pick==="ref"?null:"ref";ui();});
+  $("pktRClr").addEventListener("click",()=>{PKT.r1=PKT.r2=null;pktSave();upd();});$("pktCsv").addEventListener("click",pktCSV);
+  $("pktCv").addEventListener("mousemove",e=>{const P=$("pktCv")._pts||[];let b=null,bd=12;P.forEach((p,i)=>{const d=Math.hypot(p[0]-e.offsetX,p[1]-e.offsetY);if(d<bd){bd=d;b=i;}});if(b!==PKT.hov){PKT.hov=b;pktDraw();}});
+  $("pktCv").addEventListener("mouseleave",()=>{PKT.hov=null;pktDraw();});
+  document.querySelector('.cpBtn[data-cv="pktCv"]').addEventListener("click",()=>{try{cpCopy($("pktCv"));}catch(e){}});
+  /* drag on the compare plot to set the window */
+  let dn=null;
+  window.addEventListener("pointerdown",ev=>{if(!PKT.pick||ev.target!==cvK||ev.button!==0)return;ev.stopImmediatePropagation();ev.preventDefault();const d=vlDAt("cmp",ev);if(!(d>0))return;dn={d0:d,d1:d};cvK.setPointerCapture(ev.pointerId);},true);
+  window.addEventListener("pointermove",ev=>{if(!dn)return;ev.stopImmediatePropagation();const d=vlDAt("cmp",ev);if(d>0){dn.d1=d;PKT._drag=[Math.min(dn.d0,d),Math.max(dn.d0,d)];try{drawCmp();}catch(e){}}},true);
+  window.addEventListener("pointerup",ev=>{if(!dn)return;ev.stopImmediatePropagation();const a=+Math.min(dn.d0,dn.d1).toFixed(4),b=+Math.max(dn.d0,dn.d1).toFixed(4);dn=null;PKT._drag=null;try{cmpHover=null;}catch(e){}
+    if(b>a){if(PKT.pick==="ref"){PKT.r1=a;PKT.r2=b;}else{PKT.d1=a;PKT.d2=b;}}PKT.pick=null;pktSave();upd();cvK.addEventListener("click",e2=>e2.stopImmediatePropagation(),{capture:true,once:true});},true);
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&PKT.pick){PKT.pick=null;ui();}},true);
+  /* shaded windows on the compare plot */
+  {const _b=drawCmp;drawCmp=function(t,d){const r=_b.apply(this,arguments);try{if(!box.hidden||PKT._drag){const exp=t instanceof HTMLCanvasElement,cv=exp?t:cvK,G=cmpGeom;if(G&&!exp){const g=cv.getContext("2d");
+      const band=(a,b,col)=>{if(!(b>a))return;const xa=vlX("cmp",a),xb=vlX("cmp",b);if(!isFinite(xa)||!isFinite(xb))return;const X=v=>G.L+(v-G.lo)/(G.hi-G.lo)*G.pw;let p=X(xa),q=X(xb);if(p>q)[p,q]=[q,p];p=Math.max(G.L,p);q=Math.min(G.L+G.pw,q);if(q<=p)return;
+        g.save();g.fillStyle=col;g.globalAlpha=.13;g.fillRect(p,G.T,q-p,G.ph);g.globalAlpha=.8;g.strokeStyle=col;g.setLineDash([4,3]);g.strokeRect(p,G.T,q-p,G.ph);g.restore();};
+      if(PKT._drag)band(PKT._drag[0],PKT._drag[1],PKT.pick==="ref"?"#2a7de1":"#ff9f1c");if(!box.hidden){band(PKT.d1,PKT.d2,"#ff9f1c");band(PKT.r1,PKT.r2,"#2a7de1");}}}}catch(e){}return r;};}
+  /* follow the comparison */
+  {const _r=cmpRender;cmpRender=function(){const r=_r.apply(this,arguments);try{if(!box.hidden){clearTimeout(PKT.t);PKT.t=setTimeout(pktDraw,80);}}catch(e){}return r;};}
+  window.addEventListener("resize",()=>{if(!box.hidden)pktDraw();});
+  if(PKT.on){box.hidden=false;}ui();setTimeout(pktDraw,300);}}
+
+{const st=document.createElement("style");st.textContent=".pktTbl{width:100%;border-collapse:collapse;font:12px var(--f-mono,\"IBM Plex Mono\",monospace)}.pktTbl th{font:600 .72rem var(--f-body);color:var(--muted);text-align:right;padding:4px 8px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel)}.pktTbl td{text-align:right;padding:3px 8px;border-bottom:1px solid var(--line)}.pktTbl td:nth-child(2),.pktTbl th:nth-child(2){text-align:left}";document.head.appendChild(st);}
+
+function pktNormOn(){return !!(PKT.norm!==false&&PKT.r1!=null&&PKT.r2!=null&&$("pktNorm")&&$("pktNorm").checked);}
+{const c=$("pktNorm");if(c){c.checked=PKT.norm!==false;c.addEventListener("change",()=>{PKT.norm=c.checked;pktSave();pktDraw();});}}
+
+/* tracker: ÷ total scattered intensity (integral of the profile over 1/d in a wide d range, background included) */
+function pktTotal(e){const P=e.prof,a=+PKT.t1||1,b=+PKT.t2||4;if(!P||!(b>a))return NaN;const D=P.D,I=P.I,pts=[];for(let i=0;i<D.length;i++)if(D[i]>=a&&D[i]<=b&&isFinite(I[i]))pts.push([10/D[i],I[i]]);
+  if(pts.length<5)return NaN;pts.sort((x,y)=>x[0]-y[0]);let s=0;for(let i=1;i<pts.length;i++)s+=0.5*(pts[i][1]+pts[i-1][1])*(pts[i][0]-pts[i-1][0]);return s;}
+function pktTotOn(){return !!(PKT.tot&&$("pktTot")&&$("pktTot").checked);}
+{if(PKT.t1==null)PKT.t1=1.0;if(PKT.t2==null)PKT.t2=4.0;const c=$("pktTot");if(c){c.checked=!!PKT.tot;$("pktT1").value=PKT.t1;$("pktT2").value=PKT.t2;
+  c.addEventListener("change",()=>{PKT.tot=c.checked;pktSave();pktDraw();});
+  for(const [id,k] of [["pktT1","t1"],["pktT2","t2"]]){$(id).addEventListener("keydown",e=>e.stopPropagation());$(id).addEventListener("change",()=>{PKT[k]=+$(id).value;if(PKT.t1>PKT.t2)[PKT.t1,PKT.t2]=[PKT.t2,PKT.t1];pktSave();pktDraw();});}}}
+
+/* normalise “to total intensity in d range”: a wide range (1–4 Å) is filled in when it is chosen without one */
+$("cmpNorm").addEventListener("change",()=>{if($("cmpNorm").value!=="rtot")return;const a=$("cmpNd"),b=$("cmpNd2");if(!(+a.value>0&&+b.value>0&&Math.abs(+b.value-+a.value)>0.5)){a.value="1.0";b.value="4.0";}
+  try{const w=$("cmpNdWrap");if(w)w.hidden=false;}catch(e){}try{drawCmp();}catch(e){}});
+
+/* ===== temperature & pressure logs load by themselves: remembered for each image folder, or found in the browsed folder ===== */
+{const box=document.querySelector(".logBox .logTtl");if(box){const l=document.createElement("label");l.className="row2";l.style.cssText="margin-left:10px;font:400 .78rem var(--f-body);text-transform:none;letter-spacing:0;color:var(--ink)";
+  l.title="When you browse an image folder, load the temperature and pressure logs used with that folder before (or the ones found inside it). If the browser needs permission again, the first click on the page loads them";
+  l.innerHTML='<input id="logAuto" type="checkbox" checked> auto-load logs';box.appendChild(l);let on=true;try{on=localStorage.getItem("log-auto")!=="0";}catch(e){}$("logAuto").checked=on;
+  $("logAuto").addEventListener("change",()=>{try{localStorage.setItem("log-auto",$("logAuto").checked?"1":"0");}catch(e){}});}}
+async function logMapGet(){const L=await PICK_DB.get("saed-logmap");return Array.isArray(L)?L:[];}
+async function logMapFind(dir){for(const e of await logMapGet()){try{if(await e.img.isSameEntry(dir))return e;}catch(err){}}return null;}
+async function logMapSet(dir,kind,fh){if(!dir||!fh)return;const L=await logMapGet();let e=null;for(const x of L){try{if(await x.img.isSameEntry(dir)){e=x;break;}}catch(err){}}
+  if(!e){e={img:dir,t:null,p:null};L.unshift(e);}e[kind]=fh;await PICK_DB.set("saed-logmap",L.slice(0,40));}
+/* remember which log went with the browsed folder */
+{const _l=logPick;logPick=async function(key,desc,exts){const f=await _l.apply(this,arguments);try{if(BR.handle&&LOGH[key])await logMapSet(BR.handle,key==="saed-tlog"?"t":"p",LOGH[key]);}catch(e){}return f;};}
+async function logFindIn(dir){const out={t:null,p:null};try{for await(const [name,h] of dir.entries()){if(h.kind!=="file"||!/\.(xlsx|csv|txt|tsv|log)$/i.test(name))continue;
+    try{const f=await h.getFile();let H=null;if(/\.xlsx$/i.test(name)){const T=await readXLSX(await f.arrayBuffer());const hi=T.rows.findIndex(r=>r&&r.some(c=>typeof c==="string"&&/time|zeit|date/i.test(c)));if(hi>=0)H=T.rows[hi];}
+      else{const L=(await f.slice(0,4000).text()).replace(/\r/g,"").split("\n").filter(l=>l.trim()&&!/^[=\-_\s]+$/.test(l));H=L.length?L[0].split(/\t|;|,/):null;}
+      if(!H||!H.some(c=>/time|zeit|date/i.test(String(c))))continue;const k=logKindOf(H);if(k.temp&&!out.t)out.t=h;else if(k.pres&&!k.temp&&!out.p)out.p=h;}catch(err){}}}catch(err){}return out;}
+async function logAutoLoad(){if(!$("logAuto")||!$("logAuto").checked||!FSA||!BR.handle)return;const dir=BR.handle;let m=await logMapFind(dir),src="used before with this folder";
+  if(!m||(!m.t&&!m.p)){const f=await logFindIn(dir);if(f.t||f.p){m=f;src="found in the folder";}}
+  if(!m||(!m.t&&!m.p))return;const hs=[["t",m.t],["p",m.p]].filter(x=>x[1]);
+  const run=async()=>{let n=0;for(const [k,h] of hs){try{let st=await h.queryPermission({mode:"read"});if(st!=="granted")st=await h.requestPermission({mode:"read"});if(st!=="granted")continue;
+      const f=await h.getFile();LOGH[k==="t"?"saed-tlog":"saed-plog"]=h;PICK_DB.set("saed-loglast",h);if(k==="t")await loadTempLog(f);else await loadPresLog(f);n++;}catch(err){}}
+    if(n){try{cpToast(`Logs loaded automatically (${src}): ${hs.map(x=>x[1].name).join(", ")}`);}catch(e){}try{logBlink3();}catch(e){}}};
+  let ok=true;for(const [,h] of hs){try{if((await h.queryPermission({mode:"read"}))!=="granted")ok=false;}catch(err){ok=false;}}
+  if(ok){run();return;}
+  const mis=$("logMis");if(mis){mis.hidden=false;mis.textContent=`Click anywhere on the page to load the logs ${src}: ${hs.map(x=>x[1].name).join(", ")}`;}
+  const once=()=>{window.removeEventListener("pointerdown",once,true);if(mis)mis.hidden=true;run();};window.addEventListener("pointerdown",once,true);}
+{const _b=brLoad;brLoad=async function(){const r=_b.apply(this,arguments);setTimeout(()=>{logAutoLoad();},400);return r;};}
+{const _g=layoutGet;layoutGet=function(){const o=_g.apply(this,arguments)||{};o.logAuto=$("logAuto").checked;return o;};
+ const _s=layoutSet;layoutSet=function(o){if(o&&typeof o.logAuto==="boolean"){$("logAuto").checked=o.logAuto;try{localStorage.setItem("log-auto",o.logAuto?"1":"0");}catch(e){}}return _s.apply(this,arguments);};}
+
+/* ===== peak tracker follows the compare plot's normalisation (area and height are measured on the normalised curves);
+   the reference-peak and ÷ total options are taken out of the tracker (use the plot's “normalise” menu instead) ===== */
+function pktNormFactors(){const M=new Map();try{const sr=cmpSeries(),bgs=$("cmpBg").checked;for(const o of sr.out){const P=o.e.prof;let f=1;
+    for(let i=0;i<o.Y.length;i++){const b=bgs?P.I[i]-P.bg[i]:P.I[i];if(isFinite(b)&&Math.abs(b)>1e-12&&isFinite(o.Y[i])){f=o.Y[i]/b;break;}}M.set(o.e,f);}}catch(e){}return M;}
+function pktNormName(){const s=$("cmpNorm");if(!s||s.value==="none")return "";const o=s.options[s.selectedIndex];let t=o?o.textContent:s.value;if(/^r/.test(s.value))t+=` (${$("cmpNd").value}–${$("cmpNd2").value} Å)`;return t;}
+{const _r=pktRows;pktRows=function(){const R=_r.apply(this,arguments),F=pktNormFactors();for(const r of R){const f=F.has(r.e)?F.get(r.e):1;r.nf=f;if(r.p&&!r.p.none){r.p.areaRaw=r.p.area;r.p.heightRaw=r.p.height;r.p.area*=f;r.p.height*=f;}}return R;};}
+PKT.r1=PKT.r2=null;PKT.tot=false;if(PKT.metric==="ratio")PKT.metric="area";
+{const hide=el=>{if(el)el.style.display="none";};const rl=$("pktR1")&&$("pktR1").closest(".row2");hide(rl);const nt=$("pktNorm")&&$("pktNorm").closest("label");hide(nt);const tt=$("pktTot")&&$("pktTot").closest("span.row2");hide(tt);
+  const mo=$("pktM")&&[...$("pktM").options].find(o=>o.value==="ratio");if(mo)mo.remove();if($("pktNorm"))$("pktNorm").checked=false;if($("pktTot"))$("pktTot").checked=false;
+  const ths=[...document.querySelectorAll("#pktBox thead th")];const rc=ths.findIndex(t=>t.textContent==="ratio");if(rc>=0)ths[rc].textContent="norm. factor";}
+{const _t=pktTable;pktTable=function(R){_t.apply(this,arguments);const rows=[...document.querySelectorAll("#pktRows tr")];rows.forEach((tr,i)=>{const r=R[i];if(r&&tr.lastElementChild)tr.lastElementChild.textContent=isFinite(r.nf)?(+r.nf.toPrecision(4)).toString():"—";});};}
+{const _d=pktDraw;pktDraw=function(){const r=_d.apply(this,arguments);try{const st=$("pktStat"),n=pktNormName();if(st&&PKT.d2>PKT.d1)st.textContent+=n?` · area and height on the normalised curves: ${n}`:" · not normalised (normalise: none)";
+    const M=PKT.metric;if(n&&(M==="area"||M==="height")){const cv=$("pktCv"),g=cv.getContext("2d"),dpr=window.devicePixelRatio||1;g.save();g.setTransform(dpr,0,0,dpr,0,0);g.font='600 11px "IBM Plex Mono",monospace';g.fillStyle=getComputedStyle(document.documentElement).getPropertyValue("--accent").trim()||"#4a40ce";g.textAlign="right";g.textBaseline="top";g.fillText("normalised: "+n,cv.clientWidth-18,16);g.restore();}}catch(e){}return r;};}
+/* redraw when the normalisation changes */
+for(const id of ["cmpNorm","cmpNd","cmpNd2","cmpBg"]){const el=$(id);if(el){el.addEventListener("change",()=>setTimeout(()=>{try{pktDraw();}catch(e){}},50));el.addEventListener("input",()=>setTimeout(()=>{try{pktDraw();}catch(e){}},50));}}
+{const _c=pktCSV;pktCSV=function(){const _rows=pktRows;try{return _c.apply(this,arguments);}finally{}};}
+
+{const _d=pktDraw;pktDraw=function(){const n=pktNormName();PKT_M.area[1]=n?"area (normalised)":"area (counts·nm⁻¹)";PKT_M.height[1]=n?"height (normalised)":"height (counts)";return _d.apply(this,arguments);};}
+
+/* tracker: click a point (or a table row) → that profile is highlighted in the compare plot (and selected) */
+function pktPick(e){if(!e)return;S.cmpActive=e;try{cmpRender();}catch(err){}try{drawCmp();}catch(err){}try{if(typeof tmSyncPeaks==="function")tmSyncPeaks(true);}catch(err){}try{if(typeof tmDraw==="function"&&typeof TM!=="undefined"&&TM.img)tmDraw();}catch(err){}pktDraw();}
+{const cv=$("pktCv");cv.style.cursor="pointer";cv.addEventListener("click",ev=>{const P=cv._pts||[],E=cv._ents||[];let b=-1,bd=14;P.forEach((p,i)=>{const d=Math.hypot(p[0]-ev.offsetX,p[1]-ev.offsetY);if(d<bd){bd=d;b=i;}});if(b>=0)pktPick(E[b]);});}
+{const _d=pktDraw;pktDraw=function(){const r=_d.apply(this,arguments);try{const cv=$("pktCv");const R=pktRows(),M=PKT.metric,val=x=>x.p?x.p[M]:NaN;
+    const pts=R.map(x=>({e:x.e,x:x.x,y:val(x)})).filter(o=>isFinite(o.x)&&isFinite(o.y)).sort((a,b)=>a.x-b.x);cv._ents=pts.map(o=>o.e);
+    const k=pts.findIndex(o=>o.e===S.cmpActive);if(k>=0&&cv._pts&&cv._pts[k]){const g=cv.getContext("2d"),dpr=window.devicePixelRatio||1,[x,y]=cv._pts[k];g.save();g.setTransform(dpr,0,0,dpr,0,0);
+      g.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue("--ink").trim()||"#000";g.lineWidth=2;g.beginPath();g.arc(x,y,8,0,7);g.stroke();g.restore();}
+    const rows=[...document.querySelectorAll("#pktRows tr")];rows.forEach((tr,i)=>{const e=R[i]&&R[i].e;tr.style.background=e===S.cmpActive?"color-mix(in srgb,var(--accent) 16%,transparent)":"";tr.style.cursor="pointer";tr.onclick=()=>pktPick(e);});}catch(e){}return r;};}
+
+/* tracker: x axis can also be the set temperature (T set, from the log) */
+{const s=$("pktX");if(s&&![...s.options].some(o=>o.value==="tset")){const o=document.createElement("option");o.value="tset";o.textContent="T set (°C, from the log)";const m=[...s.options].find(o=>o.value==="temp");if(m)m.after(o);else s.appendChild(o);if(PKT.x==="tset")s.value="tset";}}
+{const _x=pktX;pktX=function(e,i){if(PKT.x==="tset"){const r=typeof tempAt==="function"?tempAt(e.acq):null;return r&&!r.err?r.set:NaN;}return _x.apply(this,arguments);};}
+{const _n=pktXName;pktXName=function(){return PKT.x==="tset"?"T set (°C)":_n.apply(this,arguments);};}
+
+if(PKT.metric==="L"){PKT.metric="area";pktSave();try{$("pktM").value="area";}catch(e){}}
+
+/* ===== shapes (rectangle, circle) beside the arrows; ✥ move text + Delete key removes the selected arrow / shape / text ===== */
+var AWSEL=null;
+function awIsShp(a){return a&&(a.type==="rect"||a.type==="ell");}
+function awShape(ctx,a,p0,p1,dpr){const col=a.col||"#e4572e",w=+a.w||2;if(!awIsShp(a)){awPaint(ctx,p0,p1,col,w,dpr);return;}
+  const x0=Math.min(p0[0],p1[0]),x1=Math.max(p0[0],p1[0]),y0=Math.min(p0[1],p1[1]),y1=Math.max(p0[1],p1[1]);if(x1-x0<1&&y1-y0<1)return;
+  ctx.save();ctx.strokeStyle=col;ctx.lineWidth=w*dpr;ctx.lineJoin="round";ctx.beginPath();
+  if(a.type==="rect")ctx.rect(x0,y0,x1-x0,y1-y0);else ctx.ellipse((x0+x1)/2,(y0+y1)/2,Math.max(0.5,(x1-x0)/2),Math.max(0.5,(y1-y0)/2),0,0,2*Math.PI);ctx.stroke();ctx.restore();}
+function awSelMark(ctx,a,p0,p1,dpr){const acc=getComputedStyle(document.documentElement).getPropertyValue("--accent").trim()||"#0b7f94",m=5*dpr;
+  const x0=Math.min(p0[0],p1[0])-m,x1=Math.max(p0[0],p1[0])+m,y0=Math.min(p0[1],p1[1])-m,y1=Math.max(p0[1],p1[1])+m;
+  ctx.save();ctx.strokeStyle=acc;ctx.lineWidth=1*dpr;ctx.setLineDash([5*dpr,3*dpr]);ctx.strokeRect(x0,y0,x1-x0,y1-y0);ctx.setLineDash([]);ctx.fillStyle=acc;
+  const hs=3*dpr,pts=awIsShp(a)?[[p0[0],p0[1]],[p1[0],p1[1]],[p0[0],p1[1]],[p1[0],p0[1]]]:[p0,p1];for(const q of pts)ctx.fillRect(q[0]-hs,q[1]-hs,2*hs,2*hs);ctx.restore();}
+/* outline within tol → move the whole shape; a corner → resize from that corner (m = which coordinates of p0 / p1 follow the mouse) */
+function awShpHit(p,p0,p1,tol,segD){for(const ix of [0,1])for(const iy of [0,1]){const cx=ix?p1[0]:p0[0],cy=iy?p1[1]:p0[1];if(Math.hypot(p[0]-cx,p[1]-cy)<tol*1.4)return {d:0,m:[ix?0:1,iy?0:1,ix?1:0,iy?1:0]};}
+  const x0=Math.min(p0[0],p1[0]),x1=Math.max(p0[0],p1[0]),y0=Math.min(p0[1],p1[1]),y1=Math.max(p0[1],p1[1]);let d=Infinity;
+  if(Math.max(x1-x0,y1-y0)<3*tol&&p[0]>=x0-tol&&p[0]<=x1+tol&&p[1]>=y0-tol&&p[1]<=y1+tol)d=tol*0.5;   /* a small shape: anywhere on it */
+  /* the caller sets awShpHit.ty to the shape type just before */
+  const ty=awShpHit.ty;
+  if(ty==="rect"){d=Math.min(d,segD(p,[x0,y0],[x1,y0]),segD(p,[x1,y0],[x1,y1]),segD(p,[x1,y1],[x0,y1]),segD(p,[x0,y1],[x0,y0]));}
+  else{const cx=(x0+x1)/2,cy=(y0+y1)/2,rx=Math.max(0.5,(x1-x0)/2),ry=Math.max(0.5,(y1-y0)/2);let pr=[cx+rx,cy];for(let i=1;i<=64;i++){const t=i/64*2*Math.PI,q=[cx+rx*Math.cos(t),cy+ry*Math.sin(t)];d=Math.min(d,segD(p,pr,q));pr=q;}}
+  return d<tol?{d,m:[1,1,1,1]}:null;}
+
+/* GIF custom label last picked with ✥ move (studio) */
+var GIFSEL=null;
+{const g=document.getElementById("gifCv");if(g&&typeof gifHit==="function")g.addEventListener("pointerdown",e=>{GIFSEL=null;const m=document.getElementById("gifMove");if(!m||m.getAttribute("aria-pressed")!=="true")return;const p=gifXY(e),h=gifHit(p.px,p.py);if(h&&h.k[0]==="c")GIFSEL=+h.k.slice(1);},true);}
+/* Delete / Backspace: remove what is selected in ✥ move mode */
+window.addEventListener("keydown",e=>{if(e.key!=="Delete"&&e.key!=="Backspace")return;const t=e.target;if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)))return;
+  let done=false;
+  if(AWSEL&&txtMoving(AWSEL.k)){const {k,a}=AWSEL;TXT[k].aw=awList(k).filter(z=>z!==a);AWSEL=null;txtSave();awUI(k);awRedraw(k);done=true;}
+  else for(const k in TXTCV){if(!txtMoving(k))continue;const names=(TXT_MSEL[k]&&TXT_MSEL[k].length)?TXT_MSEL[k].slice():(TXT_SEL[k]?[TXT_SEL[k]]:[]);if(!names.length)continue;const T=TXT[k];T.ov=T.ov||{};
+    for(const n of names){if(/^u\d+$/.test(n)&&Array.isArray(T.ul)){T.ul=T.ul.filter(v=>"u"+v.id!==n);if(T.off)delete T.off[n];if(T.sz)delete T.sz[n];}
+      else if(/^v\d+$/.test(n)&&Array.isArray(T.vl)){T.vl=T.vl.filter(v=>"v"+v.id!==n);if(T.off)delete T.off[n];if(T.sz)delete T.sz[n];}
+      else{T.ov[n]=Object.assign(T.ov[n]||{},{hide:true});}}
+    TXT_SEL[k]=null;if(TXT_MSEL[k])TXT_MSEL[k]=[];txtSave();try{ulUI(k);}catch(err){}try{vlUI(k);}catch(err){}try{txtSelUI(k);}catch(err){}try{const ed=document.querySelector(".txtEd,.lgTxtEd");if(ed)ed.hidden=true;}catch(err){}awRedraw(k);done=true;
+    try{cpToast(names.length>1?`${names.length} texts deleted — ↺ text brings the plot's own texts back`:"Deleted — ↺ text brings the plot's own texts back");}catch(err){}break;}
+  if(!done&&GIFSEL!=null&&typeof GL!=="undefined"&&GL.cus&&GL.cus[GIFSEL]){const m=document.getElementById("gifMove");if(m&&m.getAttribute("aria-pressed")==="true"){GL.cus.splice(GIFSEL,1);GIFSEL=null;glSave();gifRedo();done=true;}}
+  if(done){e.preventDefault();e.stopImmediatePropagation();}},true);
+/* a block of text (legend, axis title…) deleted this way is not drawn */
+{const _m=mvB;mvB=function(ctx,dpr,name){const c=TXT_CUR;if(c&&c.ov&&c.ov[name]&&c.ov[name].hide)return;return _m.apply(this,arguments);};}
 </script>
 
 </body></html>
