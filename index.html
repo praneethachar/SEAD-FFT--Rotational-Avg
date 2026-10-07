@@ -4579,11 +4579,11 @@ function edPaint(){const box=$("edBox"),cv=$("edCv");if(!box||!cv)return;const o
   sizeCanvas(cv);const g=cv.getContext("2d"),W=cv.width,H=cv.height,dpr=W/Math.max(1,cv.getBoundingClientRect().width);g.fillStyle="#05070a";g.fillRect(0,0,W,H);
   const ph=V3.ph;if(!ph||!ph.atoms||!ph.atoms.length){g.fillStyle="#8a94a6";g.font=`${13*dpr}px "IBM Plex Sans",sans-serif`;g.textAlign="center";g.fillText("Highlight a phase to see its diffraction pattern",W/2,H/2);$("edInfo").textContent="";return;}
   const gmax=Math.max(0.1,(+$("edG").value||10)/10),R=V3.R,ux=R[0],uy=R[1],uz=R[2],beam=uz.map(v=>-v);   /* screen x, y (down), z toward the viewer → beam into the screen */
-  const cx=W/2,cy=H/2,sc=(Math.min(W,H)/2*0.94)/gmax,fs=Math.round(10*dpr),lab=$("edLab").checked,ring=$("edRing").checked,col=ph.color||"#ffd23f";
+  const sc0=(Math.min(W,H)/2*0.94)/gmax,sc=sc0*(ED.z||1),cx=W/2-(ED.px||0)*sc,cy=H/2-(ED.py||0)*sc,fs=Math.round(10*dpr),lab=$("edLab").checked,ring=$("edRing").checked,col=ph.color||"#ffd23f";
   g.strokeStyle="rgba(255,255,255,.12)";g.lineWidth=1;g.beginPath();g.arc(cx,cy,gmax*sc,0,2*Math.PI);g.stroke();
   let n=0;
   const ringM=($("edRingM")&&$("edRingM").value)||"powder";
-  if(ring&&ringM==="powder"){/* powder / polycrystal rings: every reflection of the phase (crystals in all orientations) — fixed, independent of the 3D view */const Ls=(ph.lines||[]).filter(x=>x.d>0&&1/x.d<=gmax);const Im=Math.max(1,...Ls.map(x=>x.I));g.font=`600 ${fs}px "IBM Plex Mono",monospace`;g.textAlign="left";g.textBaseline="bottom";let lastR=-1e9;
+  if(ring&&ringM==="powder"){/* powder / polycrystal rings: every reflection of the phase (crystals in all orientations) — fixed, independent of the 3D view */const Ls=(ph.lines||[]).filter(x=>x.d>0&&1/x.d<=gmax);ED.geo={cx,cy,sc,sc0,W,H,dpr,mode:"powder",spots:[],rings:Ls.map(x=>({g:1/x.d,hkl:x.hkl}))};const Im=Math.max(1,...Ls.map(x=>x.I));g.font=`600 ${fs}px "IBM Plex Mono",monospace`;g.textAlign="left";g.textBaseline="bottom";let lastR=-1e9;
     for(const L of Ls.slice().sort((a,b)=>b.d-a.d)){const r=sc/L.d,a=Math.min(1,0.15+0.85*Math.sqrt(L.I/Im));g.strokeStyle=`rgba(255,255,255,${a})`;g.lineWidth=Math.max(1,(0.6+1.6*Math.sqrt(L.I/Im))*dpr);g.beginPath();g.arc(cx,cy,r,0,2*Math.PI);g.stroke();n++;
       if(lab&&L.I>=2&&r-lastR>fs*1.3){lastR=r;const t=-Math.PI/4;g.fillStyle=col;g.fillText(L.hkl,cx+r*Math.cos(t)+3*dpr,cy+r*Math.sin(t)-2*dpr);}}
     $("edInfo").textContent=`${ph.legend?ph.legend.trim():""} · powder rings (all orientations, fixed) · ${n} rings up to 1/d = ${(gmax*10).toFixed(1)} nm⁻¹`;}
@@ -4591,8 +4591,9 @@ function edPaint(){const box=$("edBox"),cv=$("edCv");if(!box||!cv)return;const o
     for(const r of Rf){const gb=r.g[0]*beam[0]+r.g[1]*beam[1]+r.g[2]*beam[2],s=-gb-r.gl*r.gl/(2*K),x=t*s,wgt=Math.exp(-x*x),I=r.F2*wgt;if(I<1e-3*Rf.Fmax)continue;
       spots.push({x:cx+(r.g[0]*ux[0]+r.g[1]*ux[1]+r.g[2]*ux[2])*sc,y:cy+(r.g[0]*uy[0]+r.g[1]*uy[1]+r.g[2]*uy[2])*sc,I,r});}
     const Im=Math.max(1e-30,...spots.map(p=>p.I));spots.sort((a,b)=>a.I-b.I);
+    ED.geo={cx,cy,sc,sc0,W,H,dpr,mode:ring?"zone":"spots",spots,rings:[]};
     if(ring&&ringM!=="powder"){/* the spots shown, turned about the beam: one ring per distinct |g| (many crystals in this zone, rotated) */const G=[];for(const p of spots){const q=G.find(o=>Math.abs(o.gl-p.r.gl)<0.003*p.r.gl);if(q){q.I+=p.I;if(p.I>q.top.I)q.top=p;}else G.push({gl:p.r.gl,I:p.I,top:p});}
-      const Gm=Math.max(1e-30,...G.map(o=>o.I));G.sort((a,b)=>a.gl-b.gl);g.font=`600 ${fs}px "IBM Plex Mono",monospace`;g.textAlign="left";g.textBaseline="bottom";let lastR=-1e9;
+      const Gm=Math.max(1e-30,...G.map(o=>o.I));G.sort((a,b)=>a.gl-b.gl);ED.geo.rings=G.map(o=>({g:o.gl,hkl:`${o.top.r.h} ${o.top.r.k} ${o.top.r.l}`}));g.font=`600 ${fs}px "IBM Plex Mono",monospace`;g.textAlign="left";g.textBaseline="bottom";let lastR=-1e9;
       for(const o of G){const r=o.gl*sc,q=Math.sqrt(o.I/Gm);g.strokeStyle=`rgba(255,255,255,${Math.min(1,0.2+0.8*q)})`;g.lineWidth=Math.max(1,(0.7+2*q)*dpr);g.beginPath();g.arc(cx,cy,r,0,2*Math.PI);g.stroke();
         if(lab&&r-lastR>fs*1.3){lastR=r;const t=-Math.PI/4;g.fillStyle=col;g.fillText(`${o.top.r.h} ${o.top.r.k} ${o.top.r.l}`,cx+r*Math.cos(t)+3*dpr,cy+r*Math.sin(t)-2*dpr);}}
       g.fillStyle="#ffffff";g.beginPath();g.arc(cx,cy,6*dpr,0,2*Math.PI);g.fill();const z=edZone(ph,beam);
@@ -4669,8 +4670,9 @@ function rpSim(){const r=edPeaksNow();if(!r||!r.P.length){$("rpInfo").textConten
   /* group equal |g| (sum), keep the strongest member's hkl */const G=[];for(const p of r.P.slice().sort((a,b)=>a.g-b.g)){const q=G.find(o=>Math.abs(o.g-p.g)<0.002*p.g);if(q){q.I+=p.I;if(p.I>q.top)q.top=p.I,q.hkl=p.hkl;}else G.push({g:p.g,I:p.I,top:p.I,hkl:p.hkl});}
   const m=Math.max(...G.map(o=>o.I));G.forEach(o=>o.I=100*o.I/m);SIMR.rp={G,ph:r.ph,mode:r.mode,gmax:Math.max(0.1,(+$("edG").value||10)/10)};rpPlot();}
 function rpPlot(){const R=SIMR.rp;if(!R)return;const xmax=R.gmax*10,w=Math.max(0.005,+$("rpW").value||0.08),x=[],y=[],N=800;
-  for(let i=0;i<=N;i++){const q=xmax*i/N;let v=0;for(const o of R.G){const d=(q-o.g*10)/(w/2.3548);if(Math.abs(d)<6)v+=o.I*Math.exp(-d*d/2);}x.push(q);y.push(v);}
-  simPlot($("rpCv"),x,y,"1/d (nm⁻¹)",$("rpLab").checked?R.G.map(o=>({x:o.g*10,I:o.I,t:o.hkl})):[],R.ph);
+  const qs=[];for(let i=0;i<=N;i++)qs.push(xmax*i/N);for(const o of R.G)if(o.g*10<=xmax)qs.push(o.g*10);qs.sort((a,b)=>a-b);
+  for(const q of qs){let v=0;for(const o of R.G){const d=(q-o.g*10)/(w/2.3548);if(Math.abs(d)<6)v+=o.I*Math.exp(-d*d/2);}x.push(q);y.push(v);}
+  simPlot($("rpCv"),x,y,"1/d (nm⁻¹)",$("rpLab").checked?R.G.map(o=>({x:o.g*10,I:o.I,t:o.hkl})):[],R.ph,ED.sel?{x:10/ED.sel.d,t:`${ED.sel.hkl} · ${(10/ED.sel.d).toFixed(3)} nm⁻¹`}:null);
   $("rpInfo").textContent=`${R.ph.legend?R.ph.legend.trim():""} · ${R.mode} · ${R.G.length} peaks · FWHM ${w} nm⁻¹`;R.x=x;R.y=y;}
 /* atomic number from the element table order (H = 1 …) */
 function elZ(el){const k=Object.keys(EL_DATA),i=k.indexOf(el);return i>=0?i+1:0;}
@@ -4689,25 +4691,63 @@ function pxSim(){const ph=V3.ph;if(!ph||!ph.atoms||!ph.atoms.length){$("pxInfo")
   const t0=Math.max(0,+$("pxT0").value||0),Lv=L.filter(o=>o.tt>=t0&&o.tt<=t1),mx=Math.max(1e-30,...Lv.map(o=>o.I));Lv.forEach(o=>o.I=100*o.I/mx);
   SIMR.px={L:Lv,ph,lam,t0,t1};pxPlot();}
 function pxPlot(){const R=SIMR.px;if(!R)return;const w=Math.max(0.01,+$("pxW").value||0.15),N=1500,x=[],y=[];
-  for(let i=0;i<=N;i++){const t=R.t0+(R.t1-R.t0)*i/N;let v=0;for(const o of R.L){const d=(t-o.tt)/(w/2.3548);if(Math.abs(d)<6)v+=o.I*Math.exp(-d*d/2);}x.push(t);y.push(v);}
-  simPlot($("pxCv"),x,y,"2θ (°)",$("pxLab").checked?R.L.map(o=>({x:o.tt,I:o.I,t:o.hkl})):[],R.ph);
+  const ts=[];for(let i=0;i<=N;i++)ts.push(R.t0+(R.t1-R.t0)*i/N);for(const o of R.L)ts.push(o.tt);ts.sort((a,b)=>a-b);
+  for(const t of ts){let v=0;for(const o of R.L){const d=(t-o.tt)/(w/2.3548);if(Math.abs(d)<6)v+=o.I*Math.exp(-d*d/2);}x.push(t);y.push(v);}
+  simPlot($("pxCv"),x,y,"2θ (°)",$("pxLab").checked?R.L.map(o=>({x:o.tt,I:o.I,t:o.hkl})):[],R.ph,ED.sel&&R.lam/(2*ED.sel.d)<=1?{x:2*Math.asin(R.lam/(2*ED.sel.d))*180/Math.PI,t:`${ED.sel.hkl} · 2θ ${(2*Math.asin(R.lam/(2*ED.sel.d))*180/Math.PI).toFixed(2)}° · d ${ED.sel.d.toFixed(4)} Å`}:null);
   $("pxInfo").textContent=`${R.ph.legend?R.ph.legend.trim():""} · powder X-ray · λ = ${R.lam} Å · ${R.L.length} reflections in ${R.t0}–${R.t1}° · FWHM ${w}° · strongest: ${R.L.slice().sort((a,b)=>b.I-a.I).slice(0,3).map(o=>`${o.hkl} at ${o.tt.toFixed(2)}° (d ${o.d.toFixed(3)} Å)`).join(", ")}`;R.x=x;R.y=y;}
 /* a small line plot with axes and (strongest, non-overlapping) hkl labels */
-function simPlot(cv,x,y,xl,labs,ph){sizeCanvas(cv);const g=cv.getContext("2d"),W=cv.width,H=cv.height,dpr=W/Math.max(1,cv.getBoundingClientRect().width),css=getComputedStyle(document.documentElement),ink=css.getPropertyValue("--ink").trim()||"#222",mut=css.getPropertyValue("--muted").trim()||"#888",line=css.getPropertyValue("--line").trim()||"#ccc";
-  g.fillStyle=css.getPropertyValue("--panel").trim()||"#fff";g.fillRect(0,0,W,H);const L=46*dpr,Rr=10*dpr,T=26*dpr,B=34*dpr,pw=W-L-Rr,phh=H-T-B,x0=x[0],x1=x[x.length-1],ym=Math.max(1e-9,...y)*1.08;
+function simPlot(cv,x,y,xl,labs,ph,mk){sizeCanvas(cv);cv._full=[x[0],x[x.length-1]];const g=cv.getContext("2d"),W=cv.width,H=cv.height,dpr=W/Math.max(1,cv.getBoundingClientRect().width),css=getComputedStyle(document.documentElement),ink=css.getPropertyValue("--ink").trim()||"#222",mut=css.getPropertyValue("--muted").trim()||"#888",line=css.getPropertyValue("--line").trim()||"#ccc";
+  g.fillStyle=css.getPropertyValue("--panel").trim()||"#fff";g.fillRect(0,0,W,H);const L=46*dpr,Rr=10*dpr,T=26*dpr,B=34*dpr,pw=W-L-Rr,phh=H-T-B,x0=cv._view?cv._view[0]:x[0],x1=cv._view?cv._view[1]:x[x.length-1],ym=Math.max(1e-9,...y.filter((v,i)=>x[i]>=x0&&x[i]<=x1))*1.08;cv._geo={L,pw};
   const X=v=>L+(v-x0)/(x1-x0)*pw,Y=v=>T+phh-v/ym*phh;g.font=`${10*dpr}px "IBM Plex Mono",monospace`;g.fillStyle=mut;g.strokeStyle=line;g.lineWidth=1;
   const st=[0.1,0.2,0.5,1,2,5,10,20,50].find(s=>(x1-x0)/s<=10)||100;g.textAlign="center";g.textBaseline="top";for(let v=Math.ceil(x0/st)*st;v<=x1+1e-9;v+=st){g.beginPath();g.moveTo(X(v),T);g.lineTo(X(v),T+phh);g.stroke();g.fillText(+v.toFixed(2)+"",X(v),T+phh+4*dpr);}
   g.textAlign="right";g.textBaseline="middle";for(const v of [0,25,50,75,100]){if(v>ym)continue;g.beginPath();g.moveTo(L,Y(v));g.lineTo(L+pw,Y(v));g.stroke();g.fillText(v+"",L-4*dpr,Y(v));}
   g.strokeStyle=mut;g.strokeRect(L+.5,T+.5,pw-1,phh-1);g.fillStyle=ink;g.textAlign="center";g.textBaseline="bottom";g.font=`600 ${11*dpr}px "IBM Plex Sans",sans-serif`;g.fillText(xl,L+pw/2,H-2*dpr);
   g.save();g.translate(12*dpr,T+phh/2);g.rotate(-Math.PI/2);g.textAlign="center";g.fillText("I (rel.)",0,0);g.restore();
   g.save();g.beginPath();g.rect(L,T,pw,phh);g.clip();g.strokeStyle=(ph&&ph.color)||"#e4572e";g.lineWidth=1.5*dpr;g.beginPath();x.forEach((v,i)=>{const px=X(v),py=Y(y[i]);i?g.lineTo(px,py):g.moveTo(px,py);});g.stroke();g.restore();
+  if(mk&&mk.x>=x0&&mk.x<=x1){const px=X(mk.x);g.save();g.strokeStyle="#ff9f1c";g.lineWidth=2*dpr;g.setLineDash([5*dpr,4*dpr]);g.beginPath();g.moveTo(px,T);g.lineTo(px,T+phh);g.stroke();g.setLineDash([]);
+    g.font=`700 ${10*dpr}px "IBM Plex Mono",monospace`;g.fillStyle="#ff9f1c";g.textAlign=px>L+pw*0.7?"right":"left";g.textBaseline="top";g.fillText(mk.t,px+(px>L+pw*0.7?-4:4)*dpr,T+3*dpr);g.restore();}
+  if(cv._view){g.save();g.font=`${9*dpr}px "IBM Plex Sans",sans-serif`;g.fillStyle=mut;g.textAlign="right";g.textBaseline="top";g.fillText("zoomed · double-click = whole range",L+pw-3*dpr,3*dpr);g.restore();}
   if(labs.length){g.font=`600 ${9*dpr}px "IBM Plex Mono",monospace`;g.fillStyle=(ph&&ph.color)||ink;g.textAlign="left";g.textBaseline="middle";const used=[];
-    for(const o of labs.slice().sort((a,b)=>b.I-a.I)){if(o.I<3||o.x<x0||o.x>x1)continue;const px=X(o.x);if(used.some(u=>Math.abs(u-px)<11*dpr))continue;used.push(px);const yy=y[Math.round((o.x-x0)/(x1-x0)*(x.length-1))];
+    for(const o of labs.slice().sort((a,b)=>b.I-a.I)){if(o.I<3||o.x<x0||o.x>x1)continue;const px=X(o.x);if(used.some(u=>Math.abs(u-px)<11*dpr))continue;used.push(px);let yy=0;{let bi=0,bd=1e9;for(let i=0;i<x.length;i++){const dd=Math.abs(x[i]-o.x);if(dd<bd){bd=dd;bi=i;}}yy=y[bi];}
       g.save();g.translate(px+3*dpr,Math.max(T+2*dpr,Y(yy)-4*dpr));g.rotate(-Math.PI/2);g.fillText(o.t,0,0);g.restore();if(used.length>40)break;}}}
 function simCsv(k){const R=SIMR[k];if(!R||!R.x)return;const lines=k==="rp"?["# simulated radial profile · "+(R.ph.legend||"").trim()+" · "+R.mode,"1/d_nm-1\tI_rel"]:["# simulated powder X-ray pattern · "+(R.ph.legend||"").trim()+` · lambda ${R.lam} A`,"2theta_deg\tI_rel"];
   R.x.forEach((v,i)=>lines.push(v.toFixed(4)+"\t"+R.y[i].toFixed(4)));lines.push("","# peaks");
   if(k==="rp")for(const o of R.G)lines.push(`${(o.g*10).toFixed(4)}\t${o.I.toFixed(2)}\t${o.hkl}\td=${(1/o.g).toFixed(4)} A`);else for(const o of R.L)lines.push(`${o.tt.toFixed(4)}\t${o.I.toFixed(2)}\t${o.hkl}\td=${o.d.toFixed(4)} A\tm=${o.m}`);
   saveFile(`${(R.ph.legend||"phase").trim().replace(/[^\w.-]+/g,"_")}_${k==="rp"?"radial_profile":"powder_XRD"}.txt`,new Blob([lines.join("\n")],{type:"text/plain"}));}
+
+/* radial profile: ☐ auto-update — re-simulated every time the pattern changes (rotation, zone, thickness, rings…) */
+{const go=$("rpGo");if(go){const l=document.createElement("label");l.title="Update the radial profile by itself whenever the diffraction pattern changes (rotating the crystal, a new zone axis, thickness, rings, another phase)";
+  l.innerHTML='<input id="rpAuto" type="checkbox"> auto-update';go.after(l);try{$("rpAuto").checked=localStorage.getItem("rp-auto")==="1";}catch(e){}
+  $("rpAuto").addEventListener("change",()=>{try{localStorage.setItem("rp-auto",$("rpAuto").checked?"1":"0");}catch(e){}if($("rpAuto").checked)rpSim();});}}
+{const _p=edPaint;edPaint=function(){const r=_p.apply(this,arguments);try{if($("rpAuto")&&$("rpAuto").checked&&$("rpOn").checked&&$("edOn").checked&&V3.ph)rpSim();}catch(e){}return r;};}
+
+/* ===== simulated pattern: wheel = zoom (at the mouse), drag = pan, double-click = whole pattern; click a ring / spot = select it.
+   The selected reflection is marked on the pattern, in the radial profile (its 1/d) and in the powder diffraction (its 2θ at the chosen λ). ===== */
+ED.z=1;ED.px=0;ED.py=0;ED.sel=null;
+{const cv=$("edCv");if(cv){let dr=null;const pt=e=>{const r=cv.getBoundingClientRect(),k=cv.width/r.width;return [(e.clientX-r.left)*k,(e.clientY-r.top)*k];};
+  cv.style.cursor="crosshair";
+  cv.addEventListener("wheel",e=>{e.preventDefault();const G=ED.geo;if(!G)return;const [x,y]=pt(e),gx=(x-G.cx)/G.sc,gy=(y-G.cy)/G.sc,f=Math.pow(1.0015,-e.deltaY*(e.deltaMode===1?16:1));
+    ED.z=Math.max(1,Math.min(40,ED.z*f));const sc=G.sc0*ED.z;ED.px=gx-(x-G.W/2)/sc;ED.py=gy-(y-G.H/2)/sc;if(ED.z<=1.0001){ED.px=ED.py=0;}edDraw();},{passive:false});
+  cv.addEventListener("pointerdown",e=>{if(e.button!==0)return;dr={x:e.clientX,y:e.clientY,px:ED.px,py:ED.py,moved:false};cv.setPointerCapture(e.pointerId);});
+  cv.addEventListener("pointermove",e=>{if(!dr||!ED.geo)return;const k=cv.width/cv.getBoundingClientRect().width,dx=(e.clientX-dr.x)*k,dy=(e.clientY-dr.y)*k;if(Math.hypot(dx,dy)>4)dr.moved=true;
+    if(dr.moved&&ED.z>1.0001){ED.px=dr.px-dx/ED.geo.sc;ED.py=dr.py-dy/ED.geo.sc;cv.style.cursor="grabbing";edDraw();}});
+  cv.addEventListener("pointerup",e=>{const d=dr;dr=null;cv.style.cursor="crosshair";if(!d||d.moved||!ED.geo)return;const G=ED.geo,[x,y]=pt(e),gl=Math.hypot((x-G.cx)/G.sc,(y-G.cy)/G.sc);
+    /* nearest ring (or spot) */let best=null;
+    if(G.mode==="spots"){for(const p of G.spots){const dd=Math.hypot(p.x-x,p.y-y);if(dd<12*G.dpr&&(!best||dd<best.dd))best={dd,d:1/p.r.gl,hkl:`${p.r.h} ${p.r.k} ${p.r.l}`};}}
+    else for(const o of G.rings){const dd=Math.abs(o.g-gl)*G.sc;if(dd<8*G.dpr&&(!best||dd<best.dd))best={dd,d:1/o.g,hkl:o.hkl};}
+    ED.sel=best?{d:best.d,hkl:best.hkl}:null;edDraw();try{if(SIMR.rp)rpPlot();if(SIMR.px)pxPlot();}catch(err){}});
+  cv.addEventListener("dblclick",()=>{ED.z=1;ED.px=ED.py=0;edDraw();});}}
+/* keep the geometry of the last drawing (for zoom / picking) and draw the selection */
+{const _p=edPaint;edPaint=function(){const r=_p.apply(this,arguments);try{const G=ED.geo;if(!G||!ED.sel||!$("edOn").checked)return r;const cv=$("edCv"),g=cv.getContext("2d"),rr=G.sc/ED.sel.d;
+    g.save();g.strokeStyle="#ff9f1c";g.lineWidth=2.5*G.dpr;g.setLineDash([6*G.dpr,4*G.dpr]);g.beginPath();g.arc(G.cx,G.cy,rr,0,2*Math.PI);g.stroke();g.setLineDash([]);
+    g.font=`700 ${12*G.dpr}px "IBM Plex Mono",monospace`;g.fillStyle="#ff9f1c";g.textAlign="center";g.textBaseline="bottom";const t=`${ED.sel.hkl} · d ${ED.sel.d.toFixed(4)} Å`;
+    const ty=Math.max(14*G.dpr,G.cy-rr-4*G.dpr);g.fillStyle="rgba(0,0,0,.7)";const tw=g.measureText(t).width;g.fillRect(G.cx-tw/2-4*G.dpr,ty-14*G.dpr,tw+8*G.dpr,16*G.dpr);g.fillStyle="#ff9f1c";g.fillText(t,G.cx,ty);g.restore();}catch(e){}return r;};}
+/* the profile plots: wheel = zoom the x range, double-click = whole range; the selected reflection is marked */
+for(const id of ["rpCv","pxCv"]){const cv=$(id);if(!cv)continue;cv.style.cursor="zoom-in";
+  cv.addEventListener("wheel",e=>{const V=cv._full;if(!V)return;e.preventDefault();const r=cv.getBoundingClientRect(),k=cv.width/r.width,G=cv._geo,x=(e.clientX-r.left)*k,v=cv._view||V;
+    const xv=v[0]+(x-G.L)/G.pw*(v[1]-v[0]),f=Math.pow(1.0015,e.deltaY*(e.deltaMode===1?16:1));let a=xv-(xv-v[0])*f,b=xv+(v[1]-xv)*f;const minW=(V[1]-V[0])/400;if(b-a<minW){a=xv-minW/2;b=xv+minW/2;}
+    a=Math.max(V[0],a);b=Math.min(V[1],b);cv._view=(b-a)>=(V[1]-V[0])*0.999?null:[a,b];id==="rpCv"?rpPlot():pxPlot();},{passive:false});
+  cv.addEventListener("dblclick",()=>{cv._view=null;id==="rpCv"?rpPlot():pxPlot();});}
 </script>
 
 </body></html>
