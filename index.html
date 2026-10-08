@@ -1682,7 +1682,7 @@ async function addCIFs(files){
         ph.legend=compactFormula(ph.formula||ph.block||f.name)+(ph.code?`  ICSD ${ph.code}`:"");ph.group=it.group;ph.star=starLoad(ph);
         S.phases.push(ph);any=true;added++;if(firstNew==null)firstNew=ph.id;}
       if(!any)failed.push(f.name);}catch(err){failed.push(f.name+" ("+err.message+")");}}
-  if(added&&S.focus==null)S.focus=firstNew;
+  /* loading CIFs does not highlight any phase */
   // many phases at once: show only the first few to keep the plot readable
   renderPhases();redrawAll();drawChart();
   st.textContent=`${S.phases.length} phase${S.phases.length!==1?"s":""} loaded, ${S.phases.filter(p=>p.show).length} ticked. Click a phase and use ↑ ↓ to preview them.`+(failed.length?` Could not read: ${failed.join(", ")}.`:"");}
@@ -3280,6 +3280,8 @@ window.addEventListener("keydown",e=>{if(e.key!=="Escape")return;const ed=$("txt
   const bm=$("brModal");if(bm&&!bm.hidden)return;
   if(typeof VLPICK!=="undefined"&&VLPICK){const {k,v}=VLPICK;if(v.d==null){TXT[k].vl=TXT[k].vl.filter(z=>z!==v);txtSave();vlUI(k);}vlPickEnd();e.stopImmediatePropagation();return;}
   if(TXT_MSEL[ESC_CTX]&&TXT_MSEL[ESC_CTX].length){TXT_MSEL[ESC_CTX]=[];txtRedraw(ESC_CTX);e.stopImmediatePropagation();return;}
+  {const tg=(e.target.tagName||"").toLowerCase();const typing=tg==="textarea"||tg==="input"&&/text|number|search/.test(e.target.type)||e.target.isContentEditable;
+   if(!typing&&S.focus!=null&&(e.target.closest&&e.target.closest("#phaseBox,#cifCard,.cifbox")||!["pk","cmp","tm","pat"].includes(ESC_CTX))){cifUnhl();e.preventDefault();e.stopImmediatePropagation();return;}}
   if(["pk","cmp","tm","pat"].includes(ESC_CTX))return;   // in a plot: its own Esc (clears the marked rings / d lines)
   e.stopImmediatePropagation();},true);
 /* ===== fix 7: plot layout (moved / edited texts, your labels and lines, plot colours, 3D colours) saved in the notes file ===== */
@@ -4580,6 +4582,9 @@ function edPaint(){const box=$("edBox"),cv=$("edCv");if(!box||!cv)return;const o
   const ph=V3.ph;if(!ph||!ph.atoms||!ph.atoms.length){g.fillStyle="#8a94a6";g.font=`${13*dpr}px "IBM Plex Sans",sans-serif`;g.textAlign="center";g.fillText("Highlight a phase to see its diffraction pattern",W/2,H/2);$("edInfo").textContent="";return;}
   const gmax=Math.max(0.1,(+$("edG").value||10)/10),R=V3.R,ux=R[0],uy=R[1],uz=R[2],beam=uz.map(v=>-v);   /* screen x, y (down), z toward the viewer → beam into the screen */
   const sc0=(Math.min(W,H)/2*0.94)/gmax,sc=sc0*(ED.z||1),cx=W/2-(ED.px||0)*sc,cy=H/2-(ED.py||0)*sc,fs=Math.round(10*dpr),lab=$("edLab").checked,ring=$("edRing").checked,col=ph.color||"#ffd23f";
+  if($("edOv")&&$("edOv").checked){const P=edPatCanvas(),scp=+(($("scale")&&$("scale").value)||0);
+    if(P&&scp>0){const k=scp/10*sc*P.f;g.save();g.globalAlpha=(+$("edOvA").value||0)/100;g.imageSmoothingEnabled=true;g.drawImage(P.cv,cx-S.cx/P.f*k,cy-S.cy/P.f*k,P.cv.width*k,P.cv.height*k);g.restore();$("edOvMsg").textContent="overlay: "+(S.name||"open pattern");}
+    else $("edOvMsg").textContent=S&&S.img?"calibrate the pattern (nm⁻¹ per pixel) to overlay it":"open an FFT / SAED pattern to overlay it";}else if($("edOvMsg"))$("edOvMsg").textContent="";
   g.strokeStyle="rgba(255,255,255,.12)";g.lineWidth=1;g.beginPath();g.arc(cx,cy,gmax*sc,0,2*Math.PI);g.stroke();
   let n=0;
   const ringM=($("edRingM")&&$("edRingM").value)||"powder";
@@ -4590,6 +4595,7 @@ function edPaint(){const box=$("edBox"),cv=$("edCv");if(!box||!cv)return;const o
   else{const lam=lambdaA(+(($("kv")&&$("kv").value)||300))||0.0197,K=1/lam,t=Math.max(1,(+$("edT").value||10))*10,Rf=edRefl(ph,gmax),spots=[];
     for(const r of Rf){const gb=r.g[0]*beam[0]+r.g[1]*beam[1]+r.g[2]*beam[2],s=-gb-r.gl*r.gl/(2*K),x=t*s,wgt=Math.exp(-x*x),I=r.F2*wgt;if(I<1e-3*Rf.Fmax)continue;
       spots.push({x:cx+(r.g[0]*ux[0]+r.g[1]*ux[1]+r.g[2]*ux[2])*sc,y:cy+(r.g[0]*uy[0]+r.g[1]*uy[1]+r.g[2]*uy[2])*sc,I,r});}
+    {const a=(+(($("edRot")&&$("edRot").value)||0))*Math.PI/180;if(a){const c=Math.cos(a),sn=Math.sin(a);for(const p of spots){const X=p.x-cx,Y=p.y-cy;p.x=cx+X*c-Y*sn;p.y=cy+X*sn+Y*c;}}}
     const Im=Math.max(1e-30,...spots.map(p=>p.I));spots.sort((a,b)=>a.I-b.I);
     ED.geo={cx,cy,sc,sc0,W,H,dpr,mode:ring?"zone":"spots",spots,rings:[]};
     if(ring&&ringM!=="powder"){/* the spots shown, turned about the beam: one ring per distinct |g| (many crystals in this zone, rotated) */const G=[];for(const p of spots){const q=G.find(o=>Math.abs(o.gl-p.r.gl)<0.003*p.r.gl);if(q){q.I+=p.I;if(p.I>q.top.I)q.top=p;}else G.push({gl:p.r.gl,I:p.I,top:p});}
@@ -4599,9 +4605,11 @@ function edPaint(){const box=$("edBox"),cv=$("edCv");if(!box||!cv)return;const o
       g.fillStyle="#ffffff";g.beginPath();g.arc(cx,cy,6*dpr,0,2*Math.PI);g.fill();const z=edZone(ph,beam);
       $("edInfo").textContent=`${ph.legend?ph.legend.trim():""} · rings of the ${spots.length} spots of beam ≈ [${z.w.join(" ")}] · ${G.length} rings · t = ${t/10} nm`;}
     else{
-    for(const p of spots){const q=Math.sqrt(p.I/Im),rr=Math.max(1.2*dpr,(1.5+5*q)*dpr);g.fillStyle=`rgba(255,255,255,${Math.min(1,0.25+0.75*q)})`;g.beginPath();g.arc(p.x,p.y,rr,0,2*Math.PI);g.fill();}
+    const spC=($("edSpC")&&$("edSpC").value)||"#ffffff",spI=((+(($("edSpI")&&$("edSpI").value)||100))/100),spRing=($("edSpS")&&$("edSpS").value)==="ring";g.fillStyle=spC;
+    const live=!($("edLive")&&!$("edLive").checked);
+    if(live)for(const p of spots){const q=Math.sqrt(p.I/Im),rr=Math.max(1.2*dpr,(1.5+5*q)*dpr*Math.sqrt(spI));g.globalAlpha=Math.min(1,(0.25+0.75*q)*spI);g.beginPath();g.arc(p.x,p.y,rr+(spRing?1.5*dpr:0),0,2*Math.PI);if(spRing){g.lineWidth=Math.max(1.2,1.6*Math.sqrt(spI))*dpr;g.strokeStyle=spC;g.stroke();}else g.fill();}g.globalAlpha=1;
     g.fillStyle="#ffffff";g.beginPath();g.arc(cx,cy,6*dpr,0,2*Math.PI);g.fill();   /* direct beam */
-    if(lab){g.font=`600 ${fs}px "IBM Plex Mono",monospace`;g.textAlign="center";g.textBaseline="bottom";g.fillStyle=col;const used=[];
+    if(lab&&live){g.font=`600 ${fs}px "IBM Plex Mono",monospace`;g.textAlign="center";g.textBaseline="bottom";g.fillStyle=col;const used=[];
       for(const p of spots.slice().sort((a,b)=>b.I-a.I)){if(used.some(u=>Math.abs(u[0]-p.x)<fs*2.2&&Math.abs(u[1]-p.y)<fs*1.2))continue;used.push([p.x,p.y]);g.fillText(`${p.r.h} ${p.r.k} ${p.r.l}`,p.x,p.y-5*dpr);if(used.length>80)break;}}
     const z=edZone(ph,beam);$("edInfo").textContent=`${ph.legend?ph.legend.trim():""} · beam ≈ [${z.w.join(" ")}]${z.ang>0.5?` (${z.ang.toFixed(1)}° off)`:""} · ${spots.length} spots · t = ${t/10} nm · λ = ${(lam*100).toFixed(3)} pm`;}n=spots.length;}
   /* scale bar, 1/d */const L=(()=>{const tg=gmax*0.25,c=[0.5,1,2,5,10];let b=c[0];for(const v of c)if(Math.abs(Math.log(v/10/tg))<Math.abs(Math.log(b/10/tg)))b=v;return b;})(),lp=L/10*sc;
@@ -4748,6 +4756,314 @@ for(const id of ["rpCv","pxCv"]){const cv=$(id);if(!cv)continue;cv.style.cursor=
     const xv=v[0]+(x-G.L)/G.pw*(v[1]-v[0]),f=Math.pow(1.0015,e.deltaY*(e.deltaMode===1?16:1));let a=xv-(xv-v[0])*f,b=xv+(v[1]-xv)*f;const minW=(V[1]-V[0])/400;if(b-a<minW){a=xv-minW/2;b=xv+minW/2;}
     a=Math.max(V[0],a);b=Math.min(V[1],b);cv._view=(b-a)>=(V[1]-V[0])*0.999?null:[a,b];id==="rpCv"?rpPlot():pxPlot();},{passive:false});
   cv.addEventListener("dblclick",()=>{cv._view=null;id==="rpCv"?rpPlot():pxPlot();});}
+
+/* ===== 🧭 Zone finder: pick the CIF sticks that match peaks of the profile (and, optionally, measure the angle between two spots on the pattern);
+   every zone axis [uvw] = (h₁k₁l₁)×(h₂k₂l₂) of members of the picked families is tested (Weiss zone law h·u+k·v+l·w = 0 for every pick),
+   then ranked by how well the zone's reflections explain the detected peaks (and by the measured angle / spot spacings). ===== */
+const ZF={pick:false,picks:[],ang:false,spots:[],res:[]};
+{const pan=$("pkPanel");if(pan){const box=document.createElement("div");box.id="zfBox";box.style.cssText="border:1.5px solid var(--accent);border-radius:var(--r);padding:8px 10px;display:grid;gap:6px";
+  box.innerHTML=`<div class="chartbar"><b style="font:600 .72rem var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--accent)">🧭 Zone finder</b>
+   <button id="zfPick" aria-pressed="false" title="Then click the CIF sticks in the plot above that match peaks of your profile (click again to unpick); all from one phase">① pick CIF sticks</button>
+   <button id="zfAng" aria-pressed="false" title="Optional, makes the answer unique: click two spots on the pattern (FFT / SAED); their spacings and the angle between them are measured">② angle: click 2 spots on the pattern</button>
+   <button id="zfGo" class="primary" title="Find the zone axes that contain the picked reflections, ranked by how well they explain the detected peaks">③ find zone axis</button>
+   <button id="zfClr">✕ clear</button><span class="keys" id="zfStat"></span></div>
+   <div class="keys" id="zfPicks"></div>
+   <div class="tablebox" id="zfRes" hidden style="max-height:260px"><table class="zfTbl"><thead><tr><th>#</th><th>zone axis</th><th>score</th><th title="detected peaks explained by this zone's reflections">peaks explained</th><th title="strong reflections of this zone in the profile range that are not among the detected peaks">strong missing</th><th title="measured angle − calculated angle (when 2 spots were measured)">Δ angle</th><th style="text-align:left">equivalent / same pattern</th><th></th></tr></thead><tbody id="zfRows"></tbody></table></div>`;
+  const last=pan.querySelector(".saves")||pan.lastElementChild;pan.insertBefore(box,last);
+  const st=document.createElement("style");st.textContent=".zfTbl{border-collapse:collapse;width:100%;font:12px var(--f-data)}.zfTbl th,.zfTbl td{padding:3px 6px;border-bottom:1px solid var(--line);text-align:center}.zfTbl tr:hover td{background:color-mix(in srgb,var(--accent) 8%,transparent)}";document.head.appendChild(st);
+  const tog=(id,k)=>{const b=$(id);b.addEventListener("click",()=>{ZF[k]=!ZF[k];if(k==="ang"&&ZF.ang)ZF.spots=[];b.setAttribute("aria-pressed",ZF[k]);b.classList.toggle("primary",ZF[k]);if(ZF[k]){const o=k==="pick"?"ang":"pick";ZF[o]=false;$(o==="pick"?"zfPick":"zfAng").setAttribute("aria-pressed","false");$(o==="pick"?"zfPick":"zfAng").classList.remove("primary");}
+      zfUI();try{drawChart();}catch(e){}try{drawMain();}catch(e){}});};tog("zfPick","pick");tog("zfAng","ang");
+  $("zfGo").addEventListener("click",()=>ZF.poly?zfMulti():zfRun());$("zfClr").addEventListener("click",()=>{ZF.picks=[];ZF.spots=[];ZF.res=[];$("zfRes").hidden=true;zfUI();try{drawChart();}catch(e){}try{drawMain();}catch(e){}});
+  zfUI();}}
+function zfUI(){const P=ZF.picks;$("zfPicks").innerHTML=(P.length?`<b>${P[0].ph.legend.trim()}</b> · picked: `+P.map((p,i)=>`<span style="color:#ff9f1c;font-weight:700">${i+1}</span> {${p.ln.hkl}} d ${(p.ln.d*phaseScale()).toFixed(4)} Å`).join(" · "):"No sticks picked yet.")+
+    (ZF.spots.length?` · spots: ${ZF.spots.map((s,i)=>`S${i+1} d ${s.d.toFixed(4)} Å`).join(", ")}${ZF.spots.length===2?` · angle ${zfAngObs().toFixed(1)}°`:""}`:"");
+  $("zfStat").textContent=ZF.pick?"click CIF sticks in the plot above":ZF.ang?`click spot ${ZF.spots.length+1} of 2 on the pattern`:"";}
+const zfAngObs=()=>{const [a,b]=ZF.spots;return Math.acos(Math.max(-1,Math.min(1,(a.vx*b.vx+a.vy*b.vy)/(Math.hypot(a.vx,a.vy)*Math.hypot(b.vx,b.vy)))))*180/Math.PI;};
+/* ① picking sticks in the peaks plot */
+{const cv=typeof cvC!=="undefined"?cvC:null;if(cv)cv.addEventListener("pointerdown",ev=>{if(!ZF.pick||ev.button!==0)return;const G=chartGeom;if(!G||!S.profile)return;ev.stopImmediatePropagation();ev.preventDefault();
+  const s=cv.width/cv.getBoundingClientRect().width,x=ev.offsetX*s,sV=phaseScale(),cmn=+$("cmin").value||0;let best=null;
+  for(const ph of S.phases.filter(phVisible))for(const ln of ph.lines){if(ln.I<cmn)continue;const xv=vlX("pk",ln.d*sV);if(!isFinite(xv))continue;const X=G.L+(xv-G.lo)/(G.hi-G.lo)*G.pw,dd=Math.abs(X-x);if(dd<8*s&&(!best||dd<best.dd))best={dd,ph,ln};}
+  if(!best){try{cpToast("No CIF stick there — click right on a stick",true);}catch(e){}return;}
+  if(!ZF.poly&&ZF.picks.length&&ZF.picks[0].ph!==best.ph){ZF.picks=[];try{cpToast("Another phase: the picks start again for "+best.ph.legend.trim());}catch(e){}}
+  const i=ZF.picks.findIndex(p=>p.ln===best.ln);if(i>=0)ZF.picks.splice(i,1);else ZF.picks.push({ph:best.ph,ln:best.ln});zfUI();drawChart();},true);}
+{const _a=drawChart;drawChart=function(t,d){const r=_a.apply(this,arguments);try{if(!(t instanceof HTMLCanvasElement)&&ZF.picks.length&&chartGeom&&S.profile){const G=chartGeom,g=cvC.getContext("2d"),dpr=cvC.width/Math.max(1,cvC.getBoundingClientRect().width),sV=phaseScale();
+    g.save();g.font=`700 ${11*dpr}px "IBM Plex Mono",monospace`;g.textAlign="center";g.textBaseline="top";ZF.picks.forEach((p,i)=>{const xv=vlX("pk",p.ln.d*sV);if(!isFinite(xv))return;const X=G.L+(xv-G.lo)/(G.hi-G.lo)*G.pw;
+      const fz=lzOf(p),pc=fz?fz.color:"#ff9f1c";g.strokeStyle=pc;g.lineWidth=3*dpr;g.globalAlpha=.8;g.beginPath();g.moveTo(X,G.T);g.lineTo(X,G.T+G.ph);g.stroke();g.globalAlpha=1;g.fillStyle=pc;g.fillText(String(i+1)+(fz?"✓":""),X,G.T+2*dpr);});g.restore();}}catch(e){}return r;};}
+/* ② two spots on the pattern (centroid of the brightest pixels near the click) */
+window.addEventListener("pointerdown",e=>{if(!ZF.ang||typeof cvM==="undefined"||e.target!==cvM||e.button!==0||!S.img)return;e.stopImmediatePropagation();e.preventDefault();
+  const k=cvM.width/cvM.getBoundingClientRect().width,X=S.ox+e.offsetX*k/S.zoom,Y=S.oy+e.offsetY*k/S.zoom,W=S.W,H=S.H,img=S.img,R=Math.max(4,Math.round(3/S.zoom)+4);let bx=-1,by=-1,bv=-Infinity;
+  for(let y=Math.max(0,Math.round(Y)-R);y<=Math.min(H-1,Math.round(Y)+R);y++)for(let x=Math.max(0,Math.round(X)-R);x<=Math.min(W-1,Math.round(X)+R);x++){const v=img[y*W+x];if(v>bv){bv=v;bx=x;by=y;}}
+  if(bx<0)return;let mn=Infinity;for(let y=by-3;y<=by+3;y++)for(let x=bx-3;x<=bx+3;x++)if(x>=0&&y>=0&&x<W&&y<H)mn=Math.min(mn,img[y*W+x]);
+  let sw=0,sx=0,sy=0;for(let y=by-3;y<=by+3;y++)for(let x=bx-3;x<=bx+3;x++){if(x<0||y<0||x>=W||y>=H)continue;const w=img[y*W+x]-mn;if(w>0){sw+=w;sx+=w*x;sy+=w*y;}}
+  const px=sw>0?sx/sw:bx,py=sw>0?sy/sw:by,vx=px-S.cx,vy=py-S.cy,r=Math.hypot(vx,vy),sc=+$("scale").value;if(!(sc>0)||r<1){try{cpToast("Calibrate the pattern first (nm⁻¹ per pixel)",true);}catch(err){}return;}
+  if(ZF.spots.length>=2)ZF.spots=[];ZF.spots.push({x:px,y:py,vx,vy,d:10/(r*sc)});if(ZF.spots.length===2){ZF.ang=false;$("zfAng").setAttribute("aria-pressed","false");$("zfAng").classList.remove("primary");}zfUI();drawMain();},true);
+{const _m=drawMain;drawMain=function(){const r=_m.apply(this,arguments);try{if(ZF.spots.length&&S.img){const g=cvM.getContext("2d"),dpr=cvM.width/Math.max(1,cvM.getBoundingClientRect().width),P=(x,y)=>[(x-S.ox)*S.zoom,(y-S.oy)*S.zoom],c=P(S.cx,S.cy);
+    g.save();g.strokeStyle="#ff9f1c";g.fillStyle="#ff9f1c";g.lineWidth=2*dpr;g.font=`700 ${12*dpr}px "IBM Plex Mono",monospace`;g.textBaseline="bottom";
+    ZF.spots.forEach((s,i)=>{const p=P(s.x,s.y);g.beginPath();g.moveTo(c[0],c[1]);g.lineTo(p[0],p[1]);g.stroke();g.beginPath();g.arc(p[0],p[1],7*dpr,0,2*Math.PI);g.stroke();g.fillText(`S${i+1} ${s.d.toFixed(3)} Å`,p[0]+9*dpr,p[1]-4*dpr);});
+    if(ZF.spots.length===2){g.fillText(`∠ ${zfAngObs().toFixed(1)}°`,c[0]+10*dpr,c[1]-10*dpr);}g.restore();}}catch(e){}return r;};}
+/* ③ the search */
+function zfRun(){const P=ZF.picks,sp=ZF.spots.length===2?ZF.spots:[];let ph=P.length?P[0].ph:(typeof v3Phase==="function"?v3Phase():null)||S.phases.find(phVisible);
+  if(!ph){$("zfStat").textContent="Pick CIF sticks of one phase first (or highlight a phase and measure 2 spots).";return;}
+  const sV=phaseScale(),fams=P.map(p=>p.ln);
+  /* spot spacings → families with that d (within 2 %) */const spF=sp.map(s=>ph.lines.filter(l=>Math.abs(l.d*sV-s.d)/s.d<0.02));
+  if(fams.length+sp.length<2||(fams.length<2&&sp.length&&spF.some(f=>!f.length))){$("zfStat").textContent=sp.length&&spF.some(f=>!f.length)?"A measured spot spacing matches no reflection of this phase (check the calibration / phase).":"Pick at least two sticks (or measure two spots).";return;}
+  const mem=l=>(l.mem&&l.mem.length?l.mem:[l.rep]);
+  /* candidate zones from pairs of members */const srcs=fams.map(l=>mem(l));for(const f of spF)srcs.push([].concat(...f.map(mem)));
+  const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a),cand=new Map();
+  for(let i=0;i<srcs.length;i++)for(let j=i+1;j<srcs.length;j++)for(const a of srcs[i])for(const b of srcs[j]){let u=[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];if(!u[0]&&!u[1]&&!u[2])continue;
+    const q=gcd(gcd(u[0],u[1]),u[2])||1;u=u.map(v=>v/q);if(Math.max(...u.map(Math.abs))>15)continue;const f=u.find(v=>v!==0);if(f<0)u=u.map(v=>-v);cand.set(u.join(","),u);}
+  const obs=(S.peaks||[]).map(p=>p.d).filter(d=>d>0),dlo=obs.length?Math.min(...obs)*0.97:0,dhi=obs.length?Math.max(...obs)*1.03:1e9,{Inv}=edMat(ph),gc=h=>[0,1,2].map(i=>h[0]*Inv[0][i]+h[1]*Inv[1][i]+h[2]*Inv[2][i]),aObs=sp.length?zfAngObs():null;
+  const res=[];
+  for(const u of cand.values()){const inZ=h=>h[0]*u[0]+h[1]*u[1]+h[2]*u[2]===0;
+    if(!fams.every(l=>mem(l).some(inZ)))continue;
+    /* this zone's reflections (zero-order Laue zone) */const Z=[];for(const l of ph.lines){const n=mem(l).filter(inZ).length;if(n)Z.push({d:l.d*sV,I:l.I/(l.m||1)*n,hkl:l.hkl,l});}
+    if(!Z.length)continue;const Zr=Z.filter(z=>z.d>=dlo&&z.d<=dhi),Im=Math.max(1e-9,...Zr.map(z=>z.I)),strong=Zr.filter(z=>z.I>=0.15*Im);
+    const near=(a,b)=>Math.abs(a-b)/b<0.015,expl=obs.filter(d=>Z.some(z=>z.I>=0.02*Im&&near(z.d,d))).length,miss=strong.filter(z=>!obs.some(d=>near(z.d,d)));
+    /* measured angle: best assignment of the two spots to in-zone reflections */let dA=null;
+    if(sp.length){for(const m1 of [].concat(...spF[0].map(mem)).filter(inZ))for(const m2 of [].concat(...spF[1].map(mem)).filter(inZ)){const g1=gc(m1),g2=gc(m2),L1=Math.hypot(...g1),L2=Math.hypot(...g2),c=(g1[0]*g2[0]+g1[1]*g2[1]+g1[2]*g2[2])/(L1*L2);if(Math.abs(c)>0.9999)continue;
+        const a=Math.acos(Math.max(-1,Math.min(1,c)))*180/Math.PI,e=Math.abs(a-aObs);if(dA===null||e<dA)dA=e;}if(dA===null)continue;}
+    const score=100*(obs.length?0.6*expl/obs.length:0.3)+40*(strong.length?(strong.length-miss.length)/strong.length:0.5)-(dA!==null?3*dA:0)-0.3*(Math.abs(u[0])+Math.abs(u[1])+Math.abs(u[2]));
+    const sig=Z.map(z=>z.d.toFixed(3)+":"+Math.round(z.I)).sort().join("|");res.push({u,score,expl,miss,dA,sig,nObs:obs.length});}
+  /* zones with the same pattern (symmetry-equivalent, or indistinguishable) are merged */const groups=new Map();for(const r of res.sort((a,b)=>b.score-a.score)){const g=groups.get(r.sig);if(g)g.eq.push(r.u);else groups.set(r.sig,Object.assign(r,{eq:[]}));}
+  ZF.res=[...groups.values()].sort((a,b)=>b.score-a.score||(Math.abs(a.u[0])+Math.abs(a.u[1])+Math.abs(a.u[2]))-(Math.abs(b.u[0])+Math.abs(b.u[1])+Math.abs(b.u[2]))).slice(0,12);ZF.ph=ph;
+  const tb=$("zfRows");tb.textContent="";$("zfRes").hidden=false;
+  if(!ZF.res.length){tb.innerHTML=`<tr><td colspan="8">No zone axis contains all the picked reflections${sp.length?" with the measured angle":""} — try fewer / other sticks.</td></tr>`;}
+  ZF.res.forEach((r,i)=>{const tr=document.createElement("tr");tr.innerHTML=`<td>${i+1}</td><td><b>[${r.u.join(" ")}]</b></td><td>${r.score.toFixed(0)}</td><td>${r.expl} / ${r.nObs}</td><td title="${r.miss.map(z=>z.hkl+" "+z.d.toFixed(3)+" Å").join(", ")}">${r.miss.length}${r.miss.length?" ("+r.miss.slice(0,3).map(z=>z.hkl).join(", ")+(r.miss.length>3?"…":"")+")":""}</td><td>${r.dA===null?"–":r.dA.toFixed(1)+"°"}</td><td style="text-align:left">${r.eq.slice(0,6).map(u=>"["+u.join(" ")+"]").join(" ")}${r.eq.length>6?" …":""}</td><td><button style="padding:1px 8px" title="Rotate the 3D structure to this zone and show its simulated pattern">▶ show</button></td>`;
+    tr.querySelector("button").addEventListener("click",()=>zfShow(r.u));tb.appendChild(tr);});
+  $("zfStat").textContent=ZF.res.length?`${ZF.res.length} candidate zone${ZF.res.length>1?"s":""} (best first) — ▶ show to compare the simulated pattern with yours`:"";}
+function zfShow(u){const ph=ZF.ph;if(!ph)return;if(S.focus!==ph.id){S.focus=ph.id;try{renderPhases();}catch(e){}}if(!$("v3on").checked){$("v3on").checked=true;$("v3on").dispatchEvent(new Event("change"));}
+  try{v3Sync(true);}catch(e){}v3Zone(u);if($("edOn")&&!$("edOn").checked){$("edOn").checked=true;$("edOn").dispatchEvent(new Event("change"));}try{edDraw();}catch(e){}try{$("v3Panel").scrollIntoView({behavior:"smooth",block:"start"});}catch(e){}}
+
+/* ===== ◎ show d on image: every click adds a d (several tracked at once, each in its own colour); clicking a marked d again removes it; ✕ d clears them ===== */
+{const _s=selectRing;selectRing=function(r,p,add,spot,lab){if(typeof MARK!=="undefined"&&MARK.on&&r!=null&&r>0)add=true;return _s.call(this,r,p,add,spot,lab);};}
+{const addClr=()=>{for(const b of document.querySelectorAll(".markBtn")){if(b.nextElementSibling&&b.nextElementSibling.classList.contains("markClr"))continue;const c=document.createElement("button");c.className="markClr";c.textContent="↺ reset d";c.title="Remove all the marked d (they stay when you switch ◎ off; Esc also removes them)";c.style.padding="2px 7px";
+    c.addEventListener("click",e=>{e.stopPropagation();try{selectRing(null);}catch(err){}try{drawChart();drawCmp();}catch(err){}try{tmDraw();}catch(err){}});b.after(c);}};addClr();setTimeout(addClr,500);
+  const ui=()=>{for(const c of document.querySelectorAll(".markClr")){const n=(S.sels&&S.sels.length)||0;c.disabled=!n;c.textContent=n?`↺ reset d (${n})`:"↺ reset d";}};ui();setInterval(ui,600);}
+{const _m=markUI;markUI=function(){const r=_m.apply(this,arguments);for(const b of document.querySelectorAll(".markBtn"))b.title="On: each click on the image or a plot adds a d (several at once, each in its own colour); click a marked d again to remove it; ✕ d or Esc removes all";return r;};try{markUI();}catch(e){}}
+
+/* CIF rings on / off right below the pattern (same switch as “rings on SAED” in the CIF box) */
+{const lk=$("lock")&&$("lock").closest("label");if(lk&&$("cRings")){const l=document.createElement("label");l.title="Show the CIF rings of the ticked / highlighted phases on the pattern (same as “rings on SAED” in the CIF box)";l.innerHTML='<input id="cRings2" type="checkbox"> CIF rings';lk.before(l);
+  const a=$("cRings"),b=$("cRings2");b.checked=a.checked;b.addEventListener("change",()=>{a.checked=b.checked;a.dispatchEvent(new Event("change",{bubbles:true}));});a.addEventListener("change",()=>{b.checked=a.checked;});setInterval(()=>{if(b.checked!==a.checked)b.checked=a.checked;},800);}}
+
+/* ===== overlay: your FFT / SAED (as shown in the pattern view, same contrast) under the simulated spots, at the same 1/d scale; spot colour, intensity, in-plane rotation ===== */
+{const bar0=$("edBox")&&$("edBox").querySelector(".chartbar");if(bar0){const bar=document.createElement("div");bar.className="chartbar";bar.id="edOvBar";
+  bar.innerHTML=`<label title="Show the pattern you have open (FFT or SAED, calibrated) underneath the simulated spots, at the same 1/d scale and centre"><input id="edOv" type="checkbox"> overlay my pattern</label>
+   <span class="row2" title="Brightness of your pattern under the spots"><label for="edOvA">pattern</label><input id="edOvA" type="range" min="0" max="100" value="80" style="width:6rem"></span>
+   <span class="row2" title="Colour of the simulated spots"><label for="edSpC">spots</label><input id="edSpC" type="color" value="#ffffff" style="width:2.4rem;height:1.7rem;padding:0 2px"><select id="edSpS" style="width:auto" title="Simulated spots drawn as solid dots or as open circles (open circles let you see your own spots inside)"><option value="solid">● solid</option><option value="ring">○ circles</option></select></span>
+   <span class="row2" title="Brightness and size of the simulated spots"><label for="edSpI">intensity</label><input id="edSpI" type="range" min="10" max="300" value="100" style="width:6rem"><span class="keys" id="edSpIv">100 %</span></span>
+   <span class="row2" title="Turn the simulated spots about the beam to line them up with your pattern (does not change the zone axis)"><label for="edRot">in-plane ⟳</label><input id="edRot" type="range" min="-180" max="180" step="0.5" value="0" style="width:8rem"><input id="edRotN" type="number" min="-180" max="180" step="0.5" value="0" style="width:4.2rem"><span class="keys">°</span></span>
+   <span class="keys" id="edOvMsg"></span>`;
+  bar0.after(bar);
+  const keep=["edOvA","edSpC","edSpI","edRot","edSpS"];for(const id of keep){try{const v=localStorage.getItem("ed-"+id);if(v!=null)$(id).value=v;}catch(e){}}
+  try{$("edOv").checked=localStorage.getItem("ed-edOv")==="1";}catch(e){}$("edRotN").value=$("edRot").value;$("edSpIv").textContent=$("edSpI").value+" %";
+  const save=()=>{try{for(const id of keep)localStorage.setItem("ed-"+id,$(id).value);localStorage.setItem("ed-edOv",$("edOv").checked?"1":"0");}catch(e){}};
+  $("edSpS").addEventListener("change",()=>{try{localStorage.setItem("ed-edSpS",$("edSpS").value);}catch(e){}edDraw();});
+  for(const id of ["edOv","edOvA","edSpC","edSpI","edRot"])$(id).addEventListener("input",()=>{if(id==="edRot")$("edRotN").value=$("edRot").value;$("edSpIv").textContent=$("edSpI").value+" %";save();edDraw();});
+  $("edOv").addEventListener("change",()=>{save();edDraw();});
+  $("edRotN").addEventListener("keydown",e=>e.stopPropagation());$("edRotN").addEventListener("input",()=>{$("edRot").value=$("edRotN").value;save();edDraw();});}}
+const ED_PAT={key:null,cv:null};
+function edPatCanvas(){if(typeof S==="undefined"||!S.img||!S.pyr||!S.pyr.length)return null;let L=S.pyr[0];for(const l of S.pyr){L=l;if(l.w<=2048&&l.h<=2048)break;}
+  let h=0;for(let i=0;i<256;i+=7)h=(h*31+LUT[i])|0;const key=[L.w,L.h,L.f,S.name,h,L.d.length].join("|");if(ED_PAT.key===key)return ED_PAT;
+  const c=document.createElement("canvas");c.width=L.w;c.height=L.h;const id=new ImageData(L.w,L.h);for(let i=0;i<L.w*L.h;i++){const v=LUT[L.d[i]];id.data[4*i]=id.data[4*i+1]=id.data[4*i+2]=v;id.data[4*i+3]=255;}
+  c.getContext("2d").putImageData(id,0,0);ED_PAT.key=key;ED_PAT.cv=c;ED_PAT.f=L.f;return ED_PAT;}
+
+/* ===== text on the simulated / overlaid pattern: phase + ICSD code and the zone axis (top left, in the spot colour; also in 📋 Copy) ===== */
+{const bar=$("edOvBar");if(bar){const s=document.createElement("span");s.className="row2";s.style.cssText="gap:6px;border-left:2px solid var(--line);padding-left:8px";s.title="Write these on the pattern (top left)";
+  s.innerHTML='<span class="keys">on pattern:</span><label><input id="edTxCode" type="checkbox"> phase + ICSD</label><label><input id="edTxZone" type="checkbox"> zone axis</label>';bar.insertBefore(s,$("edOvMsg"));
+  for(const id of ["edTxCode","edTxZone"]){try{$(id).checked=localStorage.getItem("ed-"+id)==="1";}catch(e){}$(id).addEventListener("change",()=>{try{localStorage.setItem("ed-"+id,$(id).checked?"1":"0");}catch(e){}edDraw();});}}}
+{const _p=edPaint;edPaint=function(){const r=_p.apply(this,arguments);try{if(!$("edOn").checked||!V3.ph)return r;const ph=V3.ph,L=[];
+    if($("edTxCode")&&$("edTxCode").checked)L.push((ph.legend||ph.formula||"").trim());
+    if($("edTxZone")&&$("edTxZone").checked){const z=edZone(ph,V3.R[2].map(v=>-v));L.push(`zone [${z.w.join(" ")}]`+(z.ang>0.5?`  (${z.ang.toFixed(1)}° off)`:""));}
+    if(!L.length)return r;const cv=$("edCv"),g=cv.getContext("2d"),dpr=cv.width/Math.max(1,cv.getBoundingClientRect().width),fs=13*dpr,lh=fs*1.35,pad=6*dpr;
+    g.save();g.font=`600 ${fs}px "IBM Plex Sans",sans-serif`;g.textBaseline="top";g.textAlign="left";const w=Math.max(...L.map(t=>g.measureText(t).width))+2*pad;
+    g.fillStyle="rgba(0,0,0,.6)";g.fillRect(8*dpr,8*dpr,w,lh*L.length+pad);g.fillStyle=($("edSpC")&&$("edSpC").value)||"#ffffff";L.forEach((t,i)=>g.fillText(t,8*dpr+pad,8*dpr+pad*0.7+i*lh));g.restore();}catch(e){}return r;};}
+
+/* ===================== review fixes ===================== */
+/* (1) IS: no FFT / SAED image here — hide the overlay and the 2-spot angle measurement */
+if(typeof TM!=="undefined"){if($("edOv"))$("edOv").checked=false;for(const id of ["edAuto"]){const el=$(id);if(el){el.style.display="none";el.dataset.isHide="1";}}for(const id of ["edOv","edOvA"]){const el=$(id);if(el){const w=el.closest("label,span.row2");if(w)w.style.display="none",w.dataset.isHide="1";}}const za=$("zfAng");if(za){za.style.display="none";za.dataset.isHide="1";}}
+{const _p=edPaint;edPaint=function(){const r=_p.apply(this,arguments);for(const el of document.querySelectorAll('[data-is-hide="1"]'))el.style.display="none";return r;};}
+/* (2) one style for the clearing buttons: ↺ reset … */
+{const ren=()=>{for(const b of document.querySelectorAll(".awClrAll"))b.textContent="↺ reset shapes";if($("zfClr"))$("zfClr").textContent="↺ reset";if($("tmClear"))$("tmClear").textContent="↺ reset lines";if($("gifLabClr"))$("gifLabClr").textContent="↺ reset my labels";};ren();setTimeout(ren,600);}
+/* (3) 📋 Copy of the simulated pattern at the end of its row */
+{const c=$("edCopy"),bar=c&&c.parentElement;if(bar){bar.appendChild(c);}}
+/* (4) settings of the simulation boxes travel with the notes file (plot layout) */
+const SIM_IDS=["edOn","edLab","edRing","edRingM","edT","edG","edOv","edOvA","edSpC","edSpI","edRot","edSpS","edTxCode","edTxZone","rpOn","rpLab","rpW","rpAuto","pxOn","pxRad","pxL","pxT0","pxT1","pxW","pxLab","edDD"];
+{const _g=layoutGet;layoutGet=function(){const o=_g.apply(this,arguments)||{};const v={};for(const id of SIM_IDS){const e=$(id);if(!e)continue;v[id]=e.type==="checkbox"?e.checked:e.value;}o.sim=v;return o;};
+ const _s=layoutSet;layoutSet=function(o){const r=_s.apply(this,arguments);try{if(o&&o.sim)for(const id in o.sim){const e=$(id);if(!e)continue;if(e.type==="checkbox")e.checked=!!o.sim[id];else e.value=o.sim[id];e.dispatchEvent(new Event(e.type==="checkbox"||e.tagName==="SELECT"?"change":"input"));}}catch(e){}return r;};}
+/* (5) picking CIF sticks: when several sticks are under the click, a small menu lets you choose */
+{const cv=typeof cvC!=="undefined"?cvC:null;if(cv)window.addEventListener("pointerdown",ev=>{if(ev.target!==cv||!ZF.pick||ev.button!==0||!chartGeom||!S.profile)return;const G=chartGeom,s=cv.width/cv.getBoundingClientRect().width,x=ev.offsetX*s,sV=phaseScale(),cmn=+$("cmin").value||0,C=[];
+  for(const ph of S.phases.filter(phVisible))for(const ln of ph.lines){if(ln.I<cmn)continue;const xv=vlX("pk",ln.d*sV);if(!isFinite(xv))continue;const X=G.L+(xv-G.lo)/(G.hi-G.lo)*G.pw;if(Math.abs(X-x)<8*s)C.push({ph,ln,dd:Math.abs(X-x)});}
+  if(C.length<2)return;ev.stopImmediatePropagation();ev.preventDefault();C.sort((a,b)=>a.dd-b.dd);
+  let m=$("zfMenu");if(m)m.remove();m=document.createElement("div");m.id="zfMenu";m.style.cssText=`position:fixed;left:${ev.clientX+8}px;top:${ev.clientY+8}px;z-index:9999;background:var(--panel);color:var(--ink);border:1px solid var(--accent);border-radius:8px;padding:4px;box-shadow:0 4px 14px rgba(0,0,0,.25);font:12px var(--f-data)`;
+  m.innerHTML='<div class="keys" style="padding:2px 6px">several sticks here — pick one:</div>';
+  for(const c of C){const b=document.createElement("button");b.style.cssText="display:block;width:100%;text-align:left;margin:2px 0;padding:3px 8px";const on=ZF.picks.some(p=>p.ln===c.ln);b.innerHTML=`<span style="color:${c.ph.color}">▍</span> {${c.ln.hkl}} d ${(c.ln.d*sV).toFixed(4)} Å · ${c.ph.legend.trim()}${on?" ✓":""}`;
+    b.addEventListener("click",()=>{if(!ZF.poly&&ZF.picks.length&&ZF.picks[0].ph!==c.ph)ZF.picks=[];const i=ZF.picks.findIndex(p=>p.ln===c.ln);if(i>=0)ZF.picks.splice(i,1);else ZF.picks.push({ph:c.ph,ln:c.ln});m.remove();zfUI();drawChart();});m.appendChild(b);}
+  document.body.appendChild(m);setTimeout(()=>{const off=e=>{if(!m.contains(e.target)){m.remove();window.removeEventListener("pointerdown",off,true);}};window.addEventListener("pointerdown",off,true);},0);},true);}
+
+/* ===================== new: automatic in-plane alignment with your pattern ===================== */
+/* every angle 0…360° (0.5° steps, then refined to 0.05°) is tried; score = Σ √I_sim · (your intensity at the spot − mean of your intensity on the same ring) / σ(ring) */
+{const bar=$("edOvBar");if(bar){const b=document.createElement("button");b.id="edAuto";b.textContent="⟳ auto-align";b.title="Turn the simulated spots about the beam to the angle that best matches your pattern (overlay must be on); shows how strong the match is";bar.insertBefore(b,$("edOvMsg"));
+  b.addEventListener("click",edAutoAlign);}}
+function edSimSpots(){const ph=V3.ph;if(!ph)return null;const gmax=Math.max(0.1,(+$("edG").value||10)/10),R=V3.R,ux=R[0],uy=R[1],beam=R[2].map(v=>-v),lam=lambdaA(+(($("kv")&&$("kv").value)||300))||0.0197,K=1/lam,t=Math.max(1,(+$("edT").value||10))*10,Rf=edRefl(ph,gmax),out=[];
+  for(const r of Rf){const gb=r.g[0]*beam[0]+r.g[1]*beam[1]+r.g[2]*beam[2],s=-gb-r.gl*r.gl/(2*K),x=t*s,I=r.F2*Math.exp(-x*x);if(I<1e-3*Rf.Fmax)continue;out.push({gx:r.g[0]*ux[0]+r.g[1]*ux[1]+r.g[2]*ux[2],gy:r.g[0]*uy[0]+r.g[1]*uy[1]+r.g[2]*uy[2],I,r});}return out;}
+function edAutoAlign(){const P=edPatCanvas(),scp=+(($("scale")&&$("scale").value)||0),msg=$("edOvMsg");if(!P||!(scp>0)){msg.textContent="open a calibrated FFT / SAED first";return;}const sp=edSimSpots();if(!sp||sp.length<2){msg.textContent="not enough simulated spots (check the zone / thickness)";return;}
+  const c=P.cv,w=c.width,h=c.height,D=c.getContext("2d").getImageData(0,0,w,h).data,val=(x,y)=>{x=Math.round(x);y=Math.round(y);return x<0||y<0||x>=w||y>=h?NaN:D[4*(y*w+x)];},f=P.f,px=g=>g*10/scp/f,cx=S.cx/f,cy=S.cy/f;
+  /* per spot: ring mean / σ of your pattern at its |g| (angle-independent) */const rings=sp.map(p=>{const r=px(Math.hypot(p.gx,p.gy)),n=Math.max(36,Math.round(2*Math.PI*r/2));let s=0,s2=0,m=0;for(let i=0;i<n;i++){const a=2*Math.PI*i/n,v=val(cx+r*Math.cos(a),cy+r*Math.sin(a));if(isFinite(v)){s+=v;s2+=v*v;m++;}}const mu=m?s/m:0;return {mu,sd:Math.sqrt(Math.max(1,(m?s2/m:0)-mu*mu))};});
+  const W8=sp.map(p=>Math.sqrt(p.I));const score=a=>{const ca=Math.cos(a),sa=Math.sin(a);let S2=0,Wt=0;sp.forEach((p,i)=>{const X=p.gx*ca-p.gy*sa,Y=p.gx*sa+p.gy*ca;let best=-Infinity;const x0=cx+px(X),y0=cy+px(Y);for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const v=val(x0+dx,y0+dy);if(v>best)best=v;}if(isFinite(best)){S2+=W8[i]*(best-rings[i].mu)/rings[i].sd;Wt+=W8[i];}});return Wt?S2/Wt:-Infinity;};
+  const A=[];let bi=0;for(let k=0;k<720;k++){const v=score(k*Math.PI/360);A.push(v);if(v>A[bi])bi=k;}let ba=bi*0.5,bv=A[bi];for(let d=-0.5;d<=0.5;d+=0.05){const v=score((bi*0.5+d)*Math.PI/180);if(v>bv){bv=v;ba=bi*0.5+d;}}
+  const mu=A.reduce((s,v)=>s+v,0)/A.length,sd=Math.sqrt(A.reduce((s,v)=>s+(v-mu)**2,0)/A.length)||1,z=(bv-mu)/sd;let deg=((ba+180)%360+360)%360-180;
+  $("edRot").value=deg.toFixed(2);$("edRotN").value=deg.toFixed(2);try{localStorage.setItem("ed-edRot",$("edRot").value);}catch(e){}edDraw();
+  setTimeout(()=>{msg.textContent=`auto-align: ⟳ ${deg.toFixed(1)}° · match ${z.toFixed(1)} σ above a random angle ${z>=4?"(strong)":z>=2.5?"(fair)":"(weak — check zone / phase)"}${sp.length>2?"":""}`;},30);}
+
+/* ===================== new: double diffraction ===================== */
+/* g₁ + g₂ of pairs of excited (zero-order) spots: where it lands on a position with no kinematic spot (e.g. a forbidden reflection), it is marked × */
+{const bar=$("edBox")&&$("edBox").querySelector(".chartbar");if(bar){const l=document.createElement("label");l.title="Mark positions g₁ + g₂ reachable by double diffraction from two excited spots, where the kinematic pattern has no spot (e.g. forbidden reflections such as Cr₂O₃ 003)";l.innerHTML='<input id="edDD" type="checkbox"> double diffraction';
+  const ring=$("edRing").closest("label");ring.before(l);try{$("edDD").checked=localStorage.getItem("ed-edDD")==="1";}catch(e){}$("edDD").addEventListener("change",()=>{try{localStorage.setItem("ed-edDD",$("edDD").checked?"1":"0");}catch(e){}edDraw();});}}
+{const _p=edPaint;edPaint=function(){const r=_p.apply(this,arguments);try{if(!$("edDD")||!$("edDD").checked||!$("edOn").checked||$("edRing").checked||!ED.geo||ED.geo.mode!=="spots")return r;
+    const G=ED.geo,cv=$("edCv"),g=cv.getContext("2d"),sp=G.spots,gmax=Math.max(0.1,(+$("edG").value||10)/10);if(!sp.length)return r;
+    /* zero-order spots (in the zone: h·u + k·v + l·w = 0) are the ones that can couple */const z=edZone(V3.ph,V3.R[2].map(v=>-v)).w,zo=sp.filter(p=>p.r.h*z[0]+p.r.k*z[1]+p.r.l*z[2]===0).sort((a,b)=>b.I-a.I).slice(0,24);
+    const have=new Set(sp.map(p=>`${p.r.h},${p.r.k},${p.r.l}`)),dd=new Map(),Im=Math.max(...zo.map(p=>p.I));
+    for(let i=0;i<zo.length;i++)for(let j=0;j<zo.length;j++){if(i===j)continue;const a=zo[i].r,b=zo[j].r,h=[a.h+b.h,a.k+b.k,a.l+b.l];if(!h[0]&&!h[1]&&!h[2])continue;const k=h.join(",");if(have.has(k))continue;
+      const X=(zo[i].x-G.cx)+(zo[j].x-G.cx),Y=(zo[i].y-G.cy)+(zo[j].y-G.cy);if(Math.hypot(X,Y)/G.sc>gmax)continue;const w=Math.sqrt(zo[i].I*zo[j].I)/Im;const o=dd.get(k);if(!o||w>o.w)dd.set(k,{x:G.cx+X,y:G.cy+Y,w,h});}
+    g.save();g.strokeStyle="#4ad8ff";g.fillStyle="#4ad8ff";g.font=`600 ${9*G.dpr}px "IBM Plex Mono",monospace`;g.textAlign="left";g.textBaseline="middle";let n=0;
+    for(const o of dd.values()){if(o.w<0.05)continue;const s=(3+3*Math.sqrt(o.w))*G.dpr;g.globalAlpha=Math.min(1,0.4+0.6*Math.sqrt(o.w));g.lineWidth=1.6*G.dpr;g.beginPath();g.moveTo(o.x-s,o.y-s);g.lineTo(o.x+s,o.y+s);g.moveTo(o.x+s,o.y-s);g.lineTo(o.x-s,o.y+s);g.stroke();
+      if($("edLab").checked)g.fillText(`${o.h.join(" ")} DD`,o.x+s+2*G.dpr,o.y);n++;}g.restore();
+    const inf=$("edInfo");if(inf&&!/double diffraction/.test(inf.textContent))inf.textContent+=` · ${n} double-diffraction positions (×)`;}catch(e){}return r;};}
+
+/* ===================== new: interplanar-angle table ===================== */
+{const zb=$("zfBox");if(zb){const b=document.createElement("button");b.id="zfAngTbl";b.textContent="∠ angle table";b.title="Angles between the strongest low-index plane families of the phase (all members), to index two measured spots by hand";$("zfClr").before(b);
+  const d=document.createElement("div");d.id="zfAngBox";d.hidden=true;d.className="tablebox";d.style.maxHeight="320px";zb.appendChild(d);
+  b.addEventListener("click",()=>{if(!d.hidden){d.hidden=true;return;}zfAngTable();d.hidden=false;});}}
+function zfAngTable(){const box=$("zfAngBox"),ph=(ZF.picks[0]&&ZF.picks[0].ph)||(typeof v3Phase==="function"?v3Phase():null)||S.phases.find(phVisible);if(!ph){box.innerHTML='<div class="keys" style="padding:6px">Highlight a phase first.</div>';return;}
+  const sV=phaseScale(),{Inv}=edMat(ph),gc=h=>[0,1,2].map(i=>h[0]*Inv[0][i]+h[1]*Inv[1][i]+h[2]*Inv[2][i]);
+  const F=ph.lines.filter(l=>l.I>=3).sort((a,b)=>b.d-a.d).slice(0,12);
+  const ang=(A,B)=>{const out=new Set(),ga=gc(A.rep||(A.mem&&A.mem[0]));for(const m of (B.mem&&B.mem.length?B.mem:[B.rep])){const gb=gc(m),c=(ga[0]*gb[0]+ga[1]*gb[1]+ga[2]*gb[2])/(Math.hypot(...ga)*Math.hypot(...gb));let a=Math.acos(Math.max(-1,Math.min(1,c)))*180/Math.PI;if(a<0.05||a>179.95)continue;a=Math.min(a,180-a);out.add(a.toFixed(1));}return [...out].map(Number).sort((x,y)=>x-y);};
+  let h=`<table class="zfTbl"><thead><tr><th style="text-align:left">${ph.legend.trim()} · angles between plane normals (°)</th>${F.map(l=>`<th title="d ${(l.d*sV).toFixed(4)} Å">{${l.hkl}}<br><span class="keys">${(l.d*sV).toFixed(3)} Å</span></th>`).join("")}</tr></thead><tbody>`;
+  for(const A of F){h+=`<tr><th style="text-align:left">{${A.hkl}} <span class="keys">${(A.d*sV).toFixed(3)} Å</span></th>`;for(const B of F){const L=ang(A,B);h+=`<td style="font-size:11px">${L.slice(0,5).join(", ")}${L.length>5?" …":""}</td>`;}h+="</tr>";}
+  box.innerHTML=h+`</tbody></table><div class="keys" style="padding:4px 6px">Measure two spots (② on the pattern): their d's give the row and column, the measured angle should be one of the values in that cell. Angles 0–90° (a plane normal and its opposite are the same plane).</div>`;}
+
+/* ===================== new: save the indexed pattern as a figure ===================== */
+{const c=$("edCopy");if(c){const b=document.createElement("button");b.id="edSave";b.textContent="💾 save figure";b.title="Save the pattern as shown (your FFT / SAED overlay, simulated spots, hkl labels, zone axis, ICSD code, scale bar) as a high-resolution PNG";c.before(b);
+  b.addEventListener("click",async()=>{const cv=$("edCv");if(!cv)return;ED.exp=2000;try{edPaint();const blob=await new Promise(r=>cv.toBlob(r,"image/png"));const ph=V3.ph,z=ph?edZone(ph,V3.R[2].map(v=>-v)).w.join(""):"";
+      await saveFile(`${ph?(ph.legend||"phase").trim().replace(/[^\w.-]+/g,"_"):"pattern"}_zone[${z}]${$("edOv")&&$("edOv").checked&&S.name?"_on_"+S.name.replace(/\.[^.]+$/,""):""}.png`,blob);}finally{ED.exp=0;edDraw();}});}}
+{const _s=sizeCanvas;sizeCanvas=function(cv){if(ED.exp&&cv&&cv.id==="edCv"){cv.width=ED.exp;cv.height=ED.exp;return;}return _s.apply(this,arguments);};}
+
+if(typeof TM!=="undefined"){const el=$("edAuto");if(el){el.style.display="none";el.dataset.isHide="1";}const m=$("edOvMsg");if(m){m.style.display="none";m.dataset.isHide="1";}}
+
+/* ===== no CIF is highlighted on loading images / CIFs; Esc (not typing) removes the highlight ===== */
+function cifUnhl(){if(S.focus==null)return false;S.focus=null;try{renderPhases();}catch(e){}try{redrawAll();}catch(e){}try{drawChart();}catch(e){}return true;}
+{const _t=typedLabelsClear;typedLabelsClear=function(){cifUnhl();return _t.apply(this,arguments);};}
+
+{const f=$("file");if(f)f.addEventListener("change",()=>{if(f.files&&f.files.length)cifUnhl();});
+ const _b=brLoad;brLoad=async function(){cifUnhl();return _b.apply(this,arguments);};
+ if(typeof cmpSet==="function"){const _c=cmpSet;cmpSet=function(){cifUnhl();return _c.apply(this,arguments);};}}
+
+/* ===================== polycrystal: many zone axes — pick many CIF sticks, get all the zones that explain them, lock zones one by one ===================== */
+const LZ=[];let lzSeq=0;const LZC=["#ff4fd8","#4ad8ff","#7cff4f","#ffb000","#b18cff","#ff6b6b","#00e0b0","#ffe14f","#ff8c42","#8fb3ff"];
+const lzMem=l=>(l.mem&&l.mem.length?l.mem:[l.rep]);
+function lzOf(p){if(!p||!p.ln)return null;for(const z of LZ){if(!z.ph||z.ph!==p.ph)continue;const u=z.u;if(lzMem(p.ln).some(h=>h[0]*u[0]+h[1]*u[1]+h[2]*u[2]===0))return z;}return null;}
+/* zone-finder bar: polycrystal switch + its own result table */
+{const go=$("zfGo");if(go){const l=document.createElement("label");l.title="Polycrystal: the picked sticks may come from many grains (and several phases). Find lists every zone axis that contains two or more of them, with a suggested set (★ 1, 2, 3 …) that explains them all; lock zones one by one until every pick is found";
+  l.innerHTML='<input id="zfPoly" type="checkbox"> polycrystal: many zones';go.after(l);try{$("zfPoly").checked=localStorage.getItem("zf-poly")==="1";}catch(e){}ZF.poly=$("zfPoly").checked;
+  const box=document.createElement("div");box.className="tablebox";box.id="zfMRes";box.hidden=true;box.style.maxHeight="320px";
+  box.innerHTML='<table class="zfTbl"><thead><tr><th title="suggested set: lock these in order to explain all the picked peaks">★</th><th>phase</th><th>zone axis</th><th style="text-align:left" title="picked sticks (numbers) that lie in this zone; ✓ = already found by a locked zone">picks in this zone</th><th title="picks not yet found that this zone would add">new</th><th title="detected peaks explained by this zone">peaks expl.</th><th title="strong reflections of this zone not among the detected peaks">strong missing</th><th style="text-align:left">equivalent</th><th></th></tr></thead><tbody id="zfMRows"></tbody></table>';
+  $("zfRes").after(box);
+  $("zfPoly").addEventListener("change",()=>{ZF.poly=$("zfPoly").checked;try{localStorage.setItem("zf-poly",ZF.poly?"1":"0");}catch(e){}$("zfRes").hidden=true;$("zfMRes").hidden=true;zfUI();});
+  $("zfClr").addEventListener("click",()=>{$("zfMRes").hidden=true;});}}
+{const _u=zfUI;zfUI=function(){const r=_u.apply(this,arguments);try{if(ZF.poly){const P=ZF.picks,sV=phaseScale();if(!P.length){$("zfPicks").textContent="Polycrystal: pick the CIF sticks of all the peaks you want explained (any phases).";}
+    else{const f=P.filter(p=>lzOf(p)).length;$("zfPicks").innerHTML=`picked ${P.length} · <b style="color:${f===P.length?"#3ddc84":"inherit"}">found ${f} / ${P.length}</b>: `+P.map((p,i)=>{const z=lzOf(p);return `<span style="white-space:nowrap"><span style="color:${z?z.color:"#ff9f1c"};font-weight:700">${i+1}${z?"✓":""}</span> <span style="color:${p.ph.color}">▍</span>{${p.ln.hkl}} ${(p.ln.d*sV).toFixed(3)} Å${z?` <span class="keys">[${z.u.join(" ")}]</span>`:""}</span>`;}).join(" · ");}}}catch(e){}return r;};}
+function zfShowPh(ph,u){ZF.ph=ph;zfShow(u);}
+function zfMulti(){const st=$("zfStat"),P=ZF.picks;P.forEach((p,i)=>p.n=i+1);$("zfRes").hidden=true;
+  if(P.length<2){st.textContent="Pick at least two CIF sticks.";return;}
+  const left=P.filter(p=>!lzOf(p));
+  const sV=phaseScale(),obs=(S.peaks||[]).map(p=>p.d).filter(d=>d>0),dlo=obs.length?Math.min(...obs)*0.97:0,dhi=obs.length?Math.max(...obs)*1.03:1e9,gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a),idx=u=>Math.abs(u[0])+Math.abs(u[1])+Math.abs(u[2]),rows=[];
+  for(const ph of [...new Set(P.map(p=>p.ph))]){const Q=P.filter(p=>p.ph===ph);if(Q.length<2)continue;const cand=new Map();
+    for(let i=0;i<Q.length;i++)for(let j=i+1;j<Q.length;j++)for(const a of lzMem(Q[i].ln))for(const b of lzMem(Q[j].ln)){let u=[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];if(!u[0]&&!u[1]&&!u[2])continue;
+      const q=gcd(gcd(u[0],u[1]),u[2])||1;u=u.map(v=>v/q);if(Math.max(...u.map(Math.abs))>10)continue;const f=u.find(v=>v!==0);if(f<0)u=u.map(v=>-v);cand.set(u.join(","),u);}
+    const groups=new Map();
+    for(const u of cand.values()){const inZ=h=>h[0]*u[0]+h[1]*u[1]+h[2]*u[2]===0,cov=Q.filter(p=>lzMem(p.ln).some(inZ));if(cov.length<2)continue;
+      const Z=[];for(const l of ph.lines){const n=lzMem(l).filter(inZ).length;if(n)Z.push({d:l.d*sV,I:l.I/(l.m||1)*n,hkl:l.hkl});}
+      const key=cov.map(p=>p.n).join(",")+"#"+Z.map(z=>z.d.toFixed(3)+":"+Math.round(z.I)).sort().join("|"),g=groups.get(key);
+      if(g){if(idx(u)<idx(g.u)){g.eq.push(g.u);g.u=u;}else g.eq.push(u);continue;}
+      const Zr=Z.filter(z=>z.d>=dlo&&z.d<=dhi),Im=Math.max(1e-9,...Zr.map(z=>z.I)),strong=Zr.filter(z=>z.I>=0.15*Im),near=(a,b)=>Math.abs(a-b)/b<0.015;
+      const expl=obs.filter(d=>Z.some(z=>z.I>=0.02*Im&&near(z.d,d))).length,miss=strong.filter(z=>!obs.some(d=>near(z.d,d)));
+      groups.set(key,{ph,u,eq:[],cov,expl,miss,nObs:obs.length,score:100*(obs.length?0.6*expl/obs.length:0.3)+40*(strong.length?(strong.length-miss.length)/strong.length:0.5)});}
+    for(const g of groups.values()){g.score-=0.3*idx(g.u);rows.push(g);}}
+  /* suggested set: greedy — each step the zone that finds the most picks still missing */
+  const got=new Set();let k=1;for(;;){let best=null,bn=0;for(const r of rows){if(r.star)continue;const n=r.cov.filter(p=>!lzOf(p)&&!got.has(p)).length;if(n>bn||n===bn&&n&&best&&r.score>best.score){best=r;bn=n;}}if(!best||!bn)break;best.star=k++;best.cov.forEach(p=>got.add(p));}
+  const lone=left.filter(p=>!got.has(p));rows.forEach(r=>r.nNew=r.cov.filter(p=>!lzOf(p)).length);
+  rows.sort((a,b)=>(a.star||999)-(b.star||999)||b.nNew-a.nNew||b.cov.length-a.cov.length||b.score-a.score);ZF.mres=rows.slice(0,40);
+  const tb=$("zfMRows");tb.textContent="";$("zfMRes").hidden=false;
+  if(!rows.length)tb.innerHTML='<tr><td colspan="9">No zone axis contains two of the picks not yet found — pick more sticks (each zone needs at least two reflections).</td></tr>';
+  for(const r of ZF.mres){const tr=document.createElement("tr");
+    const lk=LZ.find(z=>z.ph===r.ph&&[r.u,...r.eq].some(u=>u.join()===z.u.join()||u.join()===z.u.map(v=>-v).join()));if(lk)tr.style.background=`color-mix(in srgb,${lk.color} 14%,transparent)`;
+    tr.innerHTML=`<td>${lk?`<b style="color:${lk.color}">🔒</b>`:r.star?"★ "+r.star:""}</td><td style="color:${r.ph.color};white-space:nowrap">${r.ph.legend.trim()}</td><td><b>[${r.u.join(" ")}]</b></td><td style="text-align:left">${r.cov.map(p=>{const z=lzOf(p);return `<span title="{${p.ln.hkl}}" style="display:inline-block;min-width:1.4em;padding:0 3px;margin:1px;border-radius:4px;font-weight:700;color:#0b0f14;background:${z?z.color:"#ff9f1c"}">${p.n}${z?"✓":""}</span>`;}).join("")}</td><td>${r.nNew}</td><td>${r.expl} / ${r.nObs}</td><td title="${r.miss.map(z=>z.hkl+" "+z.d.toFixed(3)+" Å").join(", ")}">${r.miss.length}</td><td style="text-align:left">${r.eq.slice(0,4).map(u=>"["+u.join(" ")+"]").join(" ")}${r.eq.length>4?" …":""}</td><td style="white-space:nowrap"><button class="zfMs" style="padding:1px 8px" title="Rotate the 3D structure to this zone and show its simulated pattern">▶ show</button> <button class="zfMl" style="padding:1px 8px" title="Show it, auto-align the in-plane rotation to your pattern (when the overlay is on) and lock it">🔒 lock</button></td>`;
+    tr.querySelector(".zfMs").addEventListener("click",()=>zfShowPh(r.ph,r.u));
+    tr.querySelector(".zfMl").addEventListener("click",()=>{zfShowPh(r.ph,r.u);setTimeout(()=>{try{if($("edOv")&&$("edOv").checked&&typeof edAutoAlign==="function"&&typeof TM==="undefined")edAutoAlign();}catch(e){}lzLock();},60);});tb.appendChild(tr);}
+  const nS=rows.filter(r=>r.star).length;
+  if(!left.length){st.textContent=`✓ All ${P.length} picked peaks are explained by the ${LZ.length} locked zone${LZ.length!==1?"s":""} · the list stays for checking alternatives`;return;}
+  st.textContent=`${left.length} of ${P.length} picks still to find · ${rows.length} zone${rows.length!==1?"s":""} contain two or more of them`+(nS?` · ★ ${nS} zone${nS>1?"s":""} would explain ${got.size}`:"")+(lone.length?` · not pairable: ${lone.map(p=>p.n).join(", ")} (a single reflection fits any zone that contains it — lock a zone by hand or pick more sticks)`:"");}
+/* lock the zone shown in the simulated pattern (with its in-plane rotation) */
+function lzLock(){const ph=V3.ph,msg=$("lzStat");if(!ph||!$("edOn").checked){if(msg)msg.textContent="show a zone in the simulated pattern first";return;}const sp=edSimSpots();if(!sp||!sp.length){if(msg)msg.textContent="no spots to lock";return;}
+  const z=edZone(ph,V3.R[2].map(v=>-v)),rot=+(($("edRot")&&$("edRot").value)||0),a=rot*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
+  const spots=sp.map(p=>({gx:p.gx*c-p.gy*s,gy:p.gx*s+p.gy*c,I:p.I,h:p.r.h,k:p.r.k,l:p.r.l})),Im=Math.max(1e-30,...spots.map(p=>p.I));
+  const dup=LZ.find(q=>q.ph===ph&&q.u.join()===z.w.join()&&Math.abs(q.rot-rot)<0.5);if(dup){if(msg)msg.textContent=`[${z.w.join(" ")}] at ⟳ ${rot}° is already locked`;return;}
+  const used=new Set(LZ.map(q=>q.color)),color=LZC.find(q=>!used.has(q))||LZC[lzSeq%LZC.length];
+  LZ.push({id:++lzSeq,ph,leg:(ph.legend||"").trim(),u:z.w.slice(),off:z.ang,rot,R:V3.R.map(r=>r.slice()),color,on:true,spots,Im});lzAfter();}
+function lzAfter(){lzUI();try{edDraw();}catch(e){}try{drawMain();}catch(e){}try{zfUI();drawChart();}catch(e){}try{if(ZF.poly&&ZF.picks.length>1&&!$("zfMRes").hidden)zfMulti();}catch(e){}}
+{const ob=$("edOvBar");if(ob){const b=document.createElement("button");b.id="edLock";b.textContent="🔒 lock zone";b.title="Keep this zone (orientation + in-plane rotation) drawn in its own colour, then find the next one; repeat until every spot is explained";
+  const m=$("edOvMsg");if(m)ob.insertBefore(b,m);else ob.appendChild(b);b.addEventListener("click",lzLock);
+  const box=document.createElement("div");box.id="lzBox";box.style.cssText="display:grid;gap:4px";
+  box.innerHTML=`<div class="chartbar"><b style="font:600 .72rem var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--accent)">🔒 Locked zones</b>
+    <label title="Draw the locked zones on your FFT / SAED as well (calibrated pattern)"><input id="lzMain" type="checkbox" checked> on my pattern</label>
+    <label title="hkl labels of the locked spots on your pattern"><input id="lzHkl" type="checkbox"> hkl</label>
+    <button id="lzClr" title="Remove all locked zones">↺ reset locked</button><span class="keys" id="lzStat"></span></div><div id="lzRows" style="display:grid;gap:3px"></div>`;
+  ob.after(box);try{const v=localStorage.getItem("lz-main");if(v!=null)$("lzMain").checked=v==="1";$("lzHkl").checked=localStorage.getItem("lz-hkl")==="1";}catch(e){}
+  for(const id of ["lzMain","lzHkl"])$(id).addEventListener("change",()=>{try{localStorage.setItem("lz-main",$("lzMain").checked?"1":"0");localStorage.setItem("lz-hkl",$("lzHkl").checked?"1":"0");}catch(e){}try{drawMain();}catch(e){}});
+  $("lzClr").addEventListener("click",()=>{LZ.length=0;lzAfter();});
+  if(typeof TM!=="undefined"){for(const id of ["lzMain","lzHkl"]){const w=$(id).closest("label");w.style.display="none";w.dataset.isHide="1";}}}}
+function lzUI(){const rw=$("lzRows");if(!rw)return;rw.textContent="";$("lzClr").disabled=!LZ.length;
+  for(const z of LZ){const d=document.createElement("div");d.className="row2";d.style.cssText="gap:6px;font:12px var(--f-data)";
+    d.innerHTML=`<input type="color" value="${z.color}" style="width:2rem;height:1.4rem;padding:0 2px" title="colour of this zone"><label title="show / hide"><input type="checkbox" ${z.on?"checked":""}> <b style="color:${z.color}">[${z.u.join(" ")}]</b></label><span style="color:${z.ph?z.ph.color:"inherit"}">${z.leg}</span><span class="keys">⟳ ${z.rot.toFixed(1)}°${z.off>0.5?` · ${z.off.toFixed(1)}° off zone`:""} · ${z.spots.length} spots${ZF.picks.length?` · finds picks ${ZF.picks.map((p,i)=>lzOf(p)===z?i+1:0).filter(Boolean).join(", ")||"–"}`:""}</span><button class="lzGo" style="padding:1px 7px" title="Back to this orientation in the 3D view and the simulated pattern">▶</button><button class="lzX" style="padding:1px 7px" title="Unlock (remove) this zone">✕</button>`;
+    const [ci,cb]=d.querySelectorAll("input");ci.addEventListener("input",()=>{z.color=ci.value;lzAfter();});cb.addEventListener("change",()=>{z.on=cb.checked;try{edDraw();}catch(e){}try{drawMain();}catch(e){}});
+    d.querySelector(".lzX").addEventListener("click",()=>{LZ.splice(LZ.indexOf(z),1);lzAfter();});
+    d.querySelector(".lzGo").addEventListener("click",()=>{if(!z.ph)return;if(S.focus!==z.ph.id){S.focus=z.ph.id;try{renderPhases();}catch(e){}}if(!$("v3on").checked){$("v3on").checked=true;$("v3on").dispatchEvent(new Event("change"));}try{v3Sync(true);}catch(e){}
+      V3.R=z.R.map(r=>r.slice());if($("edRot")){$("edRot").value=z.rot;if($("edRotN"))$("edRotN").value=z.rot;}if($("edOn")&&!$("edOn").checked){$("edOn").checked=true;$("edOn").dispatchEvent(new Event("change"));}try{v3Draw();}catch(e){}edDraw();});
+    rw.appendChild(d);}
+  const P=ZF.picks,f=P.filter(p=>lzOf(p)).length;$("lzStat").textContent=LZ.length?`${LZ.length} locked`+(P.length?` · picked peaks found ${f} / ${P.length}${f===P.length?" ✓ all":""}`:""):"none yet — show a zone, align it (⟳ auto-align), then 🔒 lock zone";}
+lzUI();
+/* drawing: squares in the zone colour, on the simulated pattern and on your pattern */
+function lzLegend(g,W,dpr,top){const L=LZ.filter(z=>z.on);if(!L.length)return;g.save();g.font=`600 ${10*dpr}px "IBM Plex Mono",monospace`;g.textAlign="right";g.textBaseline="top";let y=top;
+  for(const z of L){const t=`[${z.u.join(" ")}] ${z.leg}`,w=g.measureText(t).width;g.fillStyle="rgba(0,0,0,.55)";g.fillRect(W-w-28*dpr,y-2*dpr,w+22*dpr,14*dpr);g.strokeStyle=z.color;g.lineWidth=1.6*dpr;g.strokeRect(W-w-24*dpr,y+2*dpr,7*dpr,7*dpr);g.fillStyle=z.color;g.fillText(t,W-10*dpr,y);y+=15*dpr;}g.restore();}
+function lzSq(g,x,y,q,dpr,col){const s=(3+4*q)*dpr;g.globalAlpha=Math.min(1,0.4+0.6*q);g.strokeStyle=col;g.lineWidth=1.7*dpr;g.strokeRect(x-s,y-s,2*s,2*s);}
+{const _p=edPaint;edPaint=function(){const r=_p.apply(this,arguments);try{if(LZ.length&&$("edOn").checked&&$("v3on").checked&&ED.geo){const G=ED.geo,cv=$("edCv"),g=cv.getContext("2d"),W=cv.width;g.save();
+    for(const z of LZ){if(!z.on)continue;for(const p of z.spots){const q=Math.sqrt(p.I/z.Im);if(q<0.05)continue;lzSq(g,G.cx+p.gx*G.sc,G.cy+p.gy*G.sc,q,G.dpr,z.color);}}g.restore();lzLegend(g,W,G.dpr,8*G.dpr);}}catch(e){}return r;};}
+if(typeof drawMain==="function"&&typeof cvM!=="undefined"){const _m=drawMain;drawMain=function(){const r=_m.apply(this,arguments);try{if(LZ.length&&$("lzMain")&&$("lzMain").checked&&S.img&&typeof TM==="undefined"){const scp=+(($("scale")&&$("scale").value)||0);if(scp>0){
+    const g=cvM.getContext("2d"),dpr=cvM.width/Math.max(1,cvM.getBoundingClientRect().width),P=(x,y)=>[(x-S.ox)*S.zoom,(y-S.oy)*S.zoom],hk=$("lzHkl").checked;g.save();g.font=`600 ${9*dpr}px "IBM Plex Mono",monospace`;g.textAlign="center";g.textBaseline="bottom";
+    const pts=[];for(const z of LZ){if(!z.on)continue;for(const p of z.spots){const q=Math.sqrt(p.I/z.Im);if(q<0.05)continue;const [X,Y]=P(S.cx+p.gx*10/scp,S.cy+p.gy*10/scp);if(X<-20||Y<-20||X>cvM.width+20||Y>cvM.height+20)continue;lzSq(g,X,Y,q,dpr,z.color);
+      if(hk)pts.push({x:X,y:Y,q,p,c:z.color});}}g.restore();if(pts.length)lzLabels(g,pts,dpr);lzLegend(g,cvM.width,dpr,30*dpr);}}}catch(e){}return r;};}
+/* new image / folder → locked zones go (they belong to that pattern); the notes file of the pattern brings them back */
+{const _t=typedLabelsClear;typedLabelsClear=function(){if(LZ.length){LZ.length=0;try{lzAfter();}catch(e){}}return _t.apply(this,arguments);};}
+{const _g=layoutGet;layoutGet=function(){const o=_g.apply(this,arguments)||{};o.lz=LZ.map(z=>({leg:z.leg,u:z.u,off:z.off,rot:z.rot,R:z.R,color:z.color,on:z.on,spots:z.spots,Im:z.Im}));return o;};
+ const _s=layoutSet;layoutSet=function(o){const r=_s.apply(this,arguments);try{if(o&&Array.isArray(o.lz)){LZ.length=0;for(const z of o.lz)LZ.push(Object.assign({id:++lzSeq,ph:S.phases.find(p=>(p.legend||"").trim()===z.leg)||null},z));lzAfter();}}catch(e){}return r;};}
+
+/* white (live) simulated spots on / off — e.g. after locking, to see only the locked zones on your pattern */
+{const lk=$("edLock");if(lk){const l=document.createElement("label");l.title="Show the simulated spots of the current orientation (white circles) and their hkl labels; untick to see only your pattern and the locked zones";
+  l.innerHTML='<input id="edLive" type="checkbox" checked> simulated spots';lk.after(l);try{const v=localStorage.getItem("ed-edLive");if(v!=null)$("edLive").checked=v==="1";}catch(e){}
+  $("edLive").addEventListener("change",()=>{try{localStorage.setItem("ed-edLive",$("edLive").checked?"1":"0");}catch(e){}edDraw();});try{SIM_IDS.push("edLive");}catch(e){}}}
+
+/* hkl of the locked zones: on the simulated pattern too (not only on your pattern), labels kept apart */
+function lzLabels(g,pts,dpr){const used=[],fs=9*dpr;g.save();g.font=`600 ${fs}px "IBM Plex Mono",monospace`;g.textAlign="center";g.textBaseline="bottom";g.lineWidth=3*dpr;g.strokeStyle="rgba(0,0,0,.75)";g.globalAlpha=1;
+  for(const o of pts.sort((a,b)=>b.q-a.q)){if(o.q<0.08)continue;if(used.some(u=>Math.abs(u[0]-o.x)<fs*2.6&&Math.abs(u[1]-o.y)<fs*1.3))continue;used.push([o.x,o.y]);const t=`${o.p.h} ${o.p.k} ${o.p.l}`,y=o.y-(5+4*o.q)*dpr;g.strokeText(t,o.x,y);g.fillStyle=o.c;g.fillText(t,o.x,y);if(used.length>160)break;}g.restore();}
+{const _p=edPaint;edPaint=function(){const r=_p.apply(this,arguments);try{if(LZ.length&&$("lzHkl")&&$("lzHkl").checked&&$("edOn").checked&&$("v3on").checked&&ED.geo){const G=ED.geo,g=$("edCv").getContext("2d"),pts=[];
+    for(const z of LZ){if(!z.on)continue;for(const p of z.spots)pts.push({x:G.cx+p.gx*G.sc,y:G.cy+p.gy*G.sc,q:Math.sqrt(p.I/z.Im),p,c:z.color});}lzLabels(g,pts,G.dpr);}}catch(e){}return r;};}
+{const h=$("lzHkl");if(h){h.closest("label").title="hkl labels of the locked spots (simulated pattern and your pattern)";h.addEventListener("change",()=>{try{edDraw();}catch(e){}});
+  if(typeof TM!=="undefined"){const w=h.closest("label");w.style.display="";delete w.dataset.isHide;}}}
+
+/* zone axis boxes: the orientation follows as you type (no → needed) */
+{let T=0;const ids=["v3zu","v3zv","v3zw"];if(ids.every(i=>$(i))){const go=()=>{const v=ids.map(i=>$(i).value.trim());if(v.some(x=>x===""||x==="-"||!isFinite(+x)))return;const u=v.map(x=>Math.round(+x));if(!u[0]&&!u[1]&&!u[2])return;try{v3Zone(u);}catch(e){}};
+  for(const i of ids)$(i).addEventListener("input",()=>{clearTimeout(T);T=setTimeout(go,250);});
+  const s=$("v3zu").closest("span");if(s)s.title="Zone axis [u v w]: the 3D structure (and the simulated pattern) turns to it as you type or use the arrows. While you rotate the structure, the boxes follow the nearest zone axis (the angle to it is shown)";}}
 </script>
 
 </body></html>
